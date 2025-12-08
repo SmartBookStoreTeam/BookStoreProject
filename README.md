@@ -1,4 +1,4 @@
-# Online Smart Online Bookstore
+# Smart Online Bookstore
 
 ![Project Badge](https://img.shields.io/badge/status-Active-brightgreen)
 
