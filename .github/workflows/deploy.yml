@@ -9,35 +9,33 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    # 👇 الجزء الجديد: بنقول للروبوت شغلك كله جوه فولدر frontend
+    
     defaults:
       run:
         working-directory: ./frontend
 
     steps:
-      # 1. تنزيل الكود
+     
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # 2. تجهيز Node.js
+     
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # 3. تثبيت المكتبات
+      
       - name: Install Dependencies
         run: npm install
 
-      # 4. اختبار الكود
-     # - name: Run Linter
-     #   run: npm run lint
+     
 
-      # 5. البناء (Build)
+      
       - name: Build Project
         run: npm run build
 
-      # 6. إعداد AWS
+      
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -45,10 +43,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # 7. الرفع لـ S3 (لاحظ إن المسار لسه ./dist لأنه نسبي للـ frontend)
+      
       - name: Deploy to S3
         run: aws s3 sync ./dist s3://${{ secrets.AWS_S3_BUCKET }} --delete
 
-      # 8. مسح الكاش (مش محتاج working-directory بس مش هيضر)
+      
       - name: Invalidate CloudFront
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DIST_ID }} --paths "/*"
