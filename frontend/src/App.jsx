@@ -20,7 +20,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Register from "./pages/Register";
-import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import UserLogin from "./pages/UserLogin";
 
 function App() {
@@ -42,7 +42,7 @@ function App() {
 
           {/* Auth Routes */}
           <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<AdminLogin />} />
           <Route path="/user-login" element={<UserLogin />} />
 
           {/* Admin Routes - Protected */}
