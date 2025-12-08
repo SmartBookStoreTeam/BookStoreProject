@@ -5,15 +5,25 @@ import { useState } from "react";
 import { useCart } from "../hooks/useCart";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const links = navLinks;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { getCartItemsCount } = useCart();
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
+
+  const firstName = user?.name?.split(" ")[0];
+  const firstLetter = firstName?.charAt(0)?.toUpperCase();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
+
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  const toggleDropdown = () => setOpenDropdown(!openDropdown);
+  const closeDropdown = () => setOpenDropdown(false);
 
   const toggleTheme = () => {
     if (theme === "light") setTheme("dark");
@@ -73,22 +83,61 @@ const Header = () => {
               )}
             </Link>
 
-            {/* Register */}
-            <Link
-              to="/register"
-              className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
-            >
-              <User size={24} />
-              Register
-            </Link>
-
             {/* Theme Switch */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full bg-zinc-300 dark:bg-zinc-700 text-indigo-900 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 transition"
+              className="p-2 rounded-full cursor-pointer bg-zinc-300 dark:bg-zinc-700 text-indigo-900 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 transition"
             >
               {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
             </button>
+
+
+            {/* Register */}
+            {!user ? (
+              <Link
+                to="/register"
+                className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+              >
+                <User size={24} />
+                Register
+              </Link>
+            ) : (
+              <div className="relative">
+                {/* Avatar + Name */}
+                <button
+                  onClick={toggleDropdown}
+                  className="flex items-center gap-3 text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+                >
+                  <div className="w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 flex items-center justify-center font-semibold">
+                    {firstLetter}
+                  </div>
+                  {firstName}
+                </button>
+
+                {/* Dropdown */}
+                {openDropdown && (
+                  <div className="absolute right-0 mt-2 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50">
+                    <Link
+                      to="/profile"
+                      onClick={closeDropdown}
+                      className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 dark:text-white"
+                    >
+                      Profile
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        closeDropdown();
+                      }}
+                      className="w-full text-left px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 dark:text-red-500 font-bold cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mobile Cart + Menu */}
@@ -153,18 +202,6 @@ const Header = () => {
               </Link>
             </li>
 
-            {/* Register */}
-            <li>
-              <Link
-                to="/register"
-                onClick={closeMenu}
-                className="flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-              >
-                <User size={18} />
-                Register
-              </Link>
-            </li>
-
             {/* Dark Mode */}
             <li>
               <button
@@ -174,6 +211,42 @@ const Header = () => {
                 {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
                 {theme === "light" ? "Dark Mode" : "Light Mode"}
               </button>
+            </li>
+
+            {/* Register */}
+            <li>
+              {!user ? (
+                <Link
+                  to="/register"
+                  onClick={closeMenu}
+                  className="flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                >
+                  <User size={18} /> Register
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/profile"
+                    onClick={closeMenu}
+                    className="flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 flex items-center justify-center font-semibold">
+                      {firstLetter}
+                    </div>
+                    {firstName}
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      logout();
+                      closeMenu();
+                    }}
+                    className="flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700 text-left"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
             </li>
           </ul>
         </div>

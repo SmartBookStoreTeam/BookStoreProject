@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cors from "cors";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import { process } from "process";
 
 // import Routes
 import authRoutes from "./routes/authRoutes.js";
