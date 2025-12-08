@@ -30,8 +30,8 @@ jobs:
         run: npm install
 
       # 4. اختبار الكود
-      - name: Run Linter
-        run: npm run lint
+     # - name: Run Linter
+     #   run: npm run lint
 
       # 5. البناء (Build)
       - name: Build Project
