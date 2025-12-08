@@ -17,7 +17,7 @@ const Landing = () => {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
             {/* Text Content */}
             <div className="w-full lg:max-w-xl text-center lg:text-left space-y-6 flex flex-col justify-center order-2 lg:order-1">
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-indigo-950 leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-indigo-950 leading-tight ">
                 Buy and sell your books{" "}
                 <span className="text-indigo-500">for the best prices</span>
               </h1>
