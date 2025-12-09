@@ -5,13 +5,13 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
     "dev": "npm run dev:frontend",
-    "dev:backend": "nodemon server.js",
     "dev:frontend": "vite",
+    "dev:backend": "nodemon backend/server.js",
+    "start": "node server.js",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "@tailwindcss/vite": "^4.1.14",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
+    "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
