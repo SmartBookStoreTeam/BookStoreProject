@@ -18,7 +18,6 @@
   </body>
 
   <script>
-    // Apply theme before React renders (avoid flicker)
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       document.documentElement.classList.add("dark");
