@@ -7,6 +7,7 @@ import Sell from "./pages/Sell";
 import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import UserBooks from "./pages/UserBooks";
+import BookDetails from "./pages/BookDetails";
 import { useScrollToTop } from "./hooks/useScrollTop";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
@@ -22,9 +23,11 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Register from "./pages/Register";
 import AdminLogin from "./pages/AdminLogin";
 import UserLogin from "./pages/UserLogin";
+import { useTheme } from "./hooks/useTheme";
 
 function App() {
   useScrollToTop();
+  useTheme();
   return (
     <AuthProvider>
       <CartProvider>
@@ -35,6 +38,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="explore" element={<Explore />} />
             <Route path="shop" element={<Shop />} />
+            <Route path="book/:id" element={<BookDetails />} />
             <Route path="sell" element={<Sell />} />
             <Route path="cart" element={<Cart />} />
             <Route path="user-books" element={<UserBooks />} />

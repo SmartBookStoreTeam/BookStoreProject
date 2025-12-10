@@ -73,7 +73,7 @@ const UserBooks = () => {
                       </h3>
                       <button
                         onClick={() => removeUserBook(book.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
+                        className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
                         title="Remove book"
                       >
                         <Trash2 size={18} />
@@ -104,7 +104,7 @@ const UserBooks = () => {
 
                     <button
                       onClick={() => addToCart(book)}
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      className="w-full bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
                     >
                       <ShoppingCart size={16} />
                       Add to Cart

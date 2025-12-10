@@ -1,5 +1,7 @@
 import { assets } from "../assets/assets";
 import { Search, MoreHorizontal } from "lucide-react";
+
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
 const Landing = () => {

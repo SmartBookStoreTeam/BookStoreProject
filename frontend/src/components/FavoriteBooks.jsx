@@ -12,7 +12,9 @@ const FavoriteBooks = () => {
 
   useEffect(() => {
     if (inView) {
-      let book = 0, user = 0, sold = 0;
+      let book = 0,
+        user = 0,
+        sold = 0;
       const interval = setInterval(() => {
         book = Math.min(book + 20, 800);
         user = Math.min(user + 15, 550);
@@ -20,7 +22,8 @@ const FavoriteBooks = () => {
         setBookCount(book);
         setUserCount(user);
         setSoldCount(sold);
-        if (book === 800 && user === 550 && sold === 1200) clearInterval(interval);
+        if (book === 800 && user === 550 && sold === 1200)
+          clearInterval(interval);
       }, 50);
       return () => clearInterval(interval);
     }
@@ -30,7 +33,6 @@ const FavoriteBooks = () => {
     <div ref={ref} className="bg-white dark:bg-zinc-900 transition-colors duration-300">
       <div className="container mx-auto px-6 md:px-20 py-12">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-          
           {/* Left Side */}
           <div className="w-full lg:w-1/2 flex justify-center lg:justify-start">
             <img

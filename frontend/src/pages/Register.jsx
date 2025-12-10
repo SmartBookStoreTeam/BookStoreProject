@@ -42,9 +42,8 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 transition-colors relative">
+  <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 transition-colors relative">
       {/* Back to Store Button */}
-
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-[#1a1a22] rounded-2xl shadow-xl p-8 border border-zinc-200 dark:border-zinc-700 transition-colors relative">
           {/* Close Button */}
@@ -141,7 +140,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 dark:bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-indigo-600 dark:bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "Creating account..." : "Register Account"}
             </button>
