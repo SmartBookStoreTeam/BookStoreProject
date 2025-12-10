@@ -29,7 +29,6 @@ const Carousel = ({ books }) => {
     return () => window.removeEventListener("resize", updateBooksPerView);
   }, []);
 
-  // Calculate item width based on container and gap
   useEffect(() => {
     if (containerRef.current && booksPerView > 0) {
       const containerWidth = containerRef.current.offsetWidth;
@@ -142,6 +141,7 @@ const Carousel = ({ books }) => {
                   <p className="text-xs text-indigo-400 dark:text-indigo-300  line-clamp-1 transition-colors duration-300">
                     {book.author} •
                   </p>
+
                   <div className="flex items-center">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star

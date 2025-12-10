@@ -54,6 +54,7 @@ const Register = () => {
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
+
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
