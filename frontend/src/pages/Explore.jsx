@@ -1,7 +1,7 @@
 import LandingExplore from "../components/LandingExplore";
 import Popular from "../components/Popular";
 import Releases from "../components/Releases";
-import Suggetion from "../components/Suggetion";
+import Suggestion from "../components/Suggestion";
 import TopRated from "../components/TopRated";
 
 const Explore = () => {
@@ -9,7 +9,7 @@ const Explore = () => {
     <LandingExplore />
     <Releases />
     <TopRated />
-    <Suggetion />
+    <Suggestion />
     <Popular />
   </div>;
 };

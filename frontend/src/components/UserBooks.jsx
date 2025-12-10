@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
-import { Users, ShoppingCart } from "lucide-react";
+import { Users, ShoppingCart, BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
 
 const UserBooks = () => {
@@ -23,17 +23,17 @@ const UserBooks = () => {
   };
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-12 bg-gray-50 dark:bg-zinc-900">
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Users className="w-8 h-8 text-green-600" />
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
               Books from Our Community
             </h2>
           </div>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-200 text-lg max-w-2xl mx-auto">
             Discover {userBooks.length} unique books listed by our community
             members
           </p>
@@ -44,15 +44,18 @@ const UserBooks = () => {
           {userBooks.slice(0, 4).map((book) => (
             <div
               key={book.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md transition-shadow"
             >
-              {/* Book Image */}
-              <div className="w-full h-48 bg-gray-100">
+              {/* Book Image*/}
+              <Link
+                to={`/book/${book._id || book.id}`}
+                className="w-full h-48 bg-gray-100 dark:bg-zinc-700 block cursor-pointer"
+              >
                 {book.images && book.images.length > 0 ? (
                   <img
                     src={book.images[0].preview}
                     alt={book.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -62,20 +65,25 @@ const UserBooks = () => {
                     </div>
                   </div>
                 )}
-              </div>
+              </Link>
 
               {/* Book Info */}
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-gray-900 line-clamp-2 flex-1 mr-2">
+                  <Link
+                    to={`/book/${book._id || book.id}`}
+                    className="font-semibold text-gray-900 dark:text-gray-200 line-clamp-2 flex-1 mr-2 hover:text-green-600 transition-colors cursor-pointer"
+                  >
                     {book.title}
-                  </h3>
+                  </Link>
                   <span className="text-green-600 font-bold text-lg">
                     ₹{book.price}
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-200 mb-2">
+                  by {book.author}
+                </p>
 
                 {/* Category and Condition */}
                 <div className="flex items-center gap-2 mb-3">
@@ -89,22 +97,33 @@ const UserBooks = () => {
 
                 {/* Description */}
                 {book.description && (
-                  <p className="text-sm text-gray-700 mb-4 line-clamp-2">
+                  <p className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-2">
                     {book.description}
                   </p>
                 )}
 
-                {/* Add to Cart Button */}
-                <button
-                  onClick={() => handleAddToCart(book)}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                >
-                  <ShoppingCart size={16} />
-                  Add to Cart
-                </button>
+                {/*Add to Cart, Details Buttons */}
+                <div className="flex gap-2">
+                  <Link
+                    to={`/book/${book._id || book.id}`}
+                    className="flex-1 text-center py-2 border border-indigo-500 dark:text-gray-200  dark:hover:bg-zinc-700 hover:bg-gray-100 rounded-lg transition-colors text-indigo-600 font-medium text-l"
+                  >
+                    Details
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(book);
+                    }}
+                    className="flex-1 bg-gray-900 dark:bg-indigo-800 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <ShoppingCart size={16} />
+                    Add to Cart
+                  </button>
+                </div>
 
                 {/* Seller Info */}
-                <div className="mt-2 text-xs text-gray-500">
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-200">
                   <p>From: {book.sellerName}</p>
                   <p>{book.sellerLocation}</p>
                 </div>
@@ -129,5 +148,4 @@ const UserBooks = () => {
     </section>
   );
 };
-
 export default UserBooks;

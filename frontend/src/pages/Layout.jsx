@@ -9,7 +9,7 @@ const Layout = () => {
       <Header />
 
       {/* Main content below */}
-      <main className="flex-1 pt-16 overflow-x-hidden">
+      <main className="flex-1 pt-16">
         {" "}
         {/* Added pt-16 for header spacing */}
         <Outlet />

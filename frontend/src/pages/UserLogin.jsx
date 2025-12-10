@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpenIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext";
 import { EyeIcon } from "lucide-react";
+import {
+  BookOpenIcon,
+  EyeSlashIcon,
+  ArrowLeftIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
-const LoginUser = () => {
+const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -36,9 +41,18 @@ const LoginUser = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 relative transition-colors">
+      {/* Back to Store Button */}
       <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-[#1a1a22] rounded-2xl shadow-xl dark:shadow-2xl p-8">
+     <div className="bg-white dark:bg-[#1a1a22] border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-xl dark:shadow-2xl p-8 relative">
+          {/* Close Button */}
+          <button
+            onClick={() => navigate("/")}
+            className="absolute top-4 right-4 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            aria-label="Close"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="h-12 w-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
@@ -70,7 +84,7 @@ const LoginUser = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0f0f14] text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 placeholder="example@mail.com"
                 required
               />
@@ -108,11 +122,11 @@ const LoginUser = () => {
                 <input
                   type="checkbox"
                   id="remember"
-                  className="h-4 w-4 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
+                  className="h-4 w-4 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer"
                 />
                 <label
                   htmlFor="remember"
-                  className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                  className="ml-2 block text-sm text-indigo-700 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 cursor-pointer"
                 >
                   Remember me
                 </label>
@@ -121,7 +135,7 @@ const LoginUser = () => {
               <button
                 type="button"
                 onClick={() => navigate("/forgot-password")}
-                className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
+                className="text-sm text-indigo-700 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium cursor-pointer"
               >
                 Forgot password?
               </button>
@@ -130,7 +144,7 @@ const LoginUser = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
@@ -141,7 +155,7 @@ const LoginUser = () => {
               Don't have an account?{" "}
               <button
                 onClick={() => navigate("/register")}
-                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
+                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium cursor-pointer"
               >
                 Sign up
               </button>
@@ -153,4 +167,4 @@ const LoginUser = () => {
   );
 };
 
-export default LoginUser;
+export default UserLogin;

@@ -1,17 +1,26 @@
 import { useEffect, useState } from "react";
 
 export const useTheme = () => {
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "system");
+  const [theme, setTheme] = useState(()=>{
+    if(typeof window !=="undefined"){
+      return localStorage.getItem("theme") || "system";
+    }
+    return "system";
+  })
 
   useEffect(() => {
     const root = window.document.documentElement;
 
     if (theme === "dark") {
       root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
+      if(typeof window !=="undefined"){
+        localStorage.setItem("theme", "dark");
+      }
     } else if (theme === "light") {
       root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
+      if(typeof window !=="undefined"){
+        localStorage.setItem("theme", "light");
+      }
     } else {
       // system mode
       const systemPrefersDark = window.matchMedia(
@@ -20,8 +29,9 @@ export const useTheme = () => {
 
       if (systemPrefersDark) root.classList.add("dark");
       else root.classList.remove("dark");
-
-      localStorage.setItem("theme", "system");
+      if(typeof window !=="undefined"){
+        localStorage.setItem("theme", "system");
+      }
     }
   }, [theme]);
 

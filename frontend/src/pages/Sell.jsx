@@ -42,7 +42,7 @@ const Sell = () => {
   });
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -89,7 +89,8 @@ const Sell = () => {
     if (!phone) return true; // Phone is optional
 
     // Remove all spaces, hyphens, parentheses, and plus signs for cleaning
-    const cleanPhone = phone.replace(/[\s\-\(\)\+]/g, "");
+   // eslint-disable-next-line no-useless-escape
+   const cleanPhone = phone.replace(/[\s\-\(\)\+]/g, "");
 
     // Egyptian phone number patterns:
     // 1) Mobile numbers: 01XXXXXXXXX (11 digits starting with 01)
@@ -384,6 +385,47 @@ const Sell = () => {
     // Clear errors when going back
     setErrors({});
   };
+   const goToStep = (targetStep) => {
+    // If going to a previous step, allow it without validation
+    if (targetStep < currentStep) {
+      setCurrentStep(targetStep);
+      setErrors({});
+      return;
+    }
+
+    // If going to the same step, do nothing
+    if (targetStep === currentStep) {
+      return;
+    }
+
+    // If going to a future step, validate all steps up to the current one
+    // First, validate the current step
+    if (!validateStep(currentStep)) {
+      showToast("Please complete the current step before proceeding", "error");
+      return;
+    }
+
+    // If going to next step, validate current step only
+    if (targetStep === currentStep + 1) {
+      setCurrentStep(targetStep);
+      return;
+    }
+
+    // If going to a step beyond next, validate all intermediate steps
+    let allValid = true;
+    for (let step = currentStep; step < targetStep; step++) {
+      if (!validateStep(step)) {
+        allValid = false;
+        showToast(`Please complete step ${step} before proceeding`, "error");
+        break;
+      }
+    }
+
+    if (allValid) {
+      setCurrentStep(targetStep);
+      setErrors({});
+    }
+  };
 
   const handlePublish = async () => {
     // Validate all steps before publishing
@@ -483,7 +525,7 @@ const Sell = () => {
       reader.onerror = (error) => reject(error);
     });
   };
-  
+
   const steps = [
     { number: 1, title: "Book Details" },
     { number: 2, title: "Upload Images" },
@@ -519,31 +561,43 @@ const Sell = () => {
         </div>
 
         {/* Progress Steps */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex items-center justify-between">
+            <div className="max-w-4xl mx-auto mb-8">
+          <div className="flex flex-col sm:flex-row md:items-center md:justify-between gap-6">
             {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center">
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+              <div
+                key={step.number}
+                className="flex items-center w-full sm:w-auto relative"
+              >
+                <button
+                  type="button"
+                  onClick={() => goToStep(step.number)}
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
                     currentStep >= step.number
-                      ? "bg-indigo-600 border-indigo-600 text-white"
-                      : "border-gray-300 text-gray-500"
-                  } font-semibold`}
+                      ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 hover:scale-110"
+                      : "border-gray-300 text-gray-500 hover:border-gray-400 hover:bg-gray-50"
+                  } font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+                  title={
+                    currentStep >= step.number
+                      ? `Go to step ${step.number}`
+                      : `Complete step ${currentStep} first`
+                  }
                 >
                   {step.number}
-                </div>
-                <span
-                  className={`ml-2 font-medium ${
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToStep(step.number)}
+                  className={`ml-2 font-medium transition-colors cursor-pointer hover:underline focus:outline-none ${
                     currentStep >= step.number
                       ? "text-indigo-600"
                       : "text-gray-500"
                   }`}
                 >
                   {step.title}
-                </span>
+                </button>
                 {index < steps.length - 1 && (
                   <div
-                    className={`w-16 h-0.5 mx-4 ${
+                    className={`sm:block lg:block w-[1.2px] sm:w-8 md:w-16 sm:h-0.5 h-4 mx-4 absolute left-1 translate-y-8  sm:static sm:translate-y-0 ${
                       currentStep > step.number
                         ? "bg-indigo-600"
                         : "bg-gray-300"
@@ -1204,7 +1258,7 @@ const Sell = () => {
                       <button
                         onClick={handlePublish}
                         disabled={isPublishing}
-                        className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
                       >
                         {isPublishing ? (
                           <>
@@ -1228,15 +1282,17 @@ const Sell = () => {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:justify-between   mt-8 pt-6 border-t border-gray-200">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`px-6 py-3 rounded-lg font-medium ${
                   currentStep === 1
-                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? " bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : currentStep === 4
+                    ? "hidden sm:block bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
                 }`}
               >
                 Previous
@@ -1246,27 +1302,27 @@ const Sell = () => {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
+                  className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 cursor-pointer"
                 >
                   {currentStep === 3 ? "Review & Publish" : "Next"}
                 </button>
               ) : (
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
+                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 cursor-pointer"
                   >
                     Edit Details
                   </button>
                   <button
                     onClick={handlePublish}
                     disabled={isPublishing}
-                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer"
                   >
                     {isPublishing ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        <div className=" animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                         Publishing...
                       </>
                     ) : (
