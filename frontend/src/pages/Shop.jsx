@@ -1,10 +1,96 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Search, Filter, Star, ShoppingCart, Grid, List } from "lucide-react";
 import { useCart } from "../hooks/useCart";
+import { getBooks } from "../api/booksApi";
 import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import Loading from "../components/loading";
 import { useNavigate } from "react-router-dom";
+// Mock data for fallback
+const mockBooks = [
+  {
+    _id: "1",
+    title: "Cooking Made Easy",
+    author: "Emily Clark",
+    price: 9.99,
+    category: "cooking",
+    rate: 4,
+    desc: "Simple and delicious recipes for everyday cooking",
+    img: assets.book1,
+  },
+  {
+    _id: "2",
+    title: "Healthy Living",
+    author: "John Miller",
+    price: 12.99,
+    category: "health",
+    rate: 5,
+    desc: "Your guide to nutritious meals and balanced life",
+    img: assets.book2,
+  },
+  {
+    _id: "3",
+    title: "Creative Baking",
+    author: "Sarah Jones",
+    price: 7.49,
+    category: "baking",
+    rate: 3,
+    desc: "Fun and easy recipes for baking enthusiasts",
+    img: assets.book3,
+  },
+  {
+    _id: "4",
+    title: "Everyday Desserts",
+    author: "Mark Lee",
+    price: 10.99,
+    category: "desserts",
+    rate: 4,
+    desc: "Quick and tasty desserts for everyone",
+    img: assets.book4,
+  },
+  {
+    _id: "5",
+    title: "Italian Cuisine Masterclass",
+    author: "Marco Romano",
+    price: 15.99,
+    category: "cooking",
+    rate: 5,
+    desc: "Authentic Italian recipes from traditional kitchens",
+    img: assets.releaseBook1,
+  },
+  {
+    _id: "6",
+    title: "Vegan Delights",
+    author: "Lisa Green",
+    price: 11.49,
+    category: "health",
+    rate: 4,
+    desc: "Plant-based recipes for healthy living",
+    img: assets.releaseBook2,
+  },
+  {
+    _id: "7",
+    title: "Artisan Bread Making",
+    author: "Robert Baker",
+    price: 8.99,
+    category: "baking",
+    rate: 4,
+    desc: "Master the art of bread making at home",
+    img: assets.releaseBook3,
+  },
+  {
+    _id: "8",
+    title: "Quick Weeknight Meals",
+    author: "Jennifer Cook",
+    price: 6.99,
+    category: "cooking",
+    rate: 3,
+    desc: "Fast and delicious meals for busy weeknights",
+    img: assets.book1,
+  },
+];
 
 const Shop = () => {
   const { addToCart, userBooks } = useCart();
@@ -14,163 +100,70 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState("grid");
   const [priceRange, setPriceRange] = useState([0, 50]);
+  const [apiBooks, setApiBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  
-  // Sample books data
-  const regularBooks = [
-    {
-      id: 1,
-      img: assets.book1,
-      title: "Cooking Made Easy",
-      author: "Emily Clark",
-      rate: 4,
-      desc: "Simple and delicious recipes for everyday cooking",
-      price: 9.99,
-      category: "cooking",
-    },
-    {
-      id: 2,
-      img: assets.book2,
-      title: "Healthy Living",
-      author: "John Miller",
-      rate: 5,
-      desc: "Your guide to nutritious meals and balanced life",
-      price: 12.99,
-      category: "health",
-    },
-    {
-      id: 3,
-      img: assets.book3,
-      title: "Creative Baking",
-      author: "Sarah Jones",
-      rate: 3,
-      desc: "Fun and easy recipes for baking enthusiasts",
-      price: 7.49,
-      category: "baking",
-    },
-    {
-      id: 4,
-      img: assets.book4,
-      title: "Everyday Desserts",
-      author: "Mark Lee",
-      rate: 4,
-      desc: "Quick and tasty desserts for everyone",
-      price: 10.99,
-      category: "desserts",
-    },
-    {
-      id: 5,
-      img: assets.releaseBook1,
-      title: "Italian Cuisine Masterclass",
-      author: "Marco Romano",
-      rate: 5,
-      desc: "Authentic Italian recipes from traditional kitchens",
-      price: 15.99,
-      category: "cooking",
-    },
-    {
-      id: 6,
-      img: assets.releaseBook2,
-      title: "Vegan Delights",
-      author: "Lisa Green",
-      rate: 4,
-      desc: "Plant-based recipes for healthy living",
-      price: 11.49,
-      category: "health",
-    },
-    {
-      id: 7,
-      img: assets.releaseBook3,
-      title: "Artisan Bread Making",
-      author: "Robert Baker",
-      rate: 4,
-      desc: "Master the art of bread making at home",
-      price: 8.99,
-      category: "baking",
-    },
-    {
-      id: 8,
-      img: assets.book1,
-      title: "Quick Weeknight Meals",
-      author: "Jennifer Cook",
-      rate: 3,
-      desc: "Fast and delicious meals for busy weeknights",
-      price: 6.99,
-      category: "cooking",
-    },
-    {
-      id: 9,
-      img: assets.book2,
-      title: "Mediterranean Diet",
-      author: "Maria Santos",
-      rate: 5,
-      desc: "Healthy Mediterranean recipes for longevity",
-      price: 13.99,
-      category: "health",
-    },
-    {
-      id: 10,
-      img: assets.book3,
-      title: "French Pastries",
-      author: "Pierre Dubois",
-      rate: 4,
-      desc: "Classic French pastry techniques made easy",
-      price: 14.99,
-      category: "baking",
-    },
-    {
-      id: 11,
-      img: assets.book4,
-      title: "Chocolate Heaven",
-      author: "Anna Sweet",
-      rate: 5,
-      desc: "Decadent chocolate recipes for every occasion",
-      price: 12.49,
-      category: "desserts",
-    },
-    {
-      id: 12,
-      img: assets.releaseBook1,
-      title: "Asian Street Food",
-      author: "Kenji Yamamoto",
-      rate: 4,
-      desc: "Authentic Asian street food recipes",
-      price: 11.99,
-      category: "cooking",
-    },
-  ];
+  // Fetch books from API
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        const books = await getBooks();
+        if (books && books.length > 0) {
+          setApiBooks(books);
+          // Update price range based on actual book prices
+          const prices = books.map((b) => b.price);
+          const userBookPrices = userBooks.map((b) => b.price || 0);
+          const maxPrice = Math.max(...prices, ...userBookPrices, 50);
+          setPriceRange([0, Math.ceil(maxPrice)]);
+        } else {
+          // Use mock data if API returns empty
+          setApiBooks(mockBooks);
+          const prices = mockBooks.map((b) => b.price);
+          const maxPrice = Math.max(...prices, 50);
+          setPriceRange([0, Math.ceil(maxPrice)]);
+        }
+      } catch (error) {
+        console.error("Error fetching books:", error);
+        // Use mock data as fallback
+        setApiBooks(mockBooks);
+        const prices = mockBooks.map((b) => b.price);
+        const maxPrice = Math.max(...prices, 50);
+        setPriceRange([0, Math.ceil(maxPrice)]);
+        console.log("Using mock data as fallback");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Combine regular books + user books
+    fetchBooks();
+  }, [userBooks]);
+
+  // Use API books or mock books as fallback
+  const storeBooks = apiBooks.length > 0 ? apiBooks : mockBooks;
   const allBooks = [
-    ...regularBooks.map((book) => ({ ...book, type: "regular" })),
+    ...storeBooks.map((book) => ({ ...book, type: "regular" })),
     ...userBooks.map((book) => ({ ...book, type: "user" })),
   ];
 
+  // Get unique categories from all books
+  const allCategories = [
+    ...new Set([
+      ...storeBooks.map((b) => b.category),
+      ...userBooks.map((b) => b.category),
+    ]),
+  ].filter(Boolean);
+
   const categories = [
-    { value: "all", label: "All Categories", count: regularBooks.length },
-    {
-      value: "cooking",
-      label: "Cooking",
-      count: regularBooks.filter((book) => book.category === "cooking").length,
-    },
-    {
-      value: "baking",
-      label: "Baking",
-      count: regularBooks.filter((book) => book.category === "baking").length,
-    },
-    {
-      value: "desserts",
-      label: "Desserts",
-      count: regularBooks.filter((book) => book.category === "desserts").length,
-    },
-    {
-      value: "health",
-      label: "Health",
-      count: regularBooks.filter((book) => book.category === "health").length,
-    },
+    { value: "all", label: "All Categories", count: allBooks.length },
+    ...allCategories.map((cat) => ({
+      value: cat,
+      label: cat.charAt(0).toUpperCase() + cat.slice(1),
+      count: allBooks.filter((book) => book.category === cat).length,
+    })),
   ];
 
   // Book types for filtering
@@ -213,7 +206,6 @@ const Shop = () => {
       navigate("/register");
       return;
     }
-
     addToCart(book);
     toast.success(`"${book.title}" added to cart!`, {
       duration: 1500,
@@ -352,9 +344,15 @@ const Shop = () => {
 
         {/* Results Count */}
         <div className="flex justify-between items-center mb-6">
-          <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
-            Showing {filteredBooks.length} of {allBooks.length} books
-          </p>
+          {loading ? (
+            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
+              Loading books...
+            </p>
+          ) : (
+            <p className="text-gray-600">
+              Showing {filteredBooks.length} of {allBooks.length} books
+            </p>
+          )}
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
             <Filter size={16} />
             <span>Filtered</span>
@@ -362,7 +360,11 @@ const Shop = () => {
         </div>
 
         {/* Books Grid/List */}
-        {filteredBooks.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center">
+            <Loading/>
+          </div>
+        ) : filteredBooks.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 dark:text-gray-600 mb-4 transition-colors duration-300">
               <Search size={48} className="mx-auto" />
@@ -387,32 +389,48 @@ const Shop = () => {
                 key={book.id}
                 className={
                   viewMode === "grid"
-                    ? "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300"
+                    ? "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex flex-col"
                     : "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex"
                 }
               >
-                {/* Book Image */}
-                <div
+                {/* Book Image*/}
+                <Link
+                  to={`/book/${book._id || book.id}`}
                   className={
                     viewMode === "grid"
-                      ? "w-full h-[250px]"
-                      : "w-32 h-40 shrink-0"
+                      ? "w-full h-[250px] block cursor-pointer"
+                      : "w-32 h-40 shrink-0 block cursor-pointer"
                   }
                 >
                   <img
-                    src={book.img}
+                    src={
+                      book.img ||
+                      book.image ||
+                      (book.images && book.images[0]?.preview) ||
+                      book.images?.[0] ||
+                      "/placeholder-book.jpg"
+                    }
                     alt={book.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                   />
-                </div>
+                </Link>
 
                 {/* Book Info */}
-                <div className={viewMode === "grid" ? "p-4" : "p-6 flex-1"}>
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "p-4 flex flex-col flex-1"
+                      : "p-6 flex-1"
+                  }
+                >
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 transition-colors duration-300">
+                    <Link
+                      to={`/book/${book._id || book.id}`}
+                      className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors duration-300 cursor-pointer"
+                    >
                       {book.title}
-                    </h3>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-bold text-lg transition-colors duration-300">
+                    </Link>
+                    <span className="text-indigo-600 font-bold text-lg dark:text-indigo-400 transition-colors duration-300">
                       ₹{book.price}
                     </span>
                   </div>
@@ -428,37 +446,52 @@ const Shop = () => {
                   </div>
 
                   {/* Rating */}
-                  <div className="flex items-center gap-1 mb-3">
-                    <div className="flex">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          className={`transition-colors duration-300 ${
-                            i < book.rate
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300 dark:text-gray-600"
-                          }`}
-                        />
-                      ))}
+                  {(book.rate || book.rating) && (
+                    <div className="flex items-center gap-1 mb-3">
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={`transition-colors duration-300 ${
+                              i < (book.rate || book.rating || 0)
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300 dark:text-gray-600"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                        ({book.rate})
+                      </span>
                     </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                      ({book.rate})
-                    </span>
+                  )}
+
+                  {(book.desc || book.description) && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-2 min-h-10 transition-colors duration-300">
+                      {book.desc || book.description}
+                    </p>
+                  )}
+
+                  {/* Add to Cart and View Details */}
+                  <div className="flex flex-col sm:flex-row mt-auto gap-2">
+                    <Link
+                      to={`/book/${book._id || book.id}`}
+                      className="flex-1 text-sm text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(book);
+                      }}
+                      className="flex-1 text-sm bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium  py-2 rounded-lg flex items-center justify-center gap-2 transition-colors duration-300 cursor-pointer"
+                    >
+                      <ShoppingCart size={16} />
+                      Add to Cart
+                    </button>
                   </div>
-
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-2 min-h-10 transition-colors duration-300">
-                    {book.desc}
-                  </p>
-
-                  {/* Add to Cart Button */}
-                  <button
-                    onClick={() => handleAddToCart(book)}
-                    className="w-full bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition-colors duration-300"
-                  >
-                    <ShoppingCart size={16} />
-                    Add to Cart
-                  </button>
                 </div>
               </div>
             ))}

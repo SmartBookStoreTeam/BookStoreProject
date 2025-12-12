@@ -4,7 +4,7 @@ const NationalBook = () => {
   return (
     <div className="bg-yellow-100 dark:bg-zinc-800 transition-colors duration-300 ">
       <div className="container mx-auto px-6 md:px-20 py-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6 md:gap-0">
           {/* Text Content */}
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-[24px] md:text-[28px] font-bold mb-6 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -14,7 +14,6 @@ const NationalBook = () => {
               Explore Now
             </button>
           </div>
-          
           {/* Award Image */}
           <div className="flex-1 flex justify-center md:justify-end">
             <img 

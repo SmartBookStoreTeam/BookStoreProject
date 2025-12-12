@@ -3,7 +3,7 @@ import { ShoppingCart, Menu, X, User } from "lucide-react"; // User icon for reg
 import { Link, NavLink } from "react-router-dom";
 import { useState } from "react";
 import { useCart } from "../hooks/useCart";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon} from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 
@@ -43,8 +43,8 @@ const Header = () => {
           </Link>
 
           {/* Desktop Links */}
-          <nav className="hidden md:flex items-center gap-8">
-            <ul className="flex gap-6 text-indigo-950 dark:text-zinc-200 font-medium">
+          <nav className="hidden md:flex items-center gap-8 md:ml-8">
+            <ul className="flex gap-4 md:gap-3 lg:gap-6 text-indigo-950 dark:text-zinc-200 font-medium">
               {links.map(({ label, to }) => (
                 <li key={to} className="relative">
                   <NavLink
@@ -69,7 +69,7 @@ const Header = () => {
           </nav>
 
           {/* Desktop Right Side */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6 flex-shrink-0">
             {/* Cart */}
             <Link to="/cart" className="relative">
               <ShoppingCart
@@ -192,25 +192,43 @@ const Header = () => {
 
             {/* Mobile Cart */}
             <li>
-              <Link
+              <NavLink
                 to="/cart"
                 onClick={closeMenu}
-                className="flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                className={({isActive})=>{
+                  return `flex items-center gap-2 py-2 px-4 rounded-lg transition-colors ${
+                    isActive
+                      ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
+                      : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                  }`
+                }}
               >
                 <ShoppingCart size={18} />
                 Cart {getCartItemsCount() > 0 && `(${getCartItemsCount()})`}
-              </Link>
+              </NavLink>
             </li>
 
             {/* Dark Mode */}
             <li>
-              <button
+              <div
                 onClick={toggleTheme}
-                className="flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-              >
-                {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-                {theme === "light" ? "Dark Mode" : "Light Mode"}
-              </button>
+                className="flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+              ><Moon size={18} />
+                <span className="text-indigo-950 dark:text-zinc-200 font-medium absolute left-11"> Dark Mode </span>
+                <button onClick={(e)=>{e.stopPropagation(); toggleTheme()}}
+                  type="button"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${
+                    theme === "dark"
+                      ? "bg-indigo-500 dark:bg-indigo-400"
+                      : "bg-zinc-300 dark:bg-zinc-600"
+                  }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform pointer-events-none ${
+                      theme === "dark" ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
             </li>
 
             {/* Register */}

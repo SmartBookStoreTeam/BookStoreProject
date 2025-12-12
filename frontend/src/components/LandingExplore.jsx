@@ -26,7 +26,7 @@ const LandingExplore = () => {
               />
             </div>
           </div>
-          <div className="w-full md:w-1/2 flex justify-center md:justify-end">
+            <div className="w-full md:w-1/2 flex justify-center md:justify-end">
             <img
               src={assets.landingBooks}
               alt="Books"
