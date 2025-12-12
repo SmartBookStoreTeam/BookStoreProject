@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {assets} from "../assets/assets";
 import { useAuth } from "../context/AuthContext";
+import Loading from "../components/loading";
 import { 
   Star, 
   ShoppingCart, 
@@ -66,8 +67,8 @@ const BookDetails = () => {
     return(
         <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center dark:bg-zinc-900 py-20">
             <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4 dark:border-gray-200"></div>
-                <p className="text-gray-600 dark:text-gray-200">Loading book details...</p>
+                <Loading/>
+                <p className="text-gray-600 dark:text-gray-200 mt-2">Loading book details...</p>
             </div>
         </div>
     );
@@ -89,10 +90,6 @@ const BookDetails = () => {
   const bookImage=book.images&&book.images.length>0
   ?(book.images[0].preview||book.images[0])
   :assets.placeholderBook;
-
-//if book is out of stock
-const isInStock=book.countInStock!==undefined?book.countInStock>0:true;
-
 return(
    <div className="min-h-screen bg-gray-50 pt-2 dark:bg-zinc-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-20">
@@ -184,24 +181,8 @@ return(
                 )}
               </div>
 
-              {/* Stock Status */}
-              <div className="mb-6">
-                {isInStock ? (
-                  <div className="flex items-center text-green-600">
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    <span className="font-medium">
-                      {book.countInStock !== undefined 
-                        ? `${book.countInStock} in stock` 
-                        : "In Stock"}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center text-red-600">
-                    <XCircle className="w-5 h-5 mr-2" />
-                    <span className="font-medium">Out of Stock</span>
-                  </div>
-                )}
-              </div>
+              
+      
 
               {/* Category and Condition */}
               <div className="flex flex-wrap gap-3 mb-6">
@@ -278,15 +259,12 @@ return(
               {/* Add to Cart Button */}
               <button
                 onClick={handleAddToCart}
-                disabled={!isInStock}
                 className={`w-full py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-colors ${
-                  isInStock
-                    ? "bg-gray-900 hover:bg-gray-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer"
-                    : "bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                  "bg-gray-900 hover:bg-gray-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer"
                 }`}
               >
                 <ShoppingCart className="w-5 h-5" />
-                {isInStock ? "Add to Cart" : "Out of Stock"}
+                Add to Cart
               </button>
 
               {/* Quick Actions */}

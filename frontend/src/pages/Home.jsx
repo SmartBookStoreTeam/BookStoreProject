@@ -12,7 +12,7 @@ const Home = () => {
       <SellerBooks />
       <FavoriteBooks />
       <NationalBook />
-      <UserBooks />
+      {/* <UserBooks /> */}
       <Releases />
     </div>
   );
