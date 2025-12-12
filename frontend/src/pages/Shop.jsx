@@ -94,7 +94,7 @@ const mockBooks = [
     rate: 3,
     desc: "Fast and delicious meals for busy weeknights",
     img: assets.book1,
-a  },
+  },
 ];
 
 const Shop = () => {
@@ -485,7 +485,7 @@ const Shop = () => {
                   <div className="flex flex-col sm:flex-row mt-auto gap-2">
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="flex-1 text-sm text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
+                      className="flex-1 text-sm text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium cursor-pointer"
                     >
                       View Details
                     </Link>
