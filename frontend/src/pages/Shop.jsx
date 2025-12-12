@@ -19,6 +19,7 @@ const mockBooks = [
     rate: 4,
     desc: "Simple and delicious recipes for everyday cooking",
     img: assets.book1,
+    countInStock: 10,
   },
   {
     _id: "2",
@@ -29,6 +30,7 @@ const mockBooks = [
     rate: 5,
     desc: "Your guide to nutritious meals and balanced life",
     img: assets.book2,
+    countInStock: 15,
   },
   {
     _id: "3",
@@ -39,6 +41,7 @@ const mockBooks = [
     rate: 3,
     desc: "Fun and easy recipes for baking enthusiasts",
     img: assets.book3,
+    countInStock: 8,
   },
   {
     _id: "4",
@@ -49,6 +52,7 @@ const mockBooks = [
     rate: 4,
     desc: "Quick and tasty desserts for everyone",
     img: assets.book4,
+    countInStock: 12,
   },
   {
     _id: "5",
@@ -59,6 +63,7 @@ const mockBooks = [
     rate: 5,
     desc: "Authentic Italian recipes from traditional kitchens",
     img: assets.releaseBook1,
+    countInStock: 6,
   },
   {
     _id: "6",
@@ -89,7 +94,7 @@ const mockBooks = [
     rate: 3,
     desc: "Fast and delicious meals for busy weeknights",
     img: assets.book1,
-  },
+a  },
 ];
 
 const Shop = () => {
@@ -361,8 +366,11 @@ const Shop = () => {
 
         {/* Books Grid/List */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center">
-            <Loading/>
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4 transition-colors duration-300"></div>
+            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
+              Loading books from server...
+            </p>
           </div>
         ) : filteredBooks.length === 0 ? (
           <div className="text-center py-12">
@@ -426,7 +434,7 @@ const Shop = () => {
                   <div className="flex justify-between items-start mb-2">
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors duration-300 cursor-pointer"
+                      className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 hover:text-indigo-600 transition-colors duration-300 cursor-pointer"
                     >
                       {book.title}
                     </Link>

@@ -401,7 +401,7 @@ const Sell = () => {
     // If going to a future step, validate all steps up to the current one
     // First, validate the current step
     if (!validateStep(currentStep)) {
-      showToast(`Please complete ${steps[currentStep-1].title} before proceeding`, "error");
+      showToast("Please complete the current step before proceeding", "error");
       return;
     }
 
@@ -416,7 +416,7 @@ const Sell = () => {
     for (let step = currentStep; step < targetStep; step++) {
       if (!validateStep(step)) {
         allValid = false;
-        showToast(`Please complete step ${step} before proceeding`, "error")
+        showToast(`Please complete step ${step} before proceeding`, "error");
         break;
       }
     }
@@ -562,7 +562,7 @@ const Sell = () => {
 
         {/* Progress Steps */}
             <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex flex-col sm:flex-row md:items-center md:justify-between gap-6 sm:gap-2 lg:whitespace-nowrap">
+          <div className="flex flex-col sm:flex-row md:items-center md:justify-between gap-6">
             {steps.map((step, index) => (
               <div
                 key={step.number}
@@ -587,7 +587,7 @@ const Sell = () => {
                 <button
                   type="button"
                   onClick={() => goToStep(step.number)}
-                  className={`ml-2 font-medium transition-colors cursor-pointer underline sm:no-underline hover:underline focus:outline-none ${
+                  className={`ml-2 font-medium transition-colors cursor-pointer hover:underline focus:outline-none ${
                     currentStep >= step.number
                       ? "text-indigo-600"
                       : "text-gray-500"

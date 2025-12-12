@@ -212,9 +212,9 @@ const Header = () => {
             <li>
               <div
                 onClick={toggleTheme}
-                className="flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-              ><Moon size={18} />
-                <span className="text-indigo-950 dark:text-zinc-200 font-medium absolute left-11"> Dark Mode </span>
+                className="flex items-center justify-between py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+              >
+                <span className="text-indigo-950 dark:text-zinc-200 font-medium"> Dark Mode </span>
                 <button onClick={(e)=>{e.stopPropagation(); toggleTheme()}}
                   type="button"
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${

@@ -119,11 +119,7 @@ const Carousel = ({ books }) => {
         <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300" />
       </button>
 
-      <div className="overflow-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      >
+      <div className="overflow-hidden">
         <div
           className="flex transition-transform duration-300 ease-in-out gap-4"
           style={{ transform: `translateX(-${translateX}px)` }}
@@ -156,7 +152,7 @@ const Carousel = ({ books }) => {
                 {/* Book Info */}
                 <Link
                   to={`/book/${book._id || book.id}`}
-                  className="text-[15px] font-bold mt-3 dark:text-gray-200 mb-1 text-center line-clamp-1 text-gray-700 hover:text-indigo-500 dark:hover:text-indigo-200 hover:underline transition-colors cursor-pointer"
+                  className="text-[15px] font-bold mt-3 dark:text-gray-200 mb-1 text-center line-clamp-1 hover:bg-gray-800 dark:hover:text-indigo-500 transition-colors cursor-pointer"
                 >
                   {book.title}
                 </Link>
@@ -186,7 +182,7 @@ const Carousel = ({ books }) => {
                 <div className="mt-auto w-full flex gap-2">
                   <Link
                     to={`/book/${book._id || book.id}`}
-                    className="flex-1 text-center px-2 py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm"
+                    className="flex-1 text-center  py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm"
                   >
                     Details
                   </Link>
@@ -195,10 +191,10 @@ const Carousel = ({ books }) => {
                       e.stopPropagation();
                       handleAddToCart(book);
                     }}
-                    className="flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                    className="flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
                   >
                     <ShoppingCart className="w-4 h-4" />
-                    <span className="text-xs whitespace-nowrap">Add To Cart</span>
+                    <span className="text-xs">Add To Cart</span>
                   </button>
                 </div>
               </div>
