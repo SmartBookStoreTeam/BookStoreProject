@@ -5,8 +5,19 @@ import Book from "../models/Book.js";
 // @access  Public -> all users
 export const getBooks = async (req, res, next) => {
   try {
-    const books = await Book.find();
-    res.json(books);
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+
+    const count = await Book.countDocuments();
+    const books = await Book.find()
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
+
+    res.json({
+      page,
+      pages: Math.ceil(count / pageSize),
+      books,
+    });
   } catch (error) {
     next(error);
   }
