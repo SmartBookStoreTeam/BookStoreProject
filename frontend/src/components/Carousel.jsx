@@ -120,10 +120,11 @@ const Carousel = ({ books }) => {
         <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300" />
       </button>
 
-      <div className="overflow-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      <div
+        className="overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <div
           className="flex transition-transform duration-300 ease-in-out gap-4"
@@ -173,13 +174,13 @@ const Carousel = ({ books }) => {
                         className={`${
                           i < book.rate
                             ? "text-yellow-500 fill-yellow-500"
-                      : "text-indigo-200  fill-indigo-200 "
+                            : "text-indigo-200  fill-indigo-200 "
                         } transition-colors duration-300`}
                       />
                     ))}
                   </div>
                 </div>
-                <p className="text-xs text-center text-gray-700  dark:text-gray-400 line-clamp-2 min-h-[2.5rem] transition-colors duration-30">
+                <p className="text-xs text-center text-gray-700  dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-30">
                   {book.desc}
                 </p>
                 {/* Add to Cart and Details Buttons */}
@@ -198,7 +199,9 @@ const Carousel = ({ books }) => {
                     className="flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
                   >
                     <ShoppingCart className="w-4 h-4" />
-                    <span className="text-xs whitespace-nowrap">Add To Cart</span>
+                    <span className="text-xs whitespace-nowrap">
+                      Add To Cart
+                    </span>
                   </button>
                 </div>
               </div>
@@ -216,7 +219,7 @@ const Carousel = ({ books }) => {
               onClick={() => setCurrentIndex(index)}
               className={`w-2 h-2  rounded-full transition-all duration-300 cursor-pointer ${
                 index === currentIndex
-                  ? "bg-gray-900 w-4 dark:bg-indigo-500 w-4"
+                  ? "bg-gray-900 dark:bg-indigo-500 w-4"
                   : "bg-gray-300 dark:bg-zinc-600 hover:bg-gray-400 dark:hover:bg-zinc-500"
               }`}
             />
