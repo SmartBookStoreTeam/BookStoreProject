@@ -1,4 +1,4 @@
-name: Build & Push React Docker
+name: Build & Deploy React Docker
 
 on:
   push:
@@ -26,3 +26,21 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/react-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/react-frontend:${{ github.sha }}
+          context: ./frontend       # <-- path to your frontend folder
+          file: ./frontend/Dockerfile   # <-- exact path to Dockerfile
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/react-frontend:latest
+            docker stop frontend || true
+            docker rm frontend || true
+            docker run -d \
+              --name frontend \
+              -p 80:80 \
+              --restart always \
+              ${{ secrets.DOCKERHUB_USERNAME }}/react-frontend:latest
