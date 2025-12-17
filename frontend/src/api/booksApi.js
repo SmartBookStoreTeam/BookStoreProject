@@ -7,7 +7,7 @@ import axios from "axios";
 import { assets } from "../assets/assets";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://13.61.144.63:5000/api",
 });
 
 // Mock data
