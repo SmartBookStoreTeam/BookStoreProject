@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://54.88.119.59:5000/api/admin",
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
