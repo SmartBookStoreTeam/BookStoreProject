@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { BookOpenIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { useTheme } from "../hooks/useTheme";
 import { EyeIcon } from "lucide-react";
 
 const AdminLogin = () => {
@@ -40,7 +39,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center p-4 transition-colors">
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-gray-900 p-8 border border-gray-200 dark:border-gray-700 transition-colors">
           {/* Logo */}
@@ -99,7 +98,7 @@ const AdminLogin = () => {
               <button
                 type="button"
                 onClick={togglePassword}
-                className="absolute right-3 top-[43px] cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                className="absolute right-3 top-10.75 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />

@@ -398,7 +398,7 @@ const Shop = () => {
                   to={`/book/${book._id || book.id}`}
                   className={
                     viewMode === "grid"
-                      ? "w-full h-[250px] block cursor-pointer"
+                      ? "w-full h-62.5 block cursor-pointer"
                       : "w-32 h-40 shrink-0 block cursor-pointer"
                   }
                 >
@@ -477,7 +477,7 @@ const Shop = () => {
                   <div className="flex flex-col sm:flex-row mt-auto gap-2">
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="flex-1 text-sm text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
+                      className="flex-1  text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
                     >
                       View Details
                     </Link>
