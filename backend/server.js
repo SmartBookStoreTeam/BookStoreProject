@@ -18,8 +18,20 @@ connectDB(); // Connect to MongoDB
 
 const app = express();
 
+const allowedOrigins = ["http://localhost:5174"];
+
+
 app.use(express.json()); // Parse JSON request body
-app.use(cors()); // Allow frontend access
+
+// CORS
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
