@@ -8,6 +8,7 @@ import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import UserBooks from "./pages/UserBooks";
 import BookDetails from "./pages/BookDetails";
+import AdminBookDetails from "./pages/admin/AdminBookDetails";
 import { useScrollToTop } from "./hooks/useScrollTop";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
@@ -64,6 +65,7 @@ function App() {
             <Route path="customers" element={<AdminCustomers />} />
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="/admin/books/:id" element={<AdminBookDetails />} />
           </Route>
 
           {/* 404 Route */}

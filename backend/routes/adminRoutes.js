@@ -8,6 +8,7 @@ import {
 } from "../controllers/adminController.js";
 
 import { protect, admin } from "../middleware/authMiddleware.js";
+import { uploadBookFiles } from "../middleware/upload.js";
 
 const router = express.Router();
 

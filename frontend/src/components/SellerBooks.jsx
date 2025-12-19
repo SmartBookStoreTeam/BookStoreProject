@@ -2,7 +2,6 @@ import Carousel from "./Carousel";
 import { assets } from "../assets/assets";
 
 const SellerBooks = () => {
-  // Sample books data
   const books = [
     {
       id: 1,
@@ -125,6 +124,7 @@ const SellerBooks = () => {
       category: "cooking",
     },
   ];
+
   return (
     <div className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8">
       <div className="container mx-auto px-6 md:px-20 relative">

@@ -218,9 +218,14 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
         {/* Header */}
         <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-300">
+            Book Shop
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto transition-colors duration-300">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-300">
             Book Shop
           </h1>
@@ -231,9 +236,11 @@ const Shop = () => {
 
         {/* Search and Filters */}
         <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-6 mb-8 transition-colors duration-300">
+        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-6 mb-8 transition-colors duration-300">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Search Bar */}
             <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 transition-colors duration-300" />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 transition-colors duration-300" />
               <input
                 type="text"
@@ -241,15 +248,18 @@ const Shop = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
               />
             </div>
 
+            {/* Filters */}
             {/* Filters */}
             <div className="flex gap-4 flex-wrap">
               {/* Book Type Filter */}
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
+                className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
                 className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
               >
                 {bookTypes.map((type) => (
@@ -258,10 +268,12 @@ const Shop = () => {
                   </option>
                 ))}
               </select>
+
               {/* Category Filter with counts */}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 min-w-48 transition-colors duration-300"
                 className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 min-w-48 transition-colors duration-300"
               >
                 {categories.map((category) => (
@@ -276,6 +288,7 @@ const Shop = () => {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
+                className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
               >
                 <option value="name">Sort by Name</option>
                 <option value="price-low">Price: Low to High</option>
@@ -285,12 +298,14 @@ const Shop = () => {
 
               {/* View Mode Toggle */}
               <div className="flex border border-gray-300 dark:border-zinc-600 rounded-lg overflow-hidden">
+              <div className="flex border border-gray-300 dark:border-zinc-600 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-3 transition-colors duration-300 ${
+                  className={`p-3 transition-colors duration-300 ${
                     viewMode === "grid"
-                      ? "bg-indigo-100 text-indigo-600"
-                      : "bg-white text-gray-600"
+                      ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300"
+                      : "bg-white dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-600"
                   }`}
                 >
                   <Grid size={20} />
@@ -298,7 +313,10 @@ const Shop = () => {
                 <button
                   onClick={() => setViewMode("list")}
                   className={`p-3 transition-colors duration-300 ${
+                  className={`p-3 transition-colors duration-300 ${
                     viewMode === "list"
+                      ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300"
+                      : "bg-white dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-600"
                       ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300"
                       : "bg-white dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-600"
                   }`}
@@ -311,6 +329,7 @@ const Shop = () => {
 
           {/* Price Range Filter */}
           <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
               Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
             </label>
@@ -325,6 +344,7 @@ const Shop = () => {
                   setPriceRange([parseInt(e.target.value), priceRange[1]])
                 }
                 className="flex-1 accent-indigo-600 dark:accent-indigo-500"
+                className="flex-1 accent-indigo-600 dark:accent-indigo-500"
               />
               <input
                 type="range"
@@ -335,6 +355,7 @@ const Shop = () => {
                 onChange={(e) =>
                   setPriceRange([priceRange[0], parseInt(e.target.value)])
                 }
+                className="flex-1 accent-indigo-600 dark:accent-indigo-500"
                 className="flex-1 accent-indigo-600 dark:accent-indigo-500"
               />
             </div>
@@ -365,12 +386,14 @@ const Shop = () => {
           </div>
         ) : filteredBooks.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-gray-400 dark:text-gray-600 mb-4 transition-colors duration-300">
               <Search size={48} className="mx-auto" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">
               No books found
             </h3>
+            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
             <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
               Try adjusting your search or filters
             </p>
@@ -436,6 +459,10 @@ const Shop = () => {
 
                   {/* Author and Category */}
                   <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
+                      by {book.author}
+                    </p>
+                    <span className="inline-block bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 text-xs font-medium px-2 py-1 rounded-full capitalize transition-colors duration-300">
                     <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
                       by {book.author}
                     </p>
