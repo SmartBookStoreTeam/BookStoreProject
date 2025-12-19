@@ -5,9 +5,6 @@ import {
   BookOpenIcon,
   EyeIcon,
   EyeSlashIcon,
-  ArrowLeftIcon,
-  XMarkIcon,
-  ArrowLeftIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
@@ -44,10 +41,10 @@ const Register = () => {
   };
 
   return (
-  <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 transition-colors relative">
-      {/* Back to Store Button */}
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 transition-colors relative">
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-[#1a1a22] rounded-2xl shadow-xl p-8 border border-zinc-200 dark:border-zinc-700 transition-colors relative">
+
           {/* Close Button */}
           <button
             onClick={() => navigate("/")}
@@ -56,7 +53,8 @@ const Register = () => {
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
-          {/* Logo */}
+
+          {/* Logo and Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="h-12 w-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
@@ -71,8 +69,8 @@ const Register = () => {
             </p>
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Box */}
             {error && (
               <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
                 {error}
@@ -159,6 +157,7 @@ const Register = () => {
               Login
             </button>
           </div>
+
         </div>
       </div>
     </div>
