@@ -109,7 +109,7 @@ const UserLogin = () => {
               <button
                 type="button"
                 onClick={togglePassword}
-                className="absolute right-3 top-[42px] text-gray-500"
+                className="absolute right-3 top-10.5 text-gray-500"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />

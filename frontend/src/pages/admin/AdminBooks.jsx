@@ -19,8 +19,6 @@ const AdminBooks = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
-  const [previewBook, setPreviewBook] = useState(null);
-  const [numPages, setNumPages] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const navigate = useNavigate();
@@ -82,7 +80,7 @@ const AdminBooks = () => {
     <div className="space-y-6 relative">
       {/* ================= LOADING OVERLAY ================= */}
       {isUploading && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-[999] flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-999 flex items-center justify-center">
           <div className="bg-white px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg">
             <svg
               className="animate-spin h-6 w-6 text-blue-600"
