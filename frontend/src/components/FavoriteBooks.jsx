@@ -39,7 +39,7 @@ const FavoriteBooks = () => {
           {/* Left Side */}
           <div className="w-full lg:w-1/2 flex justify-center lg:justify-start">
             <img
-              className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] object-contain rounded-2xl"
+              className="w-75 h-75 md:w-100 md:h-100 object-contain rounded-2xl"
               src={assets.groupBooks}
               alt="Books Collection"
             />
