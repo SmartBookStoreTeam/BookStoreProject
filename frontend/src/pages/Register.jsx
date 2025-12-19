@@ -7,8 +7,6 @@ import {
   EyeSlashIcon,
   ArrowLeftIcon,
   XMarkIcon,
-  ArrowLeftIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 const Register = () => {
@@ -44,7 +42,7 @@ const Register = () => {
   };
 
   return (
-  <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 transition-colors relative">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 transition-colors relative">
       {/* Back to Store Button */}
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-[#1a1a22] rounded-2xl shadow-xl p-8 border border-zinc-200 dark:border-zinc-700 transition-colors relative">
@@ -127,7 +125,7 @@ const Register = () => {
               <button
                 type="button"
                 onClick={togglePassword}
-                className="absolute right-3 top-[43px] cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                className="absolute right-3 top-10.75 cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />
