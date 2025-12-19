@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password) => {
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
+      await axios.post("https://d1r1pvso22xiyd.cloudfront.net/api/auth/register", {
         name,
         email,
         password,
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post("https://d1r1pvso22xiyd.cloudfront.net/api/auth/login", {
         email,
         password,
       });
