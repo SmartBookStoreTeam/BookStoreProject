@@ -52,38 +52,44 @@ const FavoriteBooks = () => {
               </span>
             </h1>
 
-            <p className="text-gray-600 dark:text-gray-300 text-[16px] leading-relaxed mb-8 max-w-2xl">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Quo ad
-              non reprehenderit. Reiciendis illo justo incidunt distinctio.
+            <p className="text-gray-600 dark:text-gray-300 text-[16px] leading-relaxed mb-8 max-w-2xl transition-colors duration-300">
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quo ad
+              non reprehenderit. Reiciendis illo justo incidunt distinctio
+              exercitationem officiis dicta dolores dolorem ea! Non saepe,
+              voluptatum cupiditate beatae in dolore!
             </p>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 mb-8 max-w-md mx-auto lg:mx-0">
               <div>
-                <div className="text-2xl md:text-3xl font-bold text-blue-600">
+                <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 transition-colors duration-300">
                   {bookCount}+
                 </div>
-                <div className="text-sm text-gray-500">Book Listing</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                  Book Listing
+                </div>
               </div>
-
-              <div>
-                <div className="text-2xl md:text-3xl font-bold text-green-600">
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 transition-colors duration-300">
                   {userCount}+
                 </div>
-                <div className="text-sm text-gray-500">Register User</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                  Register User
+                </div>
               </div>
-
-              <div>
-                <div className="text-2xl md:text-3xl font-bold text-purple-600">
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1 transition-colors duration-300">
                   {soldCount}+
                 </div>
-                <div className="text-sm text-gray-500">Books Sold</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                  Books Sold
+                </div>
               </div>
             </div>
 
-            <Link
-              to="/explore"
-              className="inline-block bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg transition-transform hover:scale-105"
+            <Link 
+              to={"/explore"} 
+              className="inline-block bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 cursor-pointer text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg dark:shadow-indigo-900/50 hover:shadow-xl"
             >
               Explore Now
             </Link>
