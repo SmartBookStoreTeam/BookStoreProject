@@ -1,7 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import api from "../api/api";
 
-
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -9,6 +8,8 @@ export const AuthProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("user")) || null
   );
   const [token, setToken] = useState(localStorage.getItem("token") || null);
+
+ 
 
   const register = async (name, email, password) => {
     try {
