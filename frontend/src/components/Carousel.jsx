@@ -6,6 +6,8 @@ import { useCart } from "../hooks/useCart";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const Carousel = ({ books }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,10 +33,10 @@ const Carousel = ({ books }) => {
     return () => window.removeEventListener("resize", updateBooksPerView);
   }, []);
 
-  // Calculate item width based on container and gap
   useEffect(() => {
     if (containerRef.current && booksPerView > 0) {
       const containerWidth = containerRef.current.offsetWidth;
+      const gap = 16;
       const gap = 16;
       const totalGapWidth = gap * (booksPerView - 1);
       const calculatedWidth = (containerWidth - totalGapWidth) / booksPerView;
@@ -44,9 +46,11 @@ const Carousel = ({ books }) => {
 
   const nextSlide = () => {
     if (canGoNext) setCurrentIndex((prev) => prev + 1);
+    if (canGoNext) setCurrentIndex((prev) => prev + 1);
   };
 
   const prevSlide = () => {
+    if (canGoPrev) setCurrentIndex((prev) => prev - 1);
     if (canGoPrev) setCurrentIndex((prev) => prev - 1);
   };
 
@@ -87,6 +91,7 @@ const Carousel = ({ books }) => {
   };
 
   const translateX = currentIndex * (itemWidth + 16);
+  const translateX = currentIndex * (itemWidth + 16);
 
   return (
     <div className="relative" ref={containerRef}>
@@ -101,7 +106,16 @@ const Carousel = ({ books }) => {
               : "opacity-50 cursor-not-allowed"
           }
         `}
+        className={`absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 z-10 
+          bg-white dark:bg-zinc-700 rounded-full p-2 shadow-lg dark:shadow-zinc-900 transition-all duration-200
+          ${
+            canGoPrev
+              ? "hover:shadow-xl hover:scale-105 cursor-pointer dark:hover:bg-zinc-600"
+              : "opacity-50 cursor-not-allowed"
+          }
+        `}
       >
+        <ChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
         <ChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
       </button>
 
@@ -116,7 +130,16 @@ const Carousel = ({ books }) => {
               : "opacity-50 cursor-not-allowed"
           }
         `}
+        className={`absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 z-10 
+          bg-white dark:bg-zinc-700 rounded-full p-2 shadow-lg dark:shadow-zinc-900 transition-all duration-200
+          ${
+            canGoNext
+              ? "hover:shadow-xl hover:scale-105 cursor-pointer dark:hover:bg-zinc-600"
+              : "opacity-50 cursor-not-allowed"
+          }
+        `}
       >
+        <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300" />
         <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300" />
       </button>
 
@@ -129,10 +152,12 @@ const Carousel = ({ books }) => {
         <div
           className="flex transition-transform duration-300 ease-in-out gap-4"
           style={{ transform: `translateX(-${translateX}px)` }}
+          style={{ transform: `translateX(-${translateX}px)` }}
         >
           {books.map((book, index) => (
             <div
               key={book.id || index}
+              className="shrink-0"
               className="shrink-0"
               style={{ width: `${itemWidth}px` }}
             >
@@ -152,6 +177,7 @@ const Carousel = ({ books }) => {
                     alt={book.desc || book.title}
                   />
                   <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800">
+                  <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800">
                     ₹{book.price}
                   </span>
                 </Link>
@@ -166,6 +192,7 @@ const Carousel = ({ books }) => {
                   <p className="text-xs text-indigo-400 dark:text-indigo-300  line-clamp-1 transition-colors duration-300">
                     {book.author} •
                   </p>
+
                   <div className="flex items-center">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
@@ -174,6 +201,8 @@ const Carousel = ({ books }) => {
                         className={`${
                           i < book.rate
                             ? "text-yellow-500 fill-yellow-500"
+                            : "text-indigo-200  fill-indigo-200 "
+                        } transition-colors duration-300`}
                             : "text-indigo-200  fill-indigo-200 "
                         } transition-colors duration-300`}
                       />
@@ -219,6 +248,8 @@ const Carousel = ({ books }) => {
               onClick={() => setCurrentIndex(index)}
               className={`w-2 h-2  rounded-full transition-all duration-300 cursor-pointer ${
                 index === currentIndex
+                  ? "bg-gray-900 dark:bg-indigo-500 w-4"
+                  : "bg-gray-300 dark:bg-zinc-600 hover:bg-gray-400 dark:hover:bg-zinc-500"
                   ? "bg-gray-900 dark:bg-indigo-500 w-4"
                   : "bg-gray-300 dark:bg-zinc-600 hover:bg-gray-400 dark:hover:bg-zinc-500"
               }`}

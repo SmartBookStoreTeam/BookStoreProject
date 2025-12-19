@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 const UserLogin = () => {
+const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -41,6 +42,8 @@ const UserLogin = () => {
   };
 
   return (
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 relative transition-colors">
+      {/* Back to Store Button */}
     <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 relative transition-colors">
       {/* Back to Store Button */}
       <div className="max-w-md w-full">
@@ -84,6 +87,7 @@ const UserLogin = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                 placeholder="example@mail.com"
                 required
@@ -167,4 +171,5 @@ const UserLogin = () => {
   );
 };
 
+export default UserLogin;
 export default UserLogin;

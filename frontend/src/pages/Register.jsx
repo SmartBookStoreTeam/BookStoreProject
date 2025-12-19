@@ -7,6 +7,8 @@ import {
   EyeSlashIcon,
   ArrowLeftIcon,
   XMarkIcon,
+  ArrowLeftIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 const Register = () => {

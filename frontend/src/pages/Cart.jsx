@@ -32,10 +32,12 @@ const Cart = () => {
               Your Cart is Empty
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-8 transition-colors duration-300">
+            <p className="text-gray-600 dark:text-gray-400 mb-8 transition-colors duration-300">
               Add some books to your cart to get started!
             </p>
             <Link
               to="/shop"
+              className="inline-flex items-center bg-indigo-600 dark:bg-indigo-700 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors duration-300"
               className="inline-flex items-center bg-indigo-600 dark:bg-indigo-700 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors duration-300"
             >
               <ArrowLeft size={20} className="mr-2" />
@@ -53,6 +55,12 @@ const Cart = () => {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
+              Shopping Cart
+            </h1>
+            <span className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
+              {getCartItemsCount()} items
+            </span>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
               Shopping Cart
             </h1>
@@ -86,13 +94,16 @@ const Cart = () => {
                         key={i}
                         size={14}
                         className={`transition-colors duration-300 ${
+                        className={`transition-colors duration-300 ${
                           i < item.rate
                             ? "text-yellow-500 fill-yellow-500"
+                            : "text-indigo-200 dark:text-indigo-700 fill-indigo-200 dark:fill-indigo-700"
                             : "text-indigo-200 dark:text-indigo-700 fill-indigo-200 dark:fill-indigo-700"
                         }`}
                       />
                     ))}
                   </div>
+                  <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400 mt-1 transition-colors duration-300">
                   <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400 mt-1 transition-colors duration-300">
                     ₹{item.price}
                   </p>
@@ -106,6 +117,7 @@ const Cart = () => {
                   >
                     <Minus size={16} />
                   </button>
+                  <span className="w-8 text-center font-medium text-gray-900 dark:text-gray-100 transition-colors duration-300">
                   <span className="w-8 text-center font-medium text-gray-900 dark:text-gray-100 transition-colors duration-300">
                     {item.quantity}
                   </span>
@@ -130,7 +142,12 @@ const Cart = () => {
 
           {/* Cart Summary */}
           <div className="mt-8 bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-6 transition-colors duration-300">
+          <div className="mt-8 bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-6 transition-colors duration-300">
             <div className="flex justify-between items-center mb-4">
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
+                Total:
+              </span>
+              <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 transition-colors duration-300">
               <span className="text-xl font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">
                 Total:
               </span>
@@ -153,6 +170,7 @@ const Cart = () => {
 
             <Link
               to="/shop"
+              className="inline-flex items-center justify-center w-full mt-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300 font-medium"
               className="inline-flex items-center justify-center w-full mt-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300 font-medium"
             >
               <ArrowLeft size={18} className="mr-2" />

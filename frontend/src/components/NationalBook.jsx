@@ -1,6 +1,5 @@
 import { assets } from "../assets/assets";
 
-
 const NationalBook = () => {
   return (
     <div className="bg-yellow-100 dark:bg-zinc-800 transition-colors duration-300 ">
