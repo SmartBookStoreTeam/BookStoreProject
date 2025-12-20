@@ -10,7 +10,6 @@ import {
   MagnifyingGlassIcon,
   EyeIcon,
   BookOpenIcon,
-  FunnelIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminBooks = () => {
@@ -35,6 +34,7 @@ const AdminBooks = () => {
     "Self-Help",
   ];
 
+  /* ================= FILTER ================= */
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
       book?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,32 +46,53 @@ const AdminBooks = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Add
+  /* ================= API HANDLERS ================= */
+
   const handleAddBook = async (bookData) => {
-    const savedBook = await addBook(bookData);
-    setBooks([...books, savedBook]);
-    setShowAddModal(false);
+    try {
+      const savedBook = await addBook(bookData);
+      setBooks((prev) => [...prev, savedBook]);
+      setShowAddModal(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add book");
+    }
   };
 
-  // Edit
   const handleEditBook = async (id, bookData) => {
-    const updated = await updateBook(id, bookData);
-    setBooks(books.map((b) => (b._id === updated._id ? updated : b)));
-    setEditingBook(null);
+    try {
+      const updated = await updateBook(id, bookData);
+      setBooks((prev) =>
+        prev.map((b) => (b._id === updated._id ? updated : b))
+      );
+      setEditingBook(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update book");
+    }
   };
 
-  // Delete
-  const handleDelete = async (_id) => {
-    if (!window.confirm("Are you sure?")) return;
-    await deleteBook(_id);
-    setBooks(books.filter((b) => b._id !== _id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this book?")) return;
+    try {
+      await deleteBook(id);
+      setBooks((prev) => prev.filter((b) => b._id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete book");
+    }
   };
 
-  // Fetch Books
+  /* ================= FETCH ================= */
   useEffect(() => {
     const fetchBooks = async () => {
-      const data = await getBooks();
-      setBooks(data);
+      try {
+        const data = await getBooks();
+        setBooks(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setBooks([]);
+      }
     };
     fetchBooks();
   }, []);
@@ -80,7 +101,7 @@ const AdminBooks = () => {
     <div className="space-y-6 relative">
       {/* ================= LOADING OVERLAY ================= */}
       {isUploading && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-999 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
           <div className="bg-white px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg">
             <svg
               className="animate-spin h-6 w-6 text-blue-600"
@@ -176,18 +197,20 @@ const AdminBooks = () => {
                 </td>
 
                 <td className="px-6 py-4">{book.category}</td>
-                <td className="px-6 py-4">${book.price.toFixed(2)}</td>
+                <td className="px-6 py-4">
+                  ${Number(book.price || 0).toFixed(2)}
+                </td>
                 <td className="px-6 py-4">{book.status}</td>
 
-                <td className="px-6 py-4 flex space-x-2">
+                <td className="px-6 py-4 flex space-x-2 mt-2">
                   <button onClick={() => setEditingBook(book)}>
-                    <PencilIcon className="h-5 w-5 text-blue-600" />
+                    <PencilIcon className="h-5 w-5 text-blue-600 cursor-pointer" />
                   </button>
                   <button onClick={() => handleDelete(book._id)}>
-                    <TrashIcon className="h-5 w-5 text-red-600" />
+                    <TrashIcon className="h-5 w-5 text-red-600 cursor-pointer" />
                   </button>
                   <button onClick={() => navigate(`/admin/books/${book._id}`)}>
-                    <EyeIcon className="h-5 w-5 text-gray-600" />
+                    <EyeIcon className="h-5 w-5 text-gray-600 cursor-pointer" />
                   </button>
                 </td>
               </tr>
@@ -220,10 +243,12 @@ const AdminBooks = () => {
                     "description",
                     "status",
                   ].forEach((f) => bookData.append(f, data.get(f)));
-                  bookData.append("price", parseFloat(data.get("price")));
+
+                  bookData.append("price", parseFloat(data.get("price") || 0));
 
                   if (data.get("image")?.size > 0)
                     bookData.append("image", data.get("image"));
+
                   if (data.get("pdf")?.size > 0)
                     bookData.append("pdf", data.get("pdf"));
 
@@ -261,6 +286,7 @@ const AdminBooks = () => {
                 className="w-full border px-3 py-2 rounded"
                 placeholder="Price"
               />
+
               <select
                 name="category"
                 defaultValue={editingBook?.category}
@@ -272,12 +298,23 @@ const AdminBooks = () => {
                     <option key={c}>{c}</option>
                   ))}
               </select>
+
+              <select
+                name="status"
+                defaultValue={editingBook?.status || "available"}
+                className="w-full border px-3 py-2 rounded"
+              >
+                <option value="available">Available</option>
+                <option value="unavailable">Unavailable</option>
+              </select>
+
               <textarea
                 name="description"
                 defaultValue={editingBook?.description}
                 className="w-full border px-3 py-2 rounded"
                 placeholder="Description"
               />
+
               <input type="file" name="image" />
               <input type="file" name="pdf" />
 
@@ -298,7 +335,7 @@ const AdminBooks = () => {
                 <button
                   type="submit"
                   disabled={isUploading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded flex items-center"
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
                   {isUploading
                     ? "Uploading..."

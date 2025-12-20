@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getBookById } from "../../api/booksApi";
 import axios from "axios";
-
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
@@ -184,7 +183,7 @@ const AdminBookDetails = () => {
             </div>
 
             {book.pdf ? (
-              <div className="border rounded-lg overflow-hidden h-150">
+              <div className="border rounded-lg overflow-hidden h-96">
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                   <Viewer fileUrl={book.pdf} />
                 </Worker>

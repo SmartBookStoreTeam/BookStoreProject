@@ -1,23 +1,9 @@
 import { Link } from "react-router-dom";
-import {
-  Minus,
-  Plus,
-  Trash2,
-  ShoppingBag,
-  ArrowLeft,
-  Star,
-} from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Star } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 
 const Cart = () => {
-  const {
-    cartItems,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    getCartTotal,
-    getCartItemsCount,
-  } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal, getCartItemsCount } = useCart();
 
   if (cartItems.length === 0) {
     return (
@@ -98,6 +84,7 @@ const Cart = () => {
                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
                   className="p-1 hover:bg-gray-100 rounded"
                 >
+                  <circle cx="12" cy="12" r="10" />
                   <Minus size={16} />
                 </button>
                 <span className="w-8 text-center">{item.quantity}</span>
