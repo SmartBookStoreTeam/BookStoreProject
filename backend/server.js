@@ -8,36 +8,56 @@ import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger.js";
 
-// import Routes
+// Routes
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
-dotenv.config(); // Load .env file
-connectDB(); // Connect to MongoDB
+dotenv.config();
+connectDB();
 
 const app = express();
 
-app.use(express.json()); // Parse JSON request body
-app.use(cors()); // Allow frontend access
+// JSON parser
+app.use(express.json());
 
+// CORS setup
+const allowedOrigins = [
+  "http://localhost:5173",  // dev frontend
+  "http://localhost:5174",  // ممكن تستخدمه كمان
+  // ضع هنا دومين الـ production بعد الرفع
+  "https://d1r1pvso22xiyd.cloudfront.net"
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// Test route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// Swagger Route
+// Swagger route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// API Routes
-app.use("/api/auth", authRoutes); // Auth routes
-app.use("/api/books", bookRoutes); // Book routes
-app.use("/api/admin", adminRoutes); // Admin routes
-
-app.use(notFound); // 404 handler
-app.use(errorHandler); // error handler
+// API routes
+app.use("/api/auth", authRoutes);
+app.use("/api/books", bookRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Error handlers
+app.use(notFound);
+app.use(errorHandler);
+
+// Start server
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
