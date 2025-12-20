@@ -1,14 +1,6 @@
-// // Get all books
-// export const getBooks = async () => {
-//   const res = await api.get("/books");
-//   return res.data;
-// };
-import axios from "axios";
-import { assets } from "../assets/assets";
 
-const api = axios.create({
-  baseURL: "http://54.88.119.59:5000/api",
-});
+import api from "./api";
+import { assets } from "../assets/assets";
 
 // Mock data
 const mockBooks = [

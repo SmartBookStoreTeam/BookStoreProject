@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  // This tells axios to just append /api to whatever the current domain is
-  baseURL: import.meta.env.VITE_API_URL || "/api", 
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
 });
 
 api.interceptors.request.use((config) => {
