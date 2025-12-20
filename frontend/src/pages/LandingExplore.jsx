@@ -26,7 +26,7 @@ const LandingExplore = () => {
           <img
             src={assets.landingBooks}
             alt="Books"
-            className="w-[300px] h-[300px]"
+            className="w-75 h-75"
           />
         </div>
       </div>

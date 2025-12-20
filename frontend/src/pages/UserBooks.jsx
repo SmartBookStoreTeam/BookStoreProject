@@ -60,7 +60,7 @@ const UserBooks = () => {
 
                   {/* Fallback in case image fails to load */}
                   <div 
-                    className="w-full h-48 bg-gray-200 flex items-center justify-center hidden"
+                    className="w-full h-48 bg-gray-200 items-center justify-center hidden"
                     style={{ display: imageSrc ? 'none' : 'flex' }}
                   >
                     <span className="text-gray-400">No Image</span>

@@ -163,7 +163,7 @@ const AdminAnalytics = () => {
             Monthly Sales Trend
           </h3>
           <div className="space-y-4">
-            {monthlyData.map((month, index) => (
+            {monthlyData.map((month) => (
               <div key={month.month} className="flex items-center">
                 <div className="w-16 text-sm text-gray-600">{month.month}</div>
                 <div className="flex-1 ml-4">

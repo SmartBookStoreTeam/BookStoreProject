@@ -1,6 +1,9 @@
 import Book from "../models/Book.js";
 import User from "../models/User.js";
 
+import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
+import { uploadToS3 } from "../utils/uploadToS3.js";
+
 // =======================
 // Book CRUD (Admin Only)
 // =======================
@@ -8,16 +11,26 @@ import User from "../models/User.js";
 // @desc    Create a new book
 // @route   POST /api/admin/books
 // @access  Admin
+
 export const createBook = async (req, res, next) => {
   try {
-    // /////// image ////////
-    const { title, author, description, category, price, countInStock } =
-      req.body;
+    const { title, author, description, category, price } = req.body;
 
-    if (!title || !author || !description || !category || !price) {
-      res.status(400);
-      throw new Error("All fields are required");
+    if (!req.files?.image || !req.files?.pdf) {
+      throw new Error("Image and PDF are required");
     }
+
+    // رفع الصورة على Cloudinary
+    const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
+      folder: "book-store/images",
+    });
+
+    // رفع PDF على S3
+    const pdfUrl = await uploadToS3(
+      req.files.pdf[0].buffer,
+      req.files.pdf[0].originalname,
+      req.files.pdf[0].mimetype
+    );
 
     const book = await Book.create({
       title,
@@ -25,12 +38,13 @@ export const createBook = async (req, res, next) => {
       description,
       category,
       price,
-      countInStock: countInStock || 0,
+      image: imageUpload.secure_url, // رابط Cloudinary
+      pdf: pdfUrl, // رابط S3
     });
 
     res.status(201).json(book);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -45,27 +59,56 @@ export const updateBook = async (req, res, next) => {
       throw new Error("Book not found");
     }
 
-    Object.assign(book, req.body); // تحديث كل الحقول المرسلة
+    const fields = [
+      "title",
+      "author",
+      "description",
+      "category",
+      "price",
+      "isActive",
+    ];
+
+    fields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        book[field] = req.body[field];
+      }
+    });
+
+    if (req.files?.image) {
+      book.image = req.files.image[0].path;
+    }
+
+    if (req.files?.pdf) {
+      book.pdf = req.files.pdf[0].path;
+    }
+
     const updatedBook = await book.save();
-    res.json({ message: "Book Updated successfully", updatedBook });
+
+    res.json({
+      message: "Book updated successfully",
+      updatedBook,
+    });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Delete a book
+// @desc    Disable a book (Soft delete)
 // @route   DELETE /api/admin/books/:id
 // @access  Admin
 export const deleteBook = async (req, res, next) => {
   try {
-    const book = await Book.findByIdAndDelete(req.params.id);
+    const book = await Book.findById(req.params.id);
 
     if (!book) {
       res.status(404);
       throw new Error("Book not found");
     }
 
-    res.json({ message: "Book removed successfully" });
+    book.isActive = false;
+    await book.save();
+
+    res.json({ message: "Book disabled successfully" });
   } catch (error) {
     next(error);
   }

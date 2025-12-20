@@ -26,11 +26,11 @@ const LandingExplore = () => {
               />
             </div>
           </div>
-            <div className="w-full md:w-1/2 flex justify-center md:justify-end">
+          <div className="w-full md:w-1/2 flex justify-center md:justify-end">
             <img
               src={assets.landingBooks}
               alt="Books"
-              className="w-[250px] h-[250px] md:w-[300px] md:h-[300px] object-contain"
+              className="w-62.5 h-62.5 md:w-75 md:h-75 object-contain"
             />
           </div>
         </div>

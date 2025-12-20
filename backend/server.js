@@ -26,6 +26,7 @@ const allowedOrigins = [
   "http://localhost:5173", // dev frontend
   "http://localhost:5174", // ممكن تستخدمه كمان
   // ضع هنا دومين الـ production بعد الرفع
+  "https://d1r1pvso22xiyd.cloudfront.net"
 ];
 
 app.use(
@@ -57,12 +58,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/admin", adminRoutes);
 
+const PORT = process.env.PORT || 5000;
+
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

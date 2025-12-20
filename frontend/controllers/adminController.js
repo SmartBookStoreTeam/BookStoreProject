@@ -11,8 +11,7 @@ import User from "../models/User.js";
 export const createBook = async (req, res, next) => {
   try {
     // /////// image ////////
-    const { title, author, description, category, price} =
-      req.body;
+    const { title, author, description, category, price } = req.body;
 
     if (!title || !author || !description || !category || !price) {
       res.status(400);

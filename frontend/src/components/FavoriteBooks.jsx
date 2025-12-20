@@ -30,16 +30,14 @@ const FavoriteBooks = () => {
   }, [inView]);
 
   return (
-    <div
-      ref={ref}
-      className="bg-white dark:bg-zinc-900 transition-colors duration-300"
-    >
+    <div ref={ref} className="bg-white dark:bg-zinc-900 transition-colors duration-300">
       <div className="container mx-auto px-6 md:px-20 py-12">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+
           {/* Left Side */}
           <div className="w-full lg:w-1/2 flex justify-center lg:justify-start">
             <img
-              className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] object-contain rounded-2xl"
+              className="w-75 h-75 md:w-100 md:h-100 object-contain rounded-2xl"
               src={assets.groupBooks}
               alt="Books Collection"
             />
@@ -47,9 +45,9 @@ const FavoriteBooks = () => {
 
           {/* Right Side */}
           <div className="w-full lg:w-1/2 text-center lg:text-left">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 leading-tight mb-6 transition-colors duration-300">
-              Find Your Favorite <br />{" "}
-              <span className="text-indigo-500 dark:text-indigo-400 transition-colors duration-300">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+              Find Your Favorite <br />
+              <span className="text-indigo-500 dark:text-indigo-400">
                 Book Here!
               </span>
             </h1>
@@ -89,12 +87,13 @@ const FavoriteBooks = () => {
               </div>
             </div>
 
-            <Link
-              to={"/explore"}
+            <Link 
+              to={"/explore"} 
               className="inline-block bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 cursor-pointer text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg dark:shadow-indigo-900/50 hover:shadow-xl"
             >
               Explore Now
             </Link>
+
           </div>
         </div>
       </div>

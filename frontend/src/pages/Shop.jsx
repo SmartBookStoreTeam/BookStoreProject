@@ -258,6 +258,7 @@ const Shop = () => {
                   </option>
                 ))}
               </select>
+
               {/* Category Filter with counts */}
               <select
                 value={selectedCategory}
@@ -289,8 +290,8 @@ const Shop = () => {
                   onClick={() => setViewMode("grid")}
                   className={`p-3 transition-colors duration-300 ${
                     viewMode === "grid"
-                      ? "bg-indigo-100 text-indigo-600"
-                      : "bg-white text-gray-600"
+                      ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300"
+                      : "bg-white dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-600"
                   }`}
                 >
                   <Grid size={20} />
@@ -361,11 +362,11 @@ const Shop = () => {
         {/* Books Grid/List */}
         {loading ? (
           <div className="flex flex-col items-center justify-center">
-            <Loading/>
+            <Loading />
           </div>
         ) : filteredBooks.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-gray-400 dark:text-gray-600 mb-4 transition-colors duration-300">
               <Search size={48} className="mx-auto" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">
@@ -397,7 +398,7 @@ const Shop = () => {
                   to={`/book/${book._id || book.id}`}
                   className={
                     viewMode === "grid"
-                      ? "w-full h-[250px] block cursor-pointer"
+                      ? "w-full h-62.5 block cursor-pointer"
                       : "w-32 h-40 shrink-0 block cursor-pointer"
                   }
                 >
@@ -476,7 +477,7 @@ const Shop = () => {
                   <div className="flex flex-col sm:flex-row mt-auto gap-2">
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="flex-1 text-sm text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
+                      className="flex-1  text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
                     >
                       View Details
                     </Link>

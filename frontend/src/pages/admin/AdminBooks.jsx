@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { addBook, updateBook, deleteBook } from "../../api/adminApi";
 import { getBooks } from "../../api/booksApi";
+import { useNavigate } from "react-router-dom";
 
 import {
   PlusIcon,
@@ -14,12 +15,13 @@ import {
 
 const AdminBooks = () => {
   const [books, setBooks] = useState([]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
-  const [previewBook, setPreviewBook] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const navigate = useNavigate();
 
   const categories = [
     "all",
@@ -52,18 +54,17 @@ const AdminBooks = () => {
   };
 
   // Edit
-  const handleEditBook = async (updatedBook) => {
-    const saved = await updateBook(updatedBook._id, updatedBook);
-    setBooks(books.map((b) => (b._id === saved._id ? saved : b)));
+  const handleEditBook = async (id, bookData) => {
+    const updated = await updateBook(id, bookData);
+    setBooks(books.map((b) => (b._id === updated._id ? updated : b)));
     setEditingBook(null);
   };
 
   // Delete
   const handleDelete = async (_id) => {
-    if (window.confirm("Are you sure?")) {
-      await deleteBook(_id);
-      setBooks(books.filter((b) => b._id !== _id));
-    }
+    if (!window.confirm("Are you sure?")) return;
+    await deleteBook(_id);
+    setBooks(books.filter((b) => b._id !== _id));
   };
 
   // Fetch Books
@@ -76,378 +77,237 @@ const AdminBooks = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 relative">
+      {/* ================= LOADING OVERLAY ================= */}
+      {isUploading && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-999 flex items-center justify-center">
+          <div className="bg-white px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg">
+            <svg
+              className="animate-spin h-6 w-6 text-blue-600"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+            <span className="font-medium">Uploading book...</span>
+          </div>
+        </div>
+      )}
+
+      {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Book Management</h1>
-          <p className="text-gray-600">
-            Manage your book inventory and listings
-          </p>
+          <p className="text-gray-600">Manage your book inventory</p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="mt-4 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition"
+          className="mt-4 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Add New Book</span>
         </button>
       </div>
 
-      {/* Search + Filter */}
+      {/* ================= SEARCH & FILTER ================= */}
       <div className="bg-white rounded-xl shadow-sm p-4">
-        <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
+        <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search books..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg"
             />
           </div>
 
-          <div className="flex items-center space-x-4">
-            <FunnelIcon className="h-5 w-5 text-gray-400" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category === "all" ? "All Categories" : category}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="border rounded-lg px-3 py-2"
+          >
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c === "all" ? "All Categories" : c}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                  Book
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                  Stock
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                  Sales
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500">
-                  Actions
-                </th>
+      {/* ================= TABLE ================= */}
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table className="min-w-full divide-y">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs">Book</th>
+              <th className="px-6 py-3 text-left text-xs">Category</th>
+              <th className="px-6 py-3 text-left text-xs">Price</th>
+              <th className="px-6 py-3 text-left text-xs">Status</th>
+              <th className="px-6 py-3 text-left text-xs">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredBooks.map((book) => (
+              <tr key={book._id} className="hover:bg-gray-50">
+                <td className="px-6 py-4">
+                  <div className="flex items-center">
+                    <BookOpenIcon className="h-6 w-6 text-blue-600 mr-3" />
+                    <div>
+                      <div className="font-medium">{book.title}</div>
+                      <div className="text-sm text-gray-500">{book.author}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <td className="px-6 py-4">{book.category}</td>
+                <td className="px-6 py-4">${book.price.toFixed(2)}</td>
+                <td className="px-6 py-4">{book.status}</td>
+
+                <td className="px-6 py-4 flex space-x-2">
+                  <button onClick={() => setEditingBook(book)}>
+                    <PencilIcon className="h-5 w-5 text-blue-600" />
+                  </button>
+                  <button onClick={() => handleDelete(book._id)}>
+                    <TrashIcon className="h-5 w-5 text-red-600" />
+                  </button>
+                  <button onClick={() => navigate(`/admin/books/${book._id}`)}>
+                    <EyeIcon className="h-5 w-5 text-gray-600" />
+                  </button>
+                </td>
               </tr>
-            </thead>
-
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredBooks.map((book) => (
-                <tr key={book._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <BookOpenIcon className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium">{book.title}</div>
-                        <div className="text-sm text-gray-500">
-                          {book.author}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                      {book.category}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-4 text-sm font-medium">
-                    ${book.price.toFixed(2)}
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <span
-                      className={`text-sm ${
-                        book.countInStock === 0 ? "text-red-600" : ""
-                      }`}
-                    >
-                      {book.countInStock} units
-                    </span>
-
-                    {book.countInStock < 10 && book.countInStock > 0 && (
-                      <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                        Low Stock
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="px-6 py-4 text-sm">{book.sales ?? 0}sss</td>
-
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 text-xs rounded-full ${
-                        book.status === "Published"
-                          ? "bg-green-100 text-green-800"
-                          : book.status === "Draft"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : book.status === "Archived"
-                          ? "bg-gray-300 text-gray-700"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {book.status}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-4 text-sm flex space-x-2 mt-1">
-                    <button
-                      onClick={() => setEditingBook(book)}
-                      className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(book._id)}
-                      className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-
-                    <button
-                      onClick={() => setPreviewBook(book)}
-                      className="text-gray-600 hover:text-gray-900 p-1 rounded hover:bg-gray-50"
-                      title="Quick Preview"
-                    >
-                      <EyeIcon className="h-5 w-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* Modal */}
+      {/* ================= ADD / EDIT MODAL ================= */}
       {(showAddModal || editingBook) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">
-                {editingBook ? "Edit Book" : "Add New Book"}
-              </h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-bold mb-4">
+              {editingBook ? "Edit Book" : "Add Book"}
+            </h2>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsUploading(true);
+
+                try {
                   const data = new FormData(e.target);
+                  const bookData = new FormData();
 
-                  const bookData = {
-                    title: data.get("title"),
-                    author: data.get("author"),
-                    price: parseFloat(data.get("price")),
-                    countInStock: parseInt(data.get("stock")),
-                    category: data.get("category"),
-                    description: data.get("description"),
-                    status: data.get("status"),
-                  };
+                  [
+                    "title",
+                    "author",
+                    "category",
+                    "description",
+                    "status",
+                  ].forEach((f) => bookData.append(f, data.get(f)));
+                  bookData.append("price", parseFloat(data.get("price")));
 
-                  editingBook
-                    ? handleEditBook({ ...editingBook, ...bookData })
-                    : handleAddBook(bookData);
-                }}
-              >
-                <div className="space-y-4">
-                  {/* Title */}
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Book Title
-                    </label>
-                    <input
-                      type="text"
-                      name="title"
-                      defaultValue={editingBook?.title}
-                      required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                  if (data.get("image")?.size > 0)
+                    bookData.append("image", data.get("image"));
+                  if (data.get("pdf")?.size > 0)
+                    bookData.append("pdf", data.get("pdf"));
 
-                  {/* Author */}
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Author
-                    </label>
-                    <input
-                      type="text"
-                      name="author"
-                      defaultValue={editingBook?.author}
-                      required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Price + Stock */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Price ($)
-                      </label>
-                      <input
-                        type="number"
-                        name="price"
-                        step="0.01"
-                        defaultValue={editingBook?.price}
-                        required
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Stock
-                      </label>
-                      <input
-                        type="number"
-                        name="stock"
-                        defaultValue={editingBook?.countInStock}
-                        required
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Category
-                    </label>
-                    <select
-                      name="category"
-                      defaultValue={editingBook?.category}
-                      required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      {categories
-                        .filter((c) => c !== "all")
-                        .map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  {/* Status */}
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      defaultValue={editingBook?.status || "Published"}
-                      required
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="Published">Published</option>
-                      <option value="Draft">Draft</option>
-                      <option value="Archived">Archived</option>
-                      <option value="Unavailable">Unavailable</option>
-                    </select>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      name="description"
-                      rows={3}
-                      defaultValue={editingBook?.description}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    ></textarea>
-                  </div>
-                </div>
-
-                {/* Buttons */}
-                <div className="flex justify-end space-x-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setEditingBook(null);
-                    }}
-                    className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-100"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    {editingBook ? "Update Book" : "Add Book"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-      {previewBook && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-xl font-bold mb-4">{previewBook.title}</h2>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium">Author:</span> {previewBook.author}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium">Category:</span>{" "}
-              {previewBook.category}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium">Price:</span> $
-              {previewBook.price.toFixed(2)}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium">Stock:</span>{" "}
-              {previewBook.countInStock} units
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium">Status:</span> {previewBook.status}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-medium">Description:</span>
-            </p>
-            <p className="text-gray-800 mb-4">
-              {previewBook.description || "No description available."}
-            </p>
-
-            <button
-              onClick={() => setPreviewBook(null)}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  if (editingBook) {
+                    await handleEditBook(editingBook._id, bookData);
+                  } else {
+                    await handleAddBook(bookData);
+                  }
+                } finally {
+                  setIsUploading(false);
+                }
+              }}
+              className="space-y-3"
             >
-              Close
-            </button>
+              <input
+                name="title"
+                defaultValue={editingBook?.title}
+                required
+                className="w-full border px-3 py-2 rounded"
+                placeholder="Title"
+              />
+              <input
+                name="author"
+                defaultValue={editingBook?.author}
+                required
+                className="w-full border px-3 py-2 rounded"
+                placeholder="Author"
+              />
+              <input
+                name="price"
+                type="number"
+                step="0.01"
+                defaultValue={editingBook?.price}
+                required
+                className="w-full border px-3 py-2 rounded"
+                placeholder="Price"
+              />
+              <select
+                name="category"
+                defaultValue={editingBook?.category}
+                className="w-full border px-3 py-2 rounded"
+              >
+                {categories
+                  .filter((c) => c !== "all")
+                  .map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+              </select>
+              <textarea
+                name="description"
+                defaultValue={editingBook?.description}
+                className="w-full border px-3 py-2 rounded"
+                placeholder="Description"
+              />
+              <input type="file" name="image" />
+              <input type="file" name="pdf" />
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  disabled={isUploading}
+                  onClick={() => {
+                    if (isUploading) return;
+                    setShowAddModal(false);
+                    setEditingBook(null);
+                  }}
+                  className="px-4 py-2 border rounded"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isUploading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded flex items-center"
+                >
+                  {isUploading
+                    ? "Uploading..."
+                    : editingBook
+                    ? "Update"
+                    : "Add"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

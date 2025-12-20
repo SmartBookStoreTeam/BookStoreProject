@@ -223,7 +223,7 @@ const AdminCustomers = () => {
                   <tr key={customer.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center">
+                        <div className="h-10 w-10 shrink-0 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="font-medium text-blue-600">
                             {customer.name.charAt(0)}
                           </span>
