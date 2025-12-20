@@ -9,35 +9,33 @@ const LandingExplore = () => {
 
           {/* Left */}
           <div className="w-full md:w-1/2">
-            <h1 className="text-2xl md:text-3xl text-[#1C2024] dark:text-indigo-100 font-bold mb-6">
+            <h1 className="text-2xl md:text-3xl text-[#1C2024] dark:text-indigo-100 font-bold mb-6 transition-colors duration-300">
               Find Your Favorite — 1200+ Books Available
             </h1>
 
             <div className="relative flex items-center w-full max-w-md">
               <Search
-                className="absolute left-4 text-zinc-400 dark:text-zinc-500"
+                className="absolute left-4 text-zinc-400 dark:text-zinc-500 transition-colors duration-300"
                 size={20}
               />
-
               <input
                 type="text"
                 placeholder="Search for a book..."
-                className="w-full px-10 py-3 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all"
+                className="w-full px-10 py-3 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
               />
 
               <MoreHorizontal
-                className="absolute right-4 text-zinc-400 dark:text-zinc-500"
+                className="absolute right-4 text-zinc-400 dark:text-zinc-500 transition-colors duration-300"
                 size={20}
               />
             </div>
           </div>
 
-          {/* Right */}
           <div className="w-full md:w-1/2 flex justify-center md:justify-end">
             <img
               src={assets.landingBooks}
               alt="Books"
-              className="w-[250px] h-[250px] md:w-[300px] md:h-[300px] object-contain"
+              className="w-62.5 h-62.5 md:w-75 md:h-75 object-contain"
             />
           </div>
 

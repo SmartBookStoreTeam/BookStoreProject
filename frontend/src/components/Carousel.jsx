@@ -91,7 +91,8 @@ const Carousel = ({ books }) => {
             canGoPrev
               ? "hover:shadow-xl hover:scale-105 cursor-pointer dark:hover:bg-zinc-600"
               : "opacity-50 cursor-not-allowed"
-          }`}
+          }
+        `}
       >
         <ChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
       </button>
@@ -105,7 +106,8 @@ const Carousel = ({ books }) => {
             canGoNext
               ? "hover:shadow-xl hover:scale-105 cursor-pointer dark:hover:bg-zinc-600"
               : "opacity-50 cursor-not-allowed"
-          }`}
+          }
+        `}
       >
         <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300" />
       </button>
@@ -134,8 +136,12 @@ const Carousel = ({ books }) => {
                   className="relative w-full block cursor-pointer"
                 >
                   <img
-                    className="rounded-2xl w-full h-[200px] object-cover hover:opacity-90 transition-opacity"
-                    src={book.img || book.images?.[0]?.preview || book.images?.[0]}
+                    className="rounded-2xl w-full h-50 object-cover hover:opacity-90 transition-opacity"
+                    src={
+                      book.img ||
+                      (book.images && book.images[0]?.preview) ||
+                      book.images?.[0]
+                    }
                     alt={book.desc || book.title}
                   />
                   <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800">
@@ -163,8 +169,8 @@ const Carousel = ({ books }) => {
                         className={`transition-colors duration-300 ${
                           i < (book.rate || 0)
                             ? "text-yellow-500 fill-yellow-500"
-                            : "text-indigo-200 fill-indigo-200"
-                        }`}
+                            : "text-indigo-200  fill-indigo-200 "
+                        } transition-colors duration-300`}
                       />
                     ))}
                   </div>

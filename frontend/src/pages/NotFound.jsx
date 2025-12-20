@@ -9,7 +9,7 @@ const NotFound = () => {
         <p className="text-4xl text-[#333333] font-bold mb-5">
           Oops! Page Not Found
         </p>
-        <p className="text-[18px] my-3 w-[550px] text-center">
+        <p className="text-[18px] my-3 w-137.5 text-center">
           It seems like you've wandered off the path. The page you're looking
           for doesn't exist or has been moved.
         </p>

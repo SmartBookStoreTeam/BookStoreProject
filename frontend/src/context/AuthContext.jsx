@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 
 const AuthContext = createContext();
 
@@ -9,9 +9,11 @@ export const AuthProvider = ({ children }) => {
   );
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
+ 
+
   const register = async (name, email, password) => {
     try {
-      await axios.post("https://d1r1pvso22xiyd.cloudfront.net/api/auth/register", {
+      await api.post("/auth/register", {
         name,
         email,
         password,
@@ -28,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post("https://d1r1pvso22xiyd.cloudfront.net/api/auth/login", {
+      const res = await api.post("/auth/login", {
         email,
         password,
       });
@@ -63,4 +65,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

@@ -129,7 +129,6 @@ const Shop = () => {
         const prices = mockBooks.map((b) => b.price);
         const maxPrice = Math.max(...prices, 50);
         setPriceRange([0, Math.ceil(maxPrice)]);
-        console.log("Using mock data as fallback");
       } finally {
         setLoading(false);
       }
@@ -215,7 +214,6 @@ const Shop = () => {
         {/* Search and Filters */}
         <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-6 mb-8 transition-colors duration-300">
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Search Bar */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 transition-colors duration-300" />
               <input
@@ -227,9 +225,7 @@ const Shop = () => {
               />
             </div>
 
-            {/* Filters */}
             <div className="flex gap-4 flex-wrap">
-              {/* Book Type Filter */}
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
@@ -242,7 +238,6 @@ const Shop = () => {
                 ))}
               </select>
 
-              {/* Category Filter */}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -255,7 +250,6 @@ const Shop = () => {
                 ))}
               </select>
 
-              {/* Sort By */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -267,7 +261,6 @@ const Shop = () => {
                 <option value="rating">Highest Rated</option>
               </select>
 
-              {/* View Mode Toggle */}
               <div className="flex border border-gray-300 dark:border-zinc-600 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -305,7 +298,9 @@ const Shop = () => {
                 max="50"
                 step="1"
                 value={priceRange[0]}
-                onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+                onChange={(e) =>
+                  setPriceRange([parseInt(e.target.value), priceRange[1]])
+                }
                 className="flex-1 accent-indigo-600 dark:accent-indigo-500"
               />
               <input
@@ -314,7 +309,9 @@ const Shop = () => {
                 max="50"
                 step="1"
                 value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                onChange={(e) =>
+                  setPriceRange([priceRange[0], parseInt(e.target.value)])
+                }
                 className="flex-1 accent-indigo-600 dark:accent-indigo-500"
               />
             </div>
@@ -343,7 +340,9 @@ const Shop = () => {
           </div>
         ) : filteredBooks.length === 0 ? (
           <div className="text-center py-12">
-            <Search size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+            <div className="text-gray-400 dark:text-gray-600 mb-4 transition-colors duration-300">
+              <Search size={48} className="mx-auto" />
+            </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">
               No books found
             </h3>
@@ -364,7 +363,11 @@ const Shop = () => {
               >
                 <Link
                   to={`/book/${book._id || book.id}`}
-                  className={viewMode === "grid" ? "w-full h-[250px] block cursor-pointer" : "w-32 h-40 shrink-0 block cursor-pointer"}
+                  className={
+                    viewMode === "grid"
+                      ? "w-full h-62.5 block cursor-pointer"
+                      : "w-32 h-40 shrink-0 block cursor-pointer"
+                  }
                 >
                   <img
                     src={book.img || book.image || book.images?.[0] || "/placeholder-book.jpg"}
@@ -387,7 +390,9 @@ const Shop = () => {
                   </div>
 
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">by {book.author}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
+                      by {book.author}
+                    </p>
                     <span className="inline-block bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 text-xs font-medium px-2 py-1 rounded-full capitalize transition-colors duration-300">
                       {book.category}
                     </span>
@@ -421,7 +426,7 @@ const Shop = () => {
                   <div className="flex flex-col sm:flex-row mt-auto gap-2">
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="flex-1 text-sm text-center py-2 border border-indigo-500 rounded-lg text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium cursor-pointer"
+                      className="flex-1 text-center py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
                     >
                       View Details
                     </Link>
