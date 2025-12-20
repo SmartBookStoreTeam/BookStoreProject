@@ -9,15 +9,12 @@ export const getBooks = async (req, res, next) => {
     const page = Number(req.query.pageNumber) || 1;
 
     const count = await Book.countDocuments();
-    const books = await Book.find()
+    const books = await Book.find({ isActive: true })
+
       .limit(pageSize)
       .skip(pageSize * (page - 1));
 
-    res.json({
-      page,
-      pages: Math.ceil(count / pageSize),
-      books,
-    });
+    res.json(books);
   } catch (error) {
     next(error);
   }

@@ -62,7 +62,7 @@ const router = express.Router();
  *       403:
  *         description: Admin access only
  */
-router.post("/books", protect, admin, createBook);
+router.post("/books", protect, admin, uploadBookFiles, createBook);
 
 /**
  * @swagger
@@ -103,7 +103,7 @@ router.post("/books", protect, admin, createBook);
  *       404:
  *         description: Book not found
  */
-router.put("/books/:id", protect, admin, updateBook);
+router.put("/books/:id", protect, admin, uploadBookFiles, updateBook);
 
 /**
  * @swagger

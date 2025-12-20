@@ -23,15 +23,22 @@ app.use(express.json());
 
 // CORS setup
 const allowedOrigins = [
-  "http://localhost:5173",  // dev frontend
-  "http://localhost:5174",  // ممكن تستخدمه كمان
+  "http://localhost:5173", // dev frontend
+  "http://localhost:5174", // ممكن تستخدمه كمان
   // ضع هنا دومين الـ production بعد الرفع
   "https://d1r1pvso22xiyd.cloudfront.net"
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // السماح بالطلبات من same origin أو Postman
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
