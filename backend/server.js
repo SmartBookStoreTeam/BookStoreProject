@@ -51,6 +51,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/admin", adminRoutes);
 
+const PORT = process.env.PORT || 5000;
+
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
