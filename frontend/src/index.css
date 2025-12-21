@@ -7,12 +7,11 @@ input {
   outline: none;
 }
 
-
 body,
 p,
 li,
 a {
-  font-family: "Outfit", sans-serif;
+  font-family: "Outfit", "Tajawal", sans-serif;
 }
 
 h1,
@@ -21,7 +20,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Outfit", sans-serif;
+  font-family: "Outfit", "Tajawal", sans-serif;
   font-weight: 700;
 }
 

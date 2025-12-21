@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Search, Filter, Star, ShoppingCart, Grid, List } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { getBooks } from "../api/booksApi";
@@ -7,7 +7,8 @@ import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import Loading from "../components/loading";
-
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 // Mock data for fallback
 const mockBooks = [
   {
@@ -102,33 +103,39 @@ const Shop = () => {
   const [priceRange, setPriceRange] = useState([0, 50]);
   const [apiBooks, setApiBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Fetch books from API
   useEffect(() => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
         const books = await getBooks();
-        if (books && books.length > 0) {
-          setApiBooks(books);
-          const prices = books.map((b) => b.price);
+        if (books && (books.books || books.length > 0)) {
+          const booksData = books.books || books;
+          setApiBooks(booksData);
+          // Update price range based on actual book prices
+          const prices = booksData.map((b) => b.price);
           const userBookPrices = userBooks.map((b) => b.price || 0);
           const maxPrice = Math.max(...prices, ...userBookPrices, 50);
           setPriceRange([0, Math.ceil(maxPrice)]);
         } else {
+          // Use mock data if API returns empty
           setApiBooks(mockBooks);
           const prices = mockBooks.map((b) => b.price);
           const maxPrice = Math.max(...prices, 50);
           setPriceRange([0, Math.ceil(maxPrice)]);
         }
       } catch (error) {
-        console.error("Error fetching books:", error);
+        console.error(t("Error fetching books:"), error);
+        // Use mock data as fallback
         setApiBooks(mockBooks);
         const prices = mockBooks.map((b) => b.price);
         const maxPrice = Math.max(...prices, 50);
         setPriceRange([0, Math.ceil(maxPrice)]);
+        console.log("Using mock data as fallback for shop page");
       } finally {
         setLoading(false);
       }
@@ -137,18 +144,23 @@ const Shop = () => {
     fetchBooks();
   }, [userBooks]);
 
+  // Use API books or mock books as fallback
   const storeBooks = apiBooks.length > 0 ? apiBooks : mockBooks;
   const allBooks = [
     ...storeBooks.map((book) => ({ ...book, type: "regular" })),
     ...userBooks.map((book) => ({ ...book, type: "user" })),
   ];
 
+  // Get unique categories from all books
   const allCategories = [
-    ...new Set([...storeBooks.map((b) => b.category), ...userBooks.map((b) => b.category)]),
+    ...new Set([
+      ...storeBooks.map((b) => b.category),
+      ...userBooks.map((b) => b.category),
+    ]),
   ].filter(Boolean);
 
   const categories = [
-    { value: "all", label: "All Categories", count: allBooks.length },
+    { value: "all", label: t("All Categories"), count: allBooks.length },
     ...allCategories.map((cat) => ({
       value: cat,
       label: cat.charAt(0).toUpperCase() + cat.slice(1),
@@ -156,20 +168,25 @@ const Shop = () => {
     })),
   ];
 
+  // Book types for filtering
   const bookTypes = [
-    { value: "all", label: "All Books" },
-    { value: "regular", label: "Store Books" },
-    { value: "user", label: "Community Books" },
+    { value: "all", label: t("All Books") },
+    { value: "regular", label: t("Store Books") },
+    { value: "user", label: t("Community Books") },
   ];
 
+  // Filter and sort books
   const filteredBooks = allBooks
     .filter((book) => {
       const matchesSearch =
         book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         book.author.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === "all" || book.category === selectedCategory;
+      const matchesCategory =
+        selectedCategory === "all" || book.category === selectedCategory;
       const matchesType = selectedType === "all" || book.type === selectedType;
-      const matchesPrice = book.price >= priceRange[0] && book.price <= priceRange[1];
+      const matchesPrice =
+        book.price >= priceRange[0] && book.price <= priceRange[1];
+
       return matchesSearch && matchesCategory && matchesType && matchesPrice;
     })
     .sort((a, b) => {
@@ -179,7 +196,7 @@ const Shop = () => {
         case "price-high":
           return b.price - a.price;
         case "rating":
-          return (b.rate || 3) - (a.rate || 3);
+          return (b.rate|| 3) - (a.rate || 3)||(b.ratings|| 3)- (a.ratings || 3); // Default rating for user books
         case "name":
         default:
           return a.title.localeCompare(b.title);
@@ -192,9 +209,12 @@ const Shop = () => {
       return;
     }
     addToCart(book);
-    toast.success(`"${book.title}" added to cart!`, {
+    toast.success(`${t("toCart","Added")} "${book.title}" ${t("added","to cart")}!`, {
       duration: 1500,
-      style: { background: "#333", color: "#fff" },
+      style: {
+        background: "#333",
+        color: "#fff",
+      },
     });
   };
 
@@ -204,28 +224,31 @@ const Shop = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-300">
-            Book Shop
+            {t("Book Shop")}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto transition-colors duration-300">
-            Discover our curated collection of cookbooks and culinary guides
+            {t("discoverBooks","Discover our curated collection of books")}
           </p>
         </div>
 
         {/* Search and Filters */}
         <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-6 mb-8 transition-colors duration-300">
           <div className="flex flex-col lg:flex-row gap-6">
+            {/* Search Bar */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 transition-colors duration-300" />
               <input
                 type="text"
-                placeholder="Search books or authors..."
+                placeholder={t("Search books or authors...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
               />
             </div>
 
+            {/* Filters */}
             <div className="flex gap-4 flex-wrap">
+              {/* Book Type Filter */}
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
@@ -238,6 +261,7 @@ const Shop = () => {
                 ))}
               </select>
 
+              {/* Category Filter with counts */}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -245,22 +269,24 @@ const Shop = () => {
               >
                 {categories.map((category) => (
                   <option key={category.value} value={category.value}>
-                    {category.label} ({category.count})
+                    {t(category.label)} ({category.count})
                   </option>
                 ))}
               </select>
 
+              {/* Sort By */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
               >
-                <option value="name">Sort by Name</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
+                <option value="name">{t("Sort by Name")}</option>
+                <option value="price-low">{t("price-low","Price: Low to High")}</option>
+                <option value="price-high">{t("price-high","Price: High to Low")}</option>
+                <option value="rating">{t("Highest Rated")}</option>
               </select>
 
+              {/* View Mode Toggle */}
               <div className="flex border border-gray-300 dark:border-zinc-600 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -287,9 +313,9 @@ const Shop = () => {
           </div>
 
           {/* Price Range Filter */}
-          <div className="mt-4">
+          <div dir={i18n.dir()} className="mt-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
-              Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
+              {t("Price Range")+" "}: ₹{priceRange[0]} - ₹{priceRange[1]}
             </label>
             <div className="flex items-center gap-4">
               <input
@@ -319,17 +345,19 @@ const Shop = () => {
         </div>
 
         {/* Results Count */}
-        <div className="flex justify-between items-center mb-6">
+        <div dir={i18n.dir()} className="flex justify-between items-center mb-6">
           {loading ? (
-            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">Loading books...</p>
+            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
+              {t("Loading books...")}
+            </p>
           ) : (
             <p className="text-gray-600">
-              Showing {filteredBooks.length} of {allBooks.length} books
+              {t("Showing")} {filteredBooks.length} {t("of")} {allBooks.length} {t("books")}
             </p>
           )}
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
             <Filter size={16} />
-            <span>Filtered</span>
+            <span>{t("Filtered")}</span>
           </div>
         </div>
 
@@ -344,23 +372,30 @@ const Shop = () => {
               <Search size={48} className="mx-auto" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">
-              No books found
+              {t("NoBooksAvailable","No books found")}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 transition-colors duration-300">
-              Try adjusting your search or filters
+              {t("Try adjusting your search or filters")}
             </p>
           </div>
         ) : (
-          <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-6"}>
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                : "space-y-6"
+            }
+          >
             {filteredBooks.map((book) => (
               <div
-                key={book._id || book.id}
+                key={book.id}
                 className={
                   viewMode === "grid"
                     ? "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex flex-col"
                     : "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex"
                 }
               >
+                {/* Book Image*/}
                 <Link
                   to={`/book/${book._id || book.id}`}
                   className={
@@ -370,13 +405,25 @@ const Shop = () => {
                   }
                 >
                   <img
-                    src={book.img || book.image || book.images?.[0] || "/placeholder-book.jpg"}
+                    src={
+                      book.image || book.img ||
+                      (book.images && book.images[0]?.preview) ||
+                      book.images?.[0] ||
+                      "/placeholder-book.jpg"
+                    }
                     alt={book.title}
-                    className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                    className="w-full h-full object-fit hover:opacity-90 transition-opacity"
                   />
                 </Link>
 
-                <div className={viewMode === "grid" ? "p-4 flex flex-col flex-1" : "p-6 flex-1"}>
+                {/* Book Info */}
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "p-4 flex flex-col flex-1"
+                      : "p-6 flex-1"
+                  }
+                >
                   <div className="flex justify-between items-start mb-2">
                     <Link
                       to={`/book/${book._id || book.id}`}
@@ -389,55 +436,61 @@ const Shop = () => {
                     </span>
                   </div>
 
+                  {/* Author and Category */}
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
                       by {book.author}
                     </p>
                     <span className="inline-block bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 text-xs font-medium px-2 py-1 rounded-full capitalize transition-colors duration-300">
-                      {book.category}
+                      {t(book.category)}
                     </span>
                   </div>
 
-                  {(book.rate || book.rating) && (
+                  {/* Rating */}
+                  
                     <div className="flex items-center gap-1 mb-3">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          className={`transition-colors duration-300 ${
-                            i < (book.rate || book.rating || 0)
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-gray-300 dark:text-gray-600"
-                          }`}
-                        />
-                      ))}
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={`transition-colors duration-300 ${
+                              i < (book.rate || book.rating || 0)
+                                ? "text-yellow-400 fill-yellow-400"
+                                : "text-gray-300 dark:text-gray-600"
+                            }`}
+                          />
+                        ))}
+                      </div>
                       <span className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                        ({book.rate})
+                        ({book.rating || 0}/5)
                       </span>
                     </div>
-                  )}
+                  
 
-                  {(book.desc || book.description) && (
+                 
                     <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-2 min-h-10 transition-colors duration-300">
                       {book.desc || book.description}
                     </p>
-                  )}
+                  
 
+                  {/* Add to Cart and View Details */}
                   <div className="flex flex-col sm:flex-row mt-auto gap-2">
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="flex-1 text-center py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
+                      className="flex-1  text-center py-2 border border-indigo-500 rounded-lg  transition-colors text-indigo-600 hover:bg-zinc-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
                     >
-                      View Details
+                      {t("View Details")}
                     </Link>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleAddToCart(book);
                       }}
-                      className="flex-1 text-sm bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition-colors duration-300 cursor-pointer"
+                      className="flex-1 text-sm bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-1 py-2 rounded-lg flex items-center justify-center gap-2 whitespace-nowrap transition-colors duration-300 cursor-pointer"
                     >
-                      <ShoppingCart size={16} /> Add to Cart
+                      <ShoppingCart size={16} />
+                      {t("Add to Cart")}
                     </button>
                   </div>
                 </div>
