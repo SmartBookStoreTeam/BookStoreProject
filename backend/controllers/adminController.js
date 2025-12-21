@@ -53,11 +53,7 @@ export const createBook = async (req, res, next) => {
 // @access  Admin
 export const updateBook = async (req, res, next) => {
   try {
-    const book = await Book.findById(req.params.id);
-    if (!book) {
-      res.status(404);
-      throw new Error("Book not found");
-    }
+    const updateData = {};
 
     const fields = [
       "title",
@@ -70,19 +66,33 @@ export const updateBook = async (req, res, next) => {
 
     fields.forEach((field) => {
       if (req.body[field] !== undefined) {
-        book[field] = req.body[field];
+        updateData[field] = req.body[field];
       }
     });
 
     if (req.files?.image) {
-      book.image = req.files.image[0].path;
+      updateData.image = req.files.image[0].path;
     }
 
     if (req.files?.pdf) {
-      book.pdf = req.files.pdf[0].path;
+      updateData.pdf = req.files.pdf[0].path;
     }
 
-    const updatedBook = await book.save();
+    const updatedBook = await Book.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true, // ✔ يشغّل validators على الحقول اللي اتغيرت
+      }
+    );
+
+    if (!updatedBook) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    console.log("FILES:", req.files);
+    console.log("UPDATE DATA:", updateData);
 
     res.json({
       message: "Book updated successfully",
@@ -98,7 +108,17 @@ export const updateBook = async (req, res, next) => {
 // @access  Admin
 export const deleteBook = async (req, res, next) => {
   try {
-    const book = await Book.findById(req.params.id);
+    const book = await Book.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false },
+      { new: true }
+    );
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    res.json({ message: "Book disabled successfully" });
 
     if (!book) {
       res.status(404);

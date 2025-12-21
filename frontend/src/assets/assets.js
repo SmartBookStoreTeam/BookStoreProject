@@ -46,9 +46,9 @@ export const assets = {
 };
 
 export const navLinks = [
- { label: "Home", to: "/" },
- { label: "Explore", to: "/explore" },
- { label: "Shop", to: "/shop" },
- { label: "Community Books", to: "/user-books" },
- { label: "Sell Your Book", to: "/sell" }
+ { label: "Home", to: "/", icon: "Home" },
+ { label: "Explore", to: "/explore", icon: "Compass" },
+ { label: "Shop", to: "/shop", icon: "Store" },
+ { label: "Community Books", to: "/user-books", icon: "Users" },
+ { label: "Publish Your Book", to: "/publish", icon: "Upload" }
 ];

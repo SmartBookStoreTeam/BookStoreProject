@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { assets } from "../assets/assets";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const FavoriteBooks = () => {
   const [bookCount, setBookCount] = useState(0);
@@ -9,7 +10,7 @@ const FavoriteBooks = () => {
   const [soldCount, setSoldCount] = useState(0);
 
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.3 });
-
+const { t } = useTranslation();
   useEffect(() => {
     if (inView) {
       let book = 0,
@@ -46,17 +47,14 @@ const FavoriteBooks = () => {
           {/* Right Side */}
           <div className="w-full lg:w-1/2 text-center lg:text-left">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-              Find Your Favorite <br />
+              {t("Find Your Favorite")} <br />
               <span className="text-indigo-500 dark:text-indigo-400">
-                Book Here!
+                {t("Book Here")}
               </span>
             </h1>
 
             <p className="text-gray-600 dark:text-gray-300 text-[16px] leading-relaxed mb-8 max-w-2xl transition-colors duration-300">
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quo ad
-              non reprehenderit. Reiciendis illo justo incidunt distinctio
-              exercitationem officiis dicta dolores dolorem ea! Non saepe,
-              voluptatum cupiditate beatae in dolore!
+              {t("LandingExploreParagraph","Find Your Favorite — 1200+ Books Available")}
             </p>
 
             {/* Stats */}
@@ -66,7 +64,7 @@ const FavoriteBooks = () => {
                   {bookCount}+
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                  Book Listing
+                  {t("Book Listing")}
                 </div>
               </div>
               <div className="text-center">
@@ -74,7 +72,7 @@ const FavoriteBooks = () => {
                   {userCount}+
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                  Register User
+                  {t("Register User")}
                 </div>
               </div>
               <div className="text-center">
@@ -82,7 +80,7 @@ const FavoriteBooks = () => {
                   {soldCount}+
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
-                  Books Sold
+                  {t("Books Sold")}
                 </div>
               </div>
             </div>
@@ -91,7 +89,7 @@ const FavoriteBooks = () => {
               to={"/explore"} 
               className="inline-block bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 cursor-pointer text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg dark:shadow-indigo-900/50 hover:shadow-xl"
             >
-              Explore Now
+              {t("Explore Now")}
             </Link>
 
           </div>

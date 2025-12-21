@@ -38,6 +38,8 @@ const cartReducer = (state, action) => {
           ...state,
           {
             ...action.payload,
+            // Preserve the original _id for navigation to book details
+            _id: action.payload._id || action.payload.id,
             id: bookId,
             quantity: 1,
           },
