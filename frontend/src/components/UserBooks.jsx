@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
 import { Users, ShoppingCart, BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const UserBooks = () => {
   const { userBooks, addToCart } = useCart();
+  const {t}=useTranslation();
 
   // Don't show anything if no user books
   if (userBooks.length === 0) {
@@ -12,8 +14,8 @@ const UserBooks = () => {
   }
 
   const handleAddToCart = (book) => {
-    addToCart(book);
-    toast.success(`"${book.title}" added to cart!`, {
+   addToCart(book);
+    toast.success(`${t("toCart","Added")} "${book.title}" ${t("added","to cart")}`, {
       duration: 1500,
       style: {
         background: "#333",
@@ -30,12 +32,11 @@ const UserBooks = () => {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Users className="w-8 h-8 text-green-600" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
-              Books from Our Community
+              {t("Books from Our Community")}
             </h2>
           </div>
           <p className="text-gray-600 dark:text-gray-200 text-lg max-w-2xl mx-auto">
-            Discover {userBooks.length} unique books listed by our community
-            members
+            {t("Discover")} {userBooks.length} {t("unique books listed by our community members")}
           </p>
         </div>
 
@@ -61,7 +62,7 @@ const UserBooks = () => {
                   <div className="w-full h-full flex items-center justify-center">
                     <div className="text-center text-gray-400">
                       <BookOpen className="w-12 h-12 mx-auto mb-2" />
-                      <span className="text-sm">No Image</span>
+                      <span className="text-sm">{t("No Image")}</span>
                     </div>
                   </div>
                 )}
@@ -90,9 +91,6 @@ const UserBooks = () => {
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full capitalize">
                     {book.category}
                   </span>
-                  <span className="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full capitalize">
-                    {book.condition}
-                  </span>
                 </div>
 
                 {/* Description */}
@@ -108,7 +106,7 @@ const UserBooks = () => {
                     to={`/book/${book._id || book.id}`}
                     className="flex-1 text-center py-2 border border-indigo-500 dark:text-gray-200  dark:hover:bg-zinc-700 hover:bg-gray-100 rounded-lg transition-colors text-indigo-600 font-medium text-l"
                   >
-                    Details
+                    {t("Details")}
                   </Link>
                   <button
                     onClick={(e) => {
@@ -118,13 +116,13 @@ const UserBooks = () => {
                     className="flex-1 bg-gray-900 dark:bg-indigo-800 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
                   >
                     <ShoppingCart size={16} />
-                    Add to Cart
+                    {t("Add to Cart")}
                   </button>
                 </div>
 
                 {/* Seller Info */}
                 <div className="mt-2 text-xs text-gray-500 dark:text-gray-200">
-                  <p>From: {book.sellerName}</p>
+                  <p>{t("From")}: {book.sellerName}</p>
                   <p>{book.sellerLocation}</p>
                 </div>
               </div>
@@ -140,7 +138,7 @@ const UserBooks = () => {
               className="inline-flex items-center bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
             >
               <Users className="w-5 h-5 mr-2" />
-              View All {userBooks.length} Community Books
+              {t("View All")} {userBooks.length} {t("Community Books")}
             </Link>
           </div>
         )}

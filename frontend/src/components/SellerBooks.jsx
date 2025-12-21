@@ -1,7 +1,8 @@
 import Carousel from "./Carousel";
-import { assets } from "../assets/assets";
-
+import { useTranslation } from "react-i18next";
+import {assets} from "../assets/assets";
 const SellerBooks = () => {
+  const { t } = useTranslation();
   const books = [
     {
       id: 1,
@@ -129,9 +130,9 @@ const SellerBooks = () => {
     <div className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8">
       <div className="container mx-auto px-6 md:px-20 relative">
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-          Best Seller Books
+          {t("Best Seller Books")}
         </h1>
-        <Carousel books={books} />
+          <Carousel books={books} />
       </div>
     </div>
   );

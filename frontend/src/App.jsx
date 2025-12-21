@@ -3,11 +3,11 @@ import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
 import Shop from "./pages/Shop";
-import Sell from "./pages/Sell";
+import Publish from "./pages/Publish";
 import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import UserBooks from "./pages/UserBooks";
-import BookDetails from "./pages/BookDetails";
+import BookDetailsPage from "./pages/BookDetails";
 import AdminBookDetails from "./pages/admin/AdminBookDetails";
 import { useScrollToTop } from "./hooks/useScrollTop";
 import { CartProvider } from "./context/CartContext";
@@ -39,8 +39,8 @@ function App() {
             <Route index element={<Home />} />
             <Route path="explore" element={<Explore />} />
             <Route path="shop" element={<Shop />} />
-            <Route path="book/:id" element={<BookDetails />} />
-            <Route path="sell" element={<Sell />} />
+            <Route path="book/:id" element={<BookDetailsPage />} />
+            <Route path="publish" element={<Publish />} />
             <Route path="cart" element={<Cart />} />
             <Route path="user-books" element={<UserBooks />} />
           </Route>

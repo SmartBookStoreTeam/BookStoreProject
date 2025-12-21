@@ -7,7 +7,7 @@ import {
   EyeSlashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-
+import { useTranslation } from "react-i18next";
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +17,11 @@ const UserLogin = () => {
 
   const navigate = useNavigate();
   const { login } = useAuth();
+const {t,i18n}=useTranslation();
+
+  const togglePassword = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,10 +61,10 @@ const UserLogin = () => {
             </div>
 
             <h1 className="text-3xl font-bold text-gray-800 dark:text-zinc-100">
-              Welcome Back
+              {t("Welcome Back")}
             </h1>
             <p className="text-gray-600 dark:text-zinc-400 mt-2">
-              Sign in to your account
+              {t("Sign in to your account")}
             </p>
           </div>
 
@@ -73,7 +78,7 @@ const UserLogin = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
-                Email Address
+                {t("Email Address")}
               </label>
               <input
                 type="email"
@@ -87,7 +92,7 @@ const UserLogin = () => {
 
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
-                Password
+                {t("Password")}
               </label>
 
               <input
@@ -101,7 +106,7 @@ const UserLogin = () => {
 
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={togglePassword}
                 className="absolute right-3 top-11 text-gray-500 dark:text-zinc-400 hover:text-indigo-500"
               >
                 {showPassword ? (
@@ -117,18 +122,18 @@ const UserLogin = () => {
               disabled={loading}
               className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? t("Signing in...") : t("Sign In")}
             </button>
           </form>
 
-          <div className="mt-8 text-center">
+          <div dir={i18n.dir()} className="mt-8 text-center">
             <p className="text-gray-600 dark:text-zinc-400">
-              Don't have an account?{" "}
+              {t("Don't have an account?")}{" "}
               <button
                 onClick={() => navigate("/register")}
                 className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
               >
-                Sign up
+                {t("Sign up")}
               </button>
             </p>
           </div>

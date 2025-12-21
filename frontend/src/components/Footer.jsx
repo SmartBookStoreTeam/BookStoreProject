@@ -1,30 +1,37 @@
 import { assets } from "../assets/assets";
 import { FaFacebook, FaTwitter, FaLinkedin } from "react-icons/fa";
-
+import { useTranslation } from "react-i18next";
 const Footer = () => {
+const {t,i18n}=useTranslation();
+    const toggleLanguage = () => {
+      const newLang = i18n.language === "en" ? "ar" : "en";
+      i18n.changeLanguage(newLang);
+      localStorage.setItem("language", newLang);
+      
+    };
+
   return (
     <div className="bg-black text-white py-12">
       <div className="container mx-auto px-6 md:px-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <h1 className="text-2xl font-bold mb-4">Books</h1>
+            <h1 className="text-2xl font-bold mb-4">{t("Books")}</h1>
             <p className="text-gray-300 text-sm leading-relaxed max-w-xs">
-              Books Delivered. Imagination Unlimited. Your one-stop destination
-              for all your reading needs.
+              {t("booksDelivered","Books Delivered. Imagination Unlimited. Your one-stop destination for all your reading needs.")}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h1 className="text-xl font-semibold mb-4">Quick Links</h1>
+            <h1 className="text-xl font-semibold mb-4">{t("Quick Links")}</h1>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/"
                   className="text-gray-300 hover:text-white transition-colors duration-200"
                 >
-                  Home
+                  {t("Home")}
                 </a>
               </li>
               <li>
@@ -32,7 +39,7 @@ const Footer = () => {
                   href="/about"
                   className="text-gray-300 hover:text-white transition-colors duration-200"
                 >
-                  About Us
+                  {t("About Us")}
                 </a>
               </li>
               <li>
@@ -40,7 +47,7 @@ const Footer = () => {
                   href="/contact"
                   className="text-gray-300 hover:text-white transition-colors duration-200"
                 >
-                  Contact
+                  {t("Contact")}
                 </a>
               </li>
               <li>
@@ -48,26 +55,26 @@ const Footer = () => {
                   href="/books"
                   className="text-gray-300 hover:text-white transition-colors duration-200"
                 >
-                  All Books
+                  {t("All Books")}
                 </a>
               </li>
             </ul>
           </div>
 
           {/* Contact Info */}
-          <div>
-            <h1 className="text-xl font-semibold mb-4">Contact</h1>
+          <div dir={i18n.dir()}>
+            <h1 className="text-xl font-semibold mb-4">{t("Contact")}</h1>
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-start">
-                <span className="min-w-[80px]">Email:</span>
+                <span className="min-w-[80px]">{t("Email")}:</span>
                 <span>samy@gmail.com</span>
               </li>
               <li className="flex items-start">
-                <span className="min-w-[80px]">Phone:</span>
+                <span className="min-w-[80px]">{t("Phone")}:</span>
                 <span>+20 10 123 4561</span>
               </li>
               <li className="flex items-start">
-                <span className="min-w-[80px]">Address:</span>
+                <span className="min-w-[80px]">{t("Address")}:</span>
                 <span>MMEC, Mullana - 133207</span>
               </li>
             </ul>
@@ -75,7 +82,7 @@ const Footer = () => {
 
           {/* Payment Methods */}
           <div>
-            <h1 className="text-xl font-semibold mb-4">We Accept</h1>
+            <h1 className="text-xl font-semibold mb-4">{t("We Accept")}</h1>
             <div className="flex items-center gap-4">
               <img
                 className="w-13 h-8 object-contain rounded"
@@ -96,7 +103,7 @@ const Footer = () => {
 
             {/* Social Media (Optional) */}
             <div className="mt-6">
-              <h2 className="text-lg font-semibold mb-3">Follow Us</h2>
+              <h2 className="text-lg font-semibold mb-3">{t("Follow Us")}</h2>
               <div className="flex items-center gap-4">
                 <FaFacebook className="w-8 h-8 fill-[#1877F2] bg-white rounded-full flex items-center justify-center  transition-colors cursor-pointer" />
                 <FaTwitter className="w-8 h-8 fill-[#1DA1F2]  bg-white rounded-full flex items-center justify-center  transition-colors cursor-pointer" />
@@ -105,11 +112,14 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
+<select value={i18n.language} onChange={toggleLanguage} className="bg-zinc-800 p-2 rounded-lg border-none my-5">
+            <option value={"en"}>English</option>
+            <option value={"ar"}>عربي</option>
+          </select>
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
           <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} Books Store. All rights reserved.
+            © {new Date().getFullYear()} Books Store. {t("All rights reserved")}.
           </p>
         </div>
       </div>

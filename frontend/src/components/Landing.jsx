@@ -1,9 +1,9 @@
 import { assets } from "../assets/assets";
 import { Search, MoreHorizontal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-
 const Landing = () => {
   const bookImages = [
     assets.landingBook1,
@@ -11,25 +11,24 @@ const Landing = () => {
     assets.landingBook3,
     assets.landingBook4,
   ];
-
+  const {t}=useTranslation();
+  
   return (
-    <div className="bg-zinc-200 dark:bg-zinc-900 transition-colors duration-300">
+    <div  className="bg-zinc-200 dark:bg-zinc-900 transition-colors duration-300">
       <section className="relative flex items-center dark:bg-zinc-900  justify-center min-h-screen overflow-hidden">
         <div className="container mx-auto px-6 md:px-20 py-12">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
             {/* Text Content */}
             <div className="w-full lg:max-w-xl text-center lg:text-left space-y-6 flex flex-col justify-center order-2 lg:order-1">
               <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-indigo-950 dark:text-indigo-100 leading-tight transition-colors duration-300">
-                Buy and sell your books{" "}
+                {t("landingIntro","Buy and sell your books online")}{" "}
                 <span className="text-indigo-500 dark:text-indigo-400 transition-colors duration-300">
-                  for the best prices
+                  {t("landingIntro2","for the best prices")}
                 </span>
               </h1>
 
               <p className="text-indigo-950 dark:text-indigo-200 text-base sm:text-lg leading-relaxed transition-colors duration-300">
-                Find and read more you'll love, and keep track of the books you
-                want to read. Be part of the world's largest community of book
-                lovers on Goodreads.
+                {t("landingParagraph","Find and read more you'll love, and keep track of the books you want to read. Be part of the world's largest community of book lovers on Goodreads.")}
               </p>
 
               {/* Search bar */}
@@ -40,7 +39,7 @@ const Landing = () => {
                 />
                 <input
                   type="text"
-                  placeholder="Search for a book..."
+                  placeholder={t("Search for a book...")}
                   className="w-full px-10 py-3 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
                 />
                 <MoreHorizontal

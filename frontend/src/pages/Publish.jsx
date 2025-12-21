@@ -10,9 +10,11 @@ import {
   MapPin,
   CheckCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 
-const Sell = () => {
+const Publish = () => {
+  const { t } = useTranslation();
   const { addUserBook } = useCart();
   const [formData, setFormData] = useState({
     // Book Information
@@ -58,15 +60,7 @@ const Sell = () => {
     { value: "children", label: "Children's Books" },
     { value: "art", label: "Art & Photography" },
     { value: "biography", label: "Biography" },
-    { value: "other", label: "Other" },
-  ];
-
-  const conditions = [
-    { value: "excellent", label: "Excellent - Like new" },
-    { value: "very-good", label: "Very Good - Minimal wear" },
-    { value: "good", label: "Good - Some signs of use" },
-    { value: "fair", label: "Fair - Noticeable wear" },
-    { value: "poor", label: "Poor - Heavy wear but readable" },
+    { value: "programming", label: "Programming" },
   ];
 
   const languages = [
@@ -89,8 +83,8 @@ const Sell = () => {
     if (!phone) return true; // Phone is optional
 
     // Remove all spaces, hyphens, parentheses, and plus signs for cleaning
-   // eslint-disable-next-line no-useless-escape
-   const cleanPhone = phone.replace(/[\s\-\(\)\+]/g, "");
+    // eslint-disable-next-line no-useless-escape
+    const cleanPhone = phone.replace(/[\s\-\(\)\+]/g, "");
 
     // Egyptian phone number patterns:
     // 1) Mobile numbers: 01XXXXXXXXX (11 digits starting with 01)
@@ -222,19 +216,19 @@ const Sell = () => {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length + formData.images.length > 5) {
-      showToast("Maximum 5 images allowed", "error");
+      showToast(t("Maximum 5 images allowed"), "error");
       return;
     }
 
     // Validate file types and sizes
     const validFiles = files.filter((file) => {
       if (!file.type.startsWith("image/")) {
-        showToast("Only image files are allowed", "error");
+        showToast(t("Only image files are allowed"), "error");
         return false;
       }
       if (file.size > 5 * 1024 * 1024) {
         // 5MB limit
-        showToast("Image size should be less than 5MB", "error");
+        showToast(t("Image size should be less than 5MB"), "error");
         return false;
       }
       return true;
@@ -265,33 +259,35 @@ const Sell = () => {
       case 1:
         // Book title validation
         if (!formData.title.trim()) {
-          newErrors.title = "Book title is required";
+          newErrors.title = t("Book title is required");
         } else if (!validateTitle(formData.title)) {
-          newErrors.title = "Title must be between 2 and 200 characters";
+          newErrors.title = t("Title must be between 2 and 200 characters");
         }
 
         // Author validation
         if (!formData.author.trim()) {
-          newErrors.author = "Author name is required";
+          newErrors.author = t("Author name is required");
         } else if (!validateAuthor(formData.author)) {
-          newErrors.author = "Author name must be between 2 and 100 characters";
+          newErrors.author = t(
+            "Author name must be between 2 and 100 characters"
+          );
         }
 
         // Category validation
         if (!formData.category) {
-          newErrors.category = "Please select a category";
+          newErrors.category = t("Please select a category");
         }
 
         // Price validation
         if (!formData.price) {
-          newErrors.price = "Price is required";
+          newErrors.price = t("Price is required");
         } else if (!validatePrice(formData.price)) {
-          newErrors.price = "Price must be between ₹1 and ₹999,999";
+          newErrors.price = t("Price must be between ₹1 and ₹999,999");
         }
 
         // ISBN validation
         if (formData.isbn && !validateISBN(formData.isbn)) {
-          newErrors.isbn = "Please enter a valid ISBN (10 or 13 digits)";
+          newErrors.isbn = t("Please enter a valid ISBN (10 or 13 digits)");
         }
 
         // Publication year validation
@@ -299,18 +295,21 @@ const Sell = () => {
           formData.publicationYear &&
           !validatePublicationYear(formData.publicationYear)
         ) {
-          newErrors.publicationYear = `Please enter a valid year between 1900 and ${new Date().getFullYear()}`;
+          newErrors.publicationYear = t(
+            `Please enter a valid year between 1900 and ${new Date().getFullYear()}`
+          );
         }
 
         // Pages validation
         if (formData.pages && !validatePages(formData.pages)) {
-          newErrors.pages = "Please enter a valid page count";
+          newErrors.pages = t("Please enter a valid page count");
         }
 
         // Description validation
         if (!validateDescription(formData.description)) {
-          newErrors.description =
-            "Description must be less than 1000 characters";
+          newErrors.description = t(
+            "Description must be less than 1000 characters"
+          );
         }
 
         break;
@@ -318,37 +317,41 @@ const Sell = () => {
       case 2:
         // Image validation
         if (formData.images.length === 0) {
-          newErrors.images = "Please upload at least one book image";
+          newErrors.images = t("Please upload at least one book image");
         }
         break;
 
       case 3:
         // Seller name validation
         if (!formData.sellerName.trim()) {
-          newErrors.sellerName = "Your name is required";
+          newErrors.sellerName = t("Your name is required");
         } else if (!validateName(formData.sellerName)) {
-          newErrors.sellerName =
-            "Please enter a valid name (2-50 characters, letters only)";
+          newErrors.sellerName = t(
+            "Please enter a valid name (2-50 characters, letters only)"
+          );
         }
 
         // Email validation
         if (!formData.sellerEmail.trim()) {
-          newErrors.sellerEmail = "Email address is required";
+          newErrors.sellerEmail = t("Email address is required");
         } else if (!validateEmail(formData.sellerEmail)) {
-          newErrors.sellerEmail = "Please enter a valid email address";
+          newErrors.sellerEmail = t("Please enter a valid email address");
         }
 
         // Phone validation
         if (formData.sellerPhone && !validatePhone(formData.sellerPhone)) {
-          newErrors.sellerPhone = "Please enter a valid Egyptian phone number";
+          newErrors.sellerPhone = t(
+            "Please enter a valid Egyptian phone number"
+          );
         }
 
         // Location validation
         if (!formData.sellerLocation.trim()) {
-          newErrors.sellerLocation = "Location is required";
+          newErrors.sellerLocation = t("Location is required");
         } else if (!validateLocation(formData.sellerLocation)) {
-          newErrors.sellerLocation =
-            "Please enter a valid location (2-100 characters)";
+          newErrors.sellerLocation = t(
+            "Please enter a valid location (2-100 characters)"
+          );
         }
         break;
 
@@ -385,7 +388,7 @@ const Sell = () => {
     // Clear errors when going back
     setErrors({});
   };
-   const goToStep = (targetStep) => {
+  const goToStep = (targetStep) => {
     // If going to a previous step, allow it without validation
     if (targetStep < currentStep) {
       setCurrentStep(targetStep);
@@ -401,7 +404,12 @@ const Sell = () => {
     // If going to a future step, validate all steps up to the current one
     // First, validate the current step
     if (!validateStep(currentStep)) {
-      showToast(`Please complete ${steps[currentStep-1].title} before proceeding`, "error");
+      showToast(
+        `${t("Please complete")} ${t(steps[currentStep - 1].title)} ${t(
+          "before proceeding"
+        )}`,
+        "error"
+      );
       return;
     }
 
@@ -416,7 +424,12 @@ const Sell = () => {
     for (let step = currentStep; step < targetStep; step++) {
       if (!validateStep(step)) {
         allValid = false;
-        showToast(`Please complete step ${step} before proceeding`, "error")
+        showToast(
+          `${t("Please complete")} ${t(steps[step - 1].title)} ${t(
+            "before proceeding"
+          )}`,
+          "error"
+        );
         break;
       }
     }
@@ -438,7 +451,10 @@ const Sell = () => {
     }
 
     if (!allValid) {
-      showToast("Please fix all validation errors before publishing", "error");
+      showToast(
+        `${t("Please fix all validation errors before publishing")}`,
+        "error"
+      );
       setCurrentStep(1);
       return;
     }
@@ -485,7 +501,7 @@ const Sell = () => {
       // Save to context (which saves to localStorage)
       addUserBook(bookData);
 
-      showToast("Your book has been published successfully!");
+      showToast(`${t("Your book has been published successfully!")}`);
 
       // Reset form
       setFormData({
@@ -494,7 +510,6 @@ const Sell = () => {
         description: "",
         category: "",
         price: "",
-        condition: "excellent",
         isbn: "",
         images: [],
         sellerName: "",
@@ -510,7 +525,7 @@ const Sell = () => {
       setCurrentStep(1);
       setErrors({});
     } catch (error) {
-      showToast("Failed to publish your book. Please try again.", error);
+      showToast(t("Failed to publish your book. Please try again"), error);
     } finally {
       setIsPublishing(false);
     }
@@ -529,7 +544,7 @@ const Sell = () => {
   const steps = [
     { number: 1, title: "Book Details" },
     { number: 2, title: "Upload Images" },
-    { number: 3, title: "Seller Info" },
+    { number: 3, title: "Publisher Info" },
     { number: 4, title: "Review & Publish" },
   ];
 
@@ -547,21 +562,23 @@ const Sell = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
+    <div dir="auto" className="min-h-screen bg-gray-50 pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Sell Your Book
+            {t("Publish Your Book")}
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            List your pre-loved books and reach thousands of readers. Fill out
-            the form below to get started.
+            {t(
+              "PublishBookParagraph",
+              "List your loved books and reach thousands of readers. Fill out the form below to get started."
+            )}
           </p>
         </div>
 
         {/* Progress Steps */}
-            <div className="max-w-4xl mx-auto mb-8">
+        <div className="max-w-4xl mx-auto mb-8">
           <div className="flex flex-col sm:flex-row md:items-center md:justify-between gap-6 sm:gap-2 lg:whitespace-nowrap">
             {steps.map((step, index) => (
               <div
@@ -587,21 +604,21 @@ const Sell = () => {
                 <button
                   type="button"
                   onClick={() => goToStep(step.number)}
-                  className={`ml-2 font-medium transition-colors cursor-pointer underline sm:no-underline hover:underline focus:outline-none ${
+                  className={`ml-2 font-medium transition-colors cursor-pointer focus:underline hover:underline focus:outline-none mx-2 ${
                     currentStep >= step.number
                       ? "text-indigo-600"
                       : "text-gray-500"
                   }`}
                 >
-                  {step.title}
+                  {t(step.title)}
                 </button>
                 {index < steps.length - 1 && (
                   <div
-                    className={`sm:block lg:block w-[1.2px] sm:w-8 md:w-16 sm:h-0.5 h-4 mx-4 absolute left-1 translate-y-8  sm:static sm:translate-y-0 ${
-                      currentStep > step.number
-                        ? "bg-indigo-600"
-                        : "bg-gray-300"
-                    }`}
+                    className={`w-[1.2px] sm:w-8 md:w-16 sm:h-0.5 h-4 mx-4 
+  absolute start-1 translate-y-8 
+  sm:static sm:translate-y-0 ${
+    currentStep > step.number ? "bg-indigo-600" : "bg-gray-300"
+  }`}
                   />
                 )}
               </div>
@@ -616,13 +633,13 @@ const Sell = () => {
             {currentStep === 1 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Book Information
+                  {t("Book Information")}
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Book Title *
+                      {t("Book Title")} *
                     </label>
                     <input
                       type="text"
@@ -634,14 +651,14 @@ const Sell = () => {
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-indigo-500"
                       }`}
-                      placeholder="Enter book title"
+                      placeholder={t("Enter book title")}
                     />
                     {renderError("title")}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Author *
+                      {t("Author")} *
                     </label>
                     <input
                       type="text"
@@ -653,14 +670,14 @@ const Sell = () => {
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-indigo-500"
                       }`}
-                      placeholder="Enter author name"
+                      placeholder={t("Enter author name")}
                     />
                     {renderError("author")}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category *
+                      {t("Category")} *
                     </label>
                     <select
                       name="category"
@@ -674,7 +691,7 @@ const Sell = () => {
                     >
                       {categories.map((cat) => (
                         <option key={cat.value} value={cat.value}>
-                          {cat.label}
+                          {t(cat.label)}
                         </option>
                       ))}
                     </select>
@@ -683,7 +700,7 @@ const Sell = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Price (₹) *
+                      {t("Price")} *
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -707,25 +724,7 @@ const Sell = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Condition
-                    </label>
-                    <select
-                      name="condition"
-                      value={formData.condition}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    >
-                      {conditions.map((condition) => (
-                        <option key={condition.value} value={condition.value}>
-                          {condition.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Language
+                      {t("Language")}
                     </label>
                     <select
                       name="language"
@@ -744,9 +743,12 @@ const Sell = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
+                    {t("Description") + " "}
                     <span className="text-xs text-gray-500 ml-1">
-                      (Optional, max 1000 characters)
+                      {t(
+                        "DescriptionOptional",
+                        "Optional, max 1000 characters"
+                      )}
                     </span>
                   </label>
                   <textarea
@@ -759,7 +761,10 @@ const Sell = () => {
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-indigo-500"
                     }`}
-                    placeholder="Describe your book's content, special features, and any notable aspects..."
+                    placeholder={t(
+                      "describeBook",
+                      "Describe your book's content, special features, and any notable aspects..."
+                    )}
                   />
                   <div className="flex justify-between mt-1">
                     {renderError("description")}
@@ -778,7 +783,7 @@ const Sell = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ISBN (Optional)
+                      ISBN {`(${t("Optional")})`}
                     </label>
                     <input
                       type="text"
@@ -790,14 +795,14 @@ const Sell = () => {
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-indigo-500"
                       }`}
-                      placeholder="ISBN number"
+                      placeholder={`ISBN ${t("number")}`}
                     />
                     {renderError("isbn")}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Edition
+                      {t("Edition")}
                     </label>
                     <input
                       type="text"
@@ -811,7 +816,7 @@ const Sell = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Publication Year
+                      {t("Publication Year")}
                     </label>
                     <input
                       type="number"
@@ -834,7 +839,7 @@ const Sell = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Publisher
+                      {t("Publisher")}
                     </label>
                     <input
                       type="text"
@@ -842,13 +847,13 @@ const Sell = () => {
                       value={formData.publisher}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      placeholder="Publisher name"
+                      placeholder={t("Publisher name")}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Number of Pages
+                      {t("Number of Pages")}
                     </label>
                     <input
                       type="number"
@@ -860,7 +865,7 @@ const Sell = () => {
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-indigo-500"
                       }`}
-                      placeholder="Number of pages"
+                      placeholder={t("Number of Pages")}
                       min="1"
                     />
                     {renderError("pages")}
@@ -873,7 +878,7 @@ const Sell = () => {
             {currentStep === 2 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Upload Book Images
+                  {t("Upload Book Images")}
                 </h2>
 
                 <div
@@ -885,11 +890,13 @@ const Sell = () => {
                 >
                   <Image className="mx-auto w-12 h-12 text-gray-400 mb-4" />
                   <p className="text-lg font-medium text-gray-900 mb-2">
-                    Upload book images
+                    {t("Upload Book Images")}
                   </p>
                   <p className="text-gray-500 mb-4">
-                    Upload clear photos of the front cover, back cover, and any
-                    notable pages. Maximum 5 images (5MB each).
+                    {t(
+                      "uploadImagesHint",
+                      "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each)."
+                    )}
                   </p>
                   <input
                     type="file"
@@ -904,7 +911,7 @@ const Sell = () => {
                     className="inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
                   >
                     <Upload className="w-5 h-5 mr-2" />
-                    Choose Images
+                    {t("Choose Images")}
                   </label>
                   {renderError("images")}
                 </div>
@@ -913,7 +920,7 @@ const Sell = () => {
                 {formData.images.length > 0 && (
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Preview ({formData.images.length}/5)
+                      {t("Preview")} ({formData.images.length}/5)
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                       {formData.images.map((image, index) => (
@@ -938,17 +945,17 @@ const Sell = () => {
               </div>
             )}
 
-            {/* Step 3: Seller Information */}
+            {/* Step 3: Publisher Information */}
             {currentStep === 3 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Seller Information
+                  {t("Publisher Info", "Publisher Information")}
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Your Name *
+                      {t("Your Name")} *
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -962,7 +969,7 @@ const Sell = () => {
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300 focus:ring-indigo-500"
                         }`}
-                        placeholder="Enter your full name"
+                        placeholder={t("Enter your full name")}
                       />
                     </div>
                     {renderError("sellerName")}
@@ -970,7 +977,7 @@ const Sell = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
+                      {t("Email Address")} *
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -984,7 +991,7 @@ const Sell = () => {
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300 focus:ring-indigo-500"
                         }`}
-                        placeholder="Enter your email"
+                        placeholder={t("Enter your email")}
                       />
                     </div>
                     {renderError("sellerEmail")}
@@ -992,9 +999,9 @@ const Sell = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
+                      {t("Phone Number") + " "}
                       <span className="text-xs text-gray-500 ml-1">
-                        (Optional)
+                        {`(${t("Optional")})`}
                       </span>
                     </label>
                     <div className="relative">
@@ -1017,7 +1024,7 @@ const Sell = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location/City *
+                      {t("Location/City")} *
                     </label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -1031,7 +1038,7 @@ const Sell = () => {
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300 focus:ring-indigo-500"
                         }`}
-                        placeholder="Enter your city"
+                        placeholder={t("Enter your city")}
                       />
                     </div>
                     {renderError("sellerLocation")}
@@ -1046,11 +1053,12 @@ const Sell = () => {
                 <div className="text-center mb-8">
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Review Your Listing
+                    {t("Review Your Listing")}
                   </h2>
                   <p className="text-gray-600">
-                    Please review all the information below before publishing
-                    your book.
+                    {t(
+                      "Please review all the information below before publishing your book."
+                    )}
                   </p>
                 </div>
 
@@ -1060,12 +1068,12 @@ const Sell = () => {
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <BookOpen className="w-5 h-5 mr-2" />
-                        Book Details
+                        {t("Book Details")}
                       </h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Title:
+                            {t("Title")}:
                           </span>
                           <p className="text-gray-900 text-right">
                             {formData.title}
@@ -1073,7 +1081,7 @@ const Sell = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Author:
+                            {t("Author")}:
                           </span>
                           <p className="text-gray-900 text-right">
                             {formData.author}
@@ -1081,7 +1089,7 @@ const Sell = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Category:
+                            {t("Category")}:
                           </span>
                           <p className="text-gray-900 text-right capitalize">
                             {formData.category}
@@ -1089,7 +1097,7 @@ const Sell = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Price:
+                            {t("Price")}:
                           </span>
                           <p className="text-gray-900 text-right">
                             ₹{formData.price}
@@ -1097,15 +1105,7 @@ const Sell = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Condition:
-                          </span>
-                          <p className="text-gray-900 text-right capitalize">
-                            {formData.condition}
-                          </p>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            Language:
+                            {t("Language")}:
                           </span>
                           <p className="text-gray-900 text-right capitalize">
                             {formData.language}
@@ -1114,7 +1114,7 @@ const Sell = () => {
                         {formData.description && (
                           <div>
                             <span className="font-medium text-gray-700">
-                              Description:
+                              {t("Description")}:
                             </span>
                             <p className="text-gray-900 mt-1 text-sm bg-white p-2 rounded border">
                               {formData.description}
@@ -1131,12 +1131,14 @@ const Sell = () => {
                       formData.pages) && (
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h4 className="font-semibold text-gray-900 mb-3">
-                          Additional Details
+                          {t("Additional Details")}
                         </h4>
                         <div className="space-y-2 text-sm">
                           {formData.isbn && (
                             <div className="flex justify-between">
-                              <span className="text-gray-600">ISBN:</span>
+                              <span className="text-gray-600">
+                                {t("ISBN")}:
+                              </span>
                               <span className="text-gray-900">
                                 {formData.isbn}
                               </span>
@@ -1144,7 +1146,9 @@ const Sell = () => {
                           )}
                           {formData.edition && (
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Edition:</span>
+                              <span className="text-gray-600">
+                                {t("Edition")}:
+                              </span>
                               <span className="text-gray-900">
                                 {formData.edition}
                               </span>
@@ -1153,7 +1157,7 @@ const Sell = () => {
                           {formData.publicationYear && (
                             <div className="flex justify-between">
                               <span className="text-gray-600">
-                                Publication Year:
+                                {t("Publication Year")}:
                               </span>
                               <span className="text-gray-900">
                                 {formData.publicationYear}
@@ -1162,7 +1166,9 @@ const Sell = () => {
                           )}
                           {formData.pages && (
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Pages:</span>
+                              <span className="text-gray-600">
+                                {t("Pages")}:
+                              </span>
                               <span className="text-gray-900">
                                 {formData.pages}
                               </span>
@@ -1186,12 +1192,12 @@ const Sell = () => {
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <User className="w-5 h-5 mr-2" />
-                        Seller Information
+                        {t("Publisher Info", "Publisher Information")}
                       </h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Name:
+                            {t("Name")}:
                           </span>
                           <p className="text-gray-900 text-right">
                             {formData.sellerName}
@@ -1199,7 +1205,7 @@ const Sell = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Email:
+                            {t("Email")}:
                           </span>
                           <p className="text-gray-900 text-right">
                             {formData.sellerEmail}
@@ -1208,7 +1214,7 @@ const Sell = () => {
                         {formData.sellerPhone && (
                           <div className="flex justify-between">
                             <span className="font-medium text-gray-700">
-                              Phone:
+                              {t("Phone")}:
                             </span>
                             <p className="text-gray-900 text-right">
                               {formData.sellerPhone}
@@ -1217,7 +1223,7 @@ const Sell = () => {
                         )}
                         <div className="flex justify-between">
                           <span className="font-medium text-gray-700">
-                            Location:
+                            {t("Location")}:
                           </span>
                           <p className="text-gray-900 text-right">
                             {formData.sellerLocation}
@@ -1231,7 +1237,7 @@ const Sell = () => {
                       <div className="bg-purple-50 p-4 rounded-lg">
                         <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                           <Image className="w-5 h-5 mr-2" />
-                          Book Images ({formData.images.length})
+                          {t("Book Images")} ({formData.images.length})
                         </h4>
                         <div className="grid grid-cols-3 gap-2">
                           {formData.images.map((image, index) => (
@@ -1249,31 +1255,34 @@ const Sell = () => {
                     {/* Publish Button Section */}
                     <div className="bg-yellow-50 p-6 rounded-lg border-2 border-dashed border-yellow-200">
                       <h4 className="font-semibold text-gray-900 mb-3 text-center">
-                        Ready to Publish?
+                        {t("Ready to Publish?")}
                       </h4>
                       <p className="text-sm text-gray-600 text-center mb-4">
-                        Once published, your book will be visible to all users
-                        on the platform.
+                        {t(
+                          "Once published, your book will be visible to all users on the platform."
+                        )}
                       </p>
                       <button
                         onClick={handlePublish}
                         disabled={isPublishing}
-                        className="w-full py-4 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
                       >
                         {isPublishing ? (
                           <>
                             <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                            Publishing Your Book...
+                            {t("Publishing Your Book...")}
                           </>
                         ) : (
                           <>
                             <CheckCircle className="w-5 h-5" />
-                            Publish Book Now
+                            {t("Publish Book Now")}
                           </>
                         )}
                       </button>
                       <p className="text-xs text-gray-500 text-center mt-2">
-                        By publishing, you agree to our terms and conditions
+                        {t(
+                          "By publishing, you agree to our terms and conditions"
+                        )}
                       </p>
                     </div>
                   </div>
@@ -1282,7 +1291,10 @@ const Sell = () => {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:justify-between   mt-8 pt-6 border-t border-gray-200">
+            <div
+              dir="ltr"
+              className="flex flex-col sm:flex-row justify-center gap-4 sm:justify-between   mt-8 pt-6 border-t border-gray-200"
+            >
               <button
                 type="button"
                 onClick={prevStep}
@@ -1295,7 +1307,7 @@ const Sell = () => {
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
                 }`}
               >
-                Previous
+                {t("Previous")}
               </button>
 
               {currentStep < 4 ? (
@@ -1304,7 +1316,7 @@ const Sell = () => {
                   onClick={nextStep}
                   className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 cursor-pointer"
                 >
-                  {currentStep === 3 ? "Review & Publish" : "Next"}
+                  {currentStep === 3 ? t("Review & Publish") : t("Next")}
                 </button>
               ) : (
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -1313,7 +1325,7 @@ const Sell = () => {
                     onClick={prevStep}
                     className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 cursor-pointer"
                   >
-                    Edit Details
+                    {t("Edit Details")}
                   </button>
                   <button
                     onClick={handlePublish}
@@ -1323,10 +1335,10 @@ const Sell = () => {
                     {isPublishing ? (
                       <>
                         <div className=" animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        Publishing...
+                        {t("Publishing...")}
                       </>
                     ) : (
-                      "Publish Book"
+                      t("Publish Book")
                     )}
                   </button>
                 </div>
@@ -1338,8 +1350,9 @@ const Sell = () => {
         {/* Help Text */}
         <div className="max-w-4xl mx-auto mt-8 text-center text-sm text-gray-500">
           <p>
-            By listing your book, you agree to our terms of service. Your
-            contact information will be shared with potential buyers.
+            {t(
+              "By listing your book, you agree to our terms of service. Your name and email will be shared with potential buyers."
+            )}
           </p>
         </div>
       </div>
@@ -1347,4 +1360,4 @@ const Sell = () => {
   );
 };
 
-export default Sell;
+export default Publish;

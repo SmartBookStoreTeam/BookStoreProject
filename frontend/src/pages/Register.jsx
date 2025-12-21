@@ -8,14 +8,14 @@ import {
   ArrowLeftIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-
+import { useTranslation } from "react-i18next";
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+const {t,i18n}=useTranslation();
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -46,7 +46,6 @@ const Register = () => {
       {/* Back to Store Button */}
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-[#1a1a22] rounded-2xl shadow-xl p-8 border border-zinc-200 dark:border-zinc-700 transition-colors relative">
-
           {/* Close Button */}
           <button
             onClick={() => navigate("/")}
@@ -55,8 +54,7 @@ const Register = () => {
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
-
-          {/* Logo and Header */}
+          {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="h-12 w-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
@@ -64,15 +62,15 @@ const Register = () => {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-zinc-100">
-              Register New Account
+              {t("Register New Account")}
             </h1>
             <p className="text-gray-600 dark:text-zinc-400 mt-2">
-              Create an account to access the dashboard
+              {t("Create an account to access the dashboard")}
             </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Box */}
             {error && (
               <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
                 {error}
@@ -82,7 +80,7 @@ const Register = () => {
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
-                Full Name
+                {t("Full Name")}
               </label>
               <input
                 type="text"
@@ -97,7 +95,7 @@ const Register = () => {
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
-                Email Address
+                {t("Email Address")}
               </label>
               <input
                 type="email"
@@ -112,7 +110,7 @@ const Register = () => {
             {/* Password */}
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
-                Password
+                {t("Password")}
               </label>
 
               <input
@@ -143,23 +141,22 @@ const Register = () => {
               disabled={loading}
               className="w-full bg-indigo-600 dark:bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              {loading ? "Creating account..." : "Register Account"}
+              {loading ? t("Creating account...") : t("Register Account")}
             </button>
           </form>
 
           {/* Login Link */}
-          <div className="mt-6 text-center">
+          <div dir={i18n.dir()} className="mt-6 text-center">
             <span className="text-sm font-medium text-gray-800 dark:text-zinc-300">
-              Already have an account?{" "}
+              {t("Already have an account?")}{" "}
             </span>
             <button
               onClick={() => navigate("/user-login")}
               className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium cursor-pointer"
             >
-              Login
+              {t("Login")}
             </button>
           </div>
-
         </div>
       </div>
     </div>
