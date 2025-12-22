@@ -11,7 +11,7 @@ const Landing = () => {
     assets.landingBook3,
     assets.landingBook4,
   ];
-  const {t}=useTranslation();
+  const {t,i18n}=useTranslation();
   
   return (
     <div  className="bg-zinc-200 dark:bg-zinc-900 transition-colors duration-300">
@@ -39,7 +39,8 @@ const Landing = () => {
                 />
                 <input
                   type="text"
-                  placeholder={t("Search for a book...")}
+                  placeholder={`${t("Search for a book")}...`}
+                  dir={i18n.dir()}
                   className="w-full px-10 py-3 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
                 />
                 <MoreHorizontal

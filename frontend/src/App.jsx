@@ -10,6 +10,7 @@ import UserBooks from "./pages/UserBooks";
 import BookDetailsPage from "./pages/BookDetails";
 import AdminBookDetails from "./pages/admin/AdminBookDetails";
 import { useScrollToTop } from "./hooks/useScrollTop";
+import Profile from "./pages/Profile";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -43,6 +44,8 @@ function App() {
             <Route path="publish" element={<Publish />} />
             <Route path="cart" element={<Cart />} />
             <Route path="user-books" element={<UserBooks />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* Auth Routes */}
@@ -67,9 +70,6 @@ function App() {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="/admin/books/:id" element={<AdminBookDetails />} />
           </Route>
-
-          {/* 404 Route */}
-          <Route path="*" element={<NotFound />} />
         </Routes>
       </CartProvider>
     </AuthProvider>

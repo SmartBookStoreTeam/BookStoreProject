@@ -30,9 +30,9 @@ const cartReducer = (state, action) => {
       const existingItem = state.find((item) => item.id === bookId);
 
       if (existingItem) {
-        newState = state.map((item) =>
-          item.id === bookId ? { ...item, quantity: item.quantity + 1 } : item
-        );
+        // Book already in cart - don't add again (digital product)
+        // Return same state without changes
+        return state;
       } else {
         newState = [
           ...state,
@@ -41,7 +41,7 @@ const cartReducer = (state, action) => {
             // Preserve the original _id for navigation to book details
             _id: action.payload._id || action.payload.id,
             id: bookId,
-            quantity: 1,
+            quantity: 1, // Always 1 for digital books
           },
         ];
       }
@@ -97,7 +97,16 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   const addToCart = (book) => {
+    const bookId = generateBookId(book);
+    const existingItem = cartItems.find((item) => item.id === bookId);
+
+    if (existingItem) {
+      // Book already in cart
+      return { success: false, alreadyInCart: true };
+    }
+
     dispatch({ type: "ADD_TO_CART", payload: book });
+    return { success: true, alreadyInCart: false };
   };
 
   const removeFromCart = (id) => {

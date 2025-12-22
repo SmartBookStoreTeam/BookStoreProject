@@ -30,7 +30,9 @@ const Header = () => {
   const getIcon = (iconName, size = 18) => {
     const icons = { Home, Compass, Store, Users, Upload };
     const IconComponent = icons[iconName];
-    return IconComponent ? <IconComponent size={size} /> : null;
+    return IconComponent ? (
+      <IconComponent className="md:hidden xl:block" size={size} />
+    ) : null;
   };
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,7 +42,7 @@ const Header = () => {
   const [openSettings, setOpenSettings] = useState(false);
   const firstName = user?.name?.split(" ")[0];
   const firstLetter = firstName?.charAt(0)?.toUpperCase();
-
+  const profileRef = useRef(null);
   const toggleSettings = () => setOpenSettings(!openSettings);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -62,6 +64,9 @@ const Header = () => {
       }
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setOpenDropdown(false);
       }
     };
 
@@ -213,27 +218,39 @@ const Header = () => {
             {!user ? (
               <Link
                 to="/register"
-                className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+                className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
               >
                 <User size={24} />
                 {t("Register")}
               </Link>
             ) : (
-              <div className="relative">
+              <div className="relative flex items-center gap-2">
                 {/* Avatar + Name */}
+                <Link
+                  to="/profile"
+                  className="w-8 h-8 rounded-full
+             bg-indigo-500 dark:bg-indigo-400
+             text-white dark:text-zinc-900
+             hover:bg-indigo-700 dark:hover:bg-indigo-600
+             hover:text-white dark:hover:text-white
+             border border-indigo-600
+             hover:scale-110 hover:shadow-lg
+             focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
+             flex items-center justify-center font-semibold
+             transition duration-300"
+                >
+                  {firstLetter}
+                </Link>
                 <button
                   onClick={toggleDropdown}
                   className="flex items-center gap-3 text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
                 >
-                  <div className="w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 flex items-center justify-center font-semibold cursor-pointer">
-                    {firstLetter}
-                  </div>
                   {firstName}
                 </button>
 
                 {/* Dropdown */}
                 {openDropdown && (
-                  <div className="absolute right-0 mt-2 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50">
+                  <div ref={profileRef} onClick={(e) => e.stopPropagation()} className="absolute right-0 top-12 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50">
                     <Link
                       to="/profile"
                       onClick={closeDropdown}

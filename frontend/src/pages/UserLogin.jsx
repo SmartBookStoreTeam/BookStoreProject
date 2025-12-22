@@ -47,7 +47,7 @@ const {t,i18n}=useTranslation();
           {/* Close */}
           <button
             onClick={() => navigate("/")}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800"
+            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -107,7 +107,7 @@ const {t,i18n}=useTranslation();
               <button
                 type="button"
                 onClick={togglePassword}
-                className="absolute right-3 top-11 text-gray-500 dark:text-zinc-400 hover:text-indigo-500"
+                className="absolute right-3 top-11 text-gray-500 dark:text-zinc-400 hover:text-indigo-500 cursor-pointer"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />
@@ -120,7 +120,7 @@ const {t,i18n}=useTranslation();
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition"
+              className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition cursor-pointer"
             >
               {loading ? t("Signing in...") : t("Sign In")}
             </button>
@@ -131,7 +131,7 @@ const {t,i18n}=useTranslation();
               {t("Don't have an account?")}{" "}
               <button
                 onClick={() => navigate("/register")}
-                className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium cursor-pointer"
               >
                 {t("Sign up")}
               </button>
