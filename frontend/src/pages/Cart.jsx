@@ -1,12 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-  Minus,
-  Plus,
-  Trash2,
-  ShoppingBag,
-  ArrowLeft,
-  Star,
-} from "lucide-react";
+import { Trash2, ShoppingBag, ArrowLeft, Star } from "lucide-react";
 import { assets } from "../assets/assets";
 import { useCart } from "../hooks/useCart";
 import { useTranslation } from "react-i18next";
@@ -15,7 +8,6 @@ const Cart = () => {
   const {
     cartItems,
     removeFromCart,
-    updateQuantity,
     clearCart,
     getCartTotal,
     getCartItemsCount,
@@ -108,29 +100,11 @@ const Cart = () => {
                 </p>
               </div>
 
-              {/* Quantity */}
-              <div className="flex items-center gap-2 flex-col sm:flex-row">
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  className="p-1 hover:bg-gray-100 rounded text-gray-600 dark:text-gray-400 cursor-pointer"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="w-8 text-center text-gray-600 dark:text-gray-400">
-                  {item.quantity}
-                </span>
-                <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  className="p-1 hover:bg-gray-100 rounded text-gray-600 dark:text-gray-400 cursor-pointer"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-
               {/* Remove */}
               <button
                 onClick={() => removeFromCart(item.id)}
-                className="p-2 text-red-500 hover:bg-red-50 rounded cursor-pointer"
+                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded cursor-pointer transition-colors"
+                title={t("Remove from cart")}
               >
                 <Trash2 size={18} />
               </button>
