@@ -5,9 +5,8 @@ import { useState, useEffect, useRef } from "react";
 import { useCart } from "../hooks/useCart"; 
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-import { Navigate, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
+import AuthModal from "./AuthModal";
 const Carousel = ({ books }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [booksPerView, setBooksPerView] = useState(4);
@@ -18,7 +17,7 @@ const Carousel = ({ books }) => {
 
   const { addToCart } = useCart();
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   useEffect(() => {
     const updateBooksPerView = () => {
       if (window.innerWidth >= 1024) setBooksPerView(4);
@@ -70,19 +69,20 @@ const Carousel = ({ books }) => {
       prevSlide();
     }
   };
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleAddToCart = (book) => {
     if (!user) {
-      navigate("/register");
+      setShowAuthModal(true)
       return;
     }
     addToCart(book);
-    toast.success(`${t("toCart","Added")} "${book.title}" ${t("added","to cart")}`, {
+    toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
       duration: 1500,
       style: {
         background: "#333",
         color: "#fff",
+        direction: `${i18n.dir()}`,
       },
     });
   };
@@ -90,6 +90,12 @@ const Carousel = ({ books }) => {
   const translateX = currentIndex * (itemWidth + 16);
 
   return (
+    <>
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     <div className="relative" ref={containerRef}>
       <button
         onClick={prevSlide}
@@ -229,6 +235,7 @@ const Carousel = ({ books }) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

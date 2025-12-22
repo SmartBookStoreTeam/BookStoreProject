@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 const UserBooks = () => {
   const { userBooks, removeUserBook, addToCart } = useCart();
-const {t,i18n}=useTranslation();
+  const { t, i18n } = useTranslation();
   // Helper function to get image source
   const getImageSrc = (image) => {
     if (image.base64) {
@@ -21,21 +21,28 @@ const {t,i18n}=useTranslation();
     <div className="min-h-screen bg-gray-50 pt-20 dark:bg-zinc-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">{t("Community Books")}</h1>
-          <span className="text-gray-600 dark:text-gray-400">{userBooks.length} {t("books listed")}</span>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
+            {t("Community Books")}
+          </h1>
+          <span className="text-gray-600 dark:text-gray-400">
+            {userBooks.length} {t("books listed")}
+          </span>
         </div>
 
         {userBooks.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg">
-            <p className="text-gray-500 text-lg mb-4">{t("No books listed yet.")}</p>
+            <p className="text-gray-500 text-lg mb-4">
+              {t("No books listed yet.")}
+            </p>
             <p className="text-gray-400">{t("Be the first to list a book!")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {userBooks.map((book) => {
-              const imageSrc = book.images && book.images.length > 0 
-                ? getImageSrc(book.images[0]) 
-                : null;
+              const imageSrc =
+                book.images && book.images.length > 0
+                  ? getImageSrc(book.images[0])
+                  : null;
 
               return (
                 <div
@@ -49,8 +56,8 @@ const {t,i18n}=useTranslation();
                       alt={book.title}
                       className="w-full h-48 object-cover"
                       onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
                       }}
                     />
                   ) : (
@@ -60,9 +67,9 @@ const {t,i18n}=useTranslation();
                   )}
 
                   {/* Fallback in case image fails to load */}
-                  <div 
+                  <div
                     className="w-full h-48 bg-gray-200 items-center justify-center hidden"
-                    style={{ display: imageSrc ? 'none' : 'flex' }}
+                    style={{ display: imageSrc ? "none" : "flex" }}
                   >
                     <span className="text-gray-400">{t("No Image")}</span>
                   </div>
@@ -81,7 +88,9 @@ const {t,i18n}=useTranslation();
                       </button>
                     </div>
 
-                    <p className="text-sm text-gray-600 mb-2 dark:text-gray-400">by {book.author}</p>
+                    <p className="text-sm text-gray-600 mb-2 dark:text-gray-400">
+                      by {book.author}
+                    </p>
 
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-indigo-400 font-bold text-lg ">
@@ -97,20 +106,29 @@ const {t,i18n}=useTranslation();
 
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                       <span className="capitalize">{t(book.category)}</span>
-                      <span>{new Date(book.listedAt).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(book.listedAt).toLocaleDateString()}
+                      </span>
                     </div>
 
                     <button
                       onClick={() => addToCart(book)}
-                      className="w-full bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                      className="w-full bg-gray-900 dark:bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
                     >
                       <ShoppingCart size={16} />
                       {t("Add to Cart")}
                     </button>
 
-                    <div dir={i18n.dir()} className="mt-2 text-xs text-gray-800 dark:text-gray-200">
-                      <p>{t("Publisher")}: {book.sellerName}</p>
-                      <p>{t("Location")}: {book.sellerLocation}</p>
+                    <div
+                      dir={i18n.dir()}
+                      className="mt-2 text-xs text-gray-800 dark:text-gray-200"
+                    >
+                      <p>
+                        {t("Publisher")}: {book.sellerName}
+                      </p>
+                      <p>
+                        {t("Location")}: {book.sellerLocation}
+                      </p>
                     </div>
                   </div>
                 </div>

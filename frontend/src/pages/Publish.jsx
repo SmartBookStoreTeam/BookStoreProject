@@ -12,10 +12,13 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
+import { useAuth } from "../context/AuthContext";
+import AuthModal from "../components/AuthModal";
 
 const Publish = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { addUserBook } = useCart();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     // Book Information
     title: "",
@@ -47,12 +50,11 @@ const Publish = () => {
   // const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const categories = [
     { value: "", label: "Select Category" },
     { value: "cooking", label: "Cooking" },
-    { value: "baking", label: "Baking" },
-    { value: "desserts", label: "Desserts" },
     { value: "health", label: "Health & Nutrition" },
     { value: "fiction", label: "Fiction" },
     { value: "non-fiction", label: "Non-Fiction" },
@@ -183,6 +185,7 @@ const Publish = () => {
     toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 w-[90%] sm:w-auto text-center rounded-lg font-medium text-white transition-all duration-500 ${
       type === "success" ? "bg-green-500" : "bg-red-500"
     }`;
+    toast.dir = `${i18n.dir()}`;
     toast.textContent = message;
 
     // Add to page
@@ -226,9 +229,13 @@ const Publish = () => {
         showToast(t("Only image files are allowed"), "error");
         return false;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
-        showToast(t("Image size should be less than 5MB"), "error");
+
+      // Reduced size limit to 500KB to prevent localStorage quota issues
+      if (file.size > 500 * 1024) {
+        showToast(
+          t("Image size should be less than 500KB to avoid storage issues"),
+          "error"
+        );
         return false;
       }
       return true;
@@ -378,6 +385,12 @@ const Publish = () => {
   };
 
   const nextStep = () => {
+    // Check if user is authenticated
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (validateStep(currentStep)) {
       setCurrentStep((prev) => prev + 1);
     }
@@ -562,802 +575,811 @@ const Publish = () => {
   };
 
   return (
-    <div dir="auto" className="min-h-screen bg-gray-50 pt-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {t("Publish Your Book")}
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            {t(
-              "PublishBookParagraph",
-              "List your loved books and reach thousands of readers. Fill out the form below to get started."
-            )}
-          </p>
-        </div>
+    <>
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
 
-        {/* Progress Steps */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex flex-col sm:flex-row md:items-center md:justify-between gap-6 sm:gap-2 lg:whitespace-nowrap">
-            {steps.map((step, index) => (
-              <div
-                key={step.number}
-                className="flex items-center w-full sm:w-auto relative"
-              >
-                <button
-                  type="button"
-                  onClick={() => goToStep(step.number)}
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
-                    currentStep >= step.number
-                      ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 hover:scale-110"
-                      : "border-gray-300 text-gray-500 hover:border-gray-400 hover:bg-gray-50"
-                  } font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
-                  title={
-                    currentStep >= step.number
-                      ? `Go to step ${step.number}`
-                      : `Complete step ${currentStep} first`
-                  }
+      <div dir="auto" className="min-h-screen bg-gray-50 pt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              {t("Publish Your Book")}
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {t(
+                "PublishBookParagraph",
+                "List your loved books and reach thousands of readers. Fill out the form below to get started."
+              )}
+            </p>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="flex flex-col sm:flex-row md:items-center md:justify-between gap-6 sm:gap-2 lg:whitespace-nowrap">
+              {steps.map((step, index) => (
+                <div
+                  key={step.number}
+                  className="flex items-center w-full sm:w-auto relative"
                 >
-                  {step.number}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => goToStep(step.number)}
-                  className={`ml-2 font-medium transition-colors cursor-pointer focus:underline hover:underline focus:outline-none mx-2 ${
-                    currentStep >= step.number
-                      ? "text-indigo-600"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {t(step.title)}
-                </button>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`w-[1.2px] sm:w-8 md:w-16 sm:h-0.5 h-4 mx-4 
+                  <button
+                    type="button"
+                    onClick={() => goToStep(step.number)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
+                      currentStep >= step.number
+                        ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 hover:scale-110"
+                        : "border-gray-300 text-gray-500 hover:border-gray-400 hover:bg-gray-50"
+                    } font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
+                    title={
+                      currentStep >= step.number
+                        ? `Go to step ${step.number}`
+                        : `Complete step ${currentStep} first`
+                    }
+                  >
+                    {step.number}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToStep(step.number)}
+                    className={`ml-2 font-medium transition-colors cursor-pointer focus:underline hover:underline focus:outline-none mx-2 ${
+                      currentStep >= step.number
+                        ? "text-indigo-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {t(step.title)}
+                  </button>
+                  {index < steps.length - 1 && (
+                    <div
+                      className={`w-[1.2px] sm:w-8 md:w-16 sm:h-0.5 h-4 mx-4 
   absolute start-1 translate-y-8 
   sm:static sm:translate-y-0 ${
     currentStep > step.number ? "bg-indigo-600" : "bg-gray-300"
   }`}
-                  />
-                )}
-              </div>
-            ))}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Form */}
-        <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <form onSubmit={(e) => e.preventDefault()}>
-            {/* Step 1: Book Details */}
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  {t("Book Information")}
-                </h2>
+          {/* Form */}
+          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <form onSubmit={(e) => e.preventDefault()}>
+              {/* Step 1: Book Details */}
+              {currentStep === 1 && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    {t("Book Information")}
+                  </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Book Title")} *
-                    </label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                        errors.title
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                      placeholder={t("Enter book title")}
-                    />
-                    {renderError("title")}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Author")} *
-                    </label>
-                    <input
-                      type="text"
-                      name="author"
-                      value={formData.author}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                        errors.author
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                      placeholder={t("Enter author name")}
-                    />
-                    {renderError("author")}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Category")} *
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                        errors.category
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                    >
-                      {categories.map((cat) => (
-                        <option key={cat.value} value={cat.value}>
-                          {t(cat.label)}
-                        </option>
-                      ))}
-                    </select>
-                    {renderError("category")}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Price")} *
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.price
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                        placeholder="0.00"
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                    {renderError("price")}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Language")}
-                    </label>
-                    <select
-                      name="language"
-                      value={formData.language}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    >
-                      {languages.map((lang) => (
-                        <option key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("Description") + " "}
-                    <span className="text-xs text-gray-500 ml-1">
-                      {t(
-                        "DescriptionOptional",
-                        "Optional, max 1000 characters"
-                      )}
-                    </span>
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows="4"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                      errors.description
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-indigo-500"
-                    }`}
-                    placeholder={t(
-                      "describeBook",
-                      "Describe your book's content, special features, and any notable aspects..."
-                    )}
-                  />
-                  <div className="flex justify-between mt-1">
-                    {renderError("description")}
-                    <span
-                      className={`text-xs ${
-                        formData.description.length > 1000
-                          ? "text-red-500"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      {formData.description.length}/1000
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ISBN {`(${t("Optional")})`}
-                    </label>
-                    <input
-                      type="text"
-                      name="isbn"
-                      value={formData.isbn}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                        errors.isbn
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                      placeholder={`ISBN ${t("number")}`}
-                    />
-                    {renderError("isbn")}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Edition")}
-                    </label>
-                    <input
-                      type="text"
-                      name="edition"
-                      value={formData.edition}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      placeholder="e.g., 1st, 2nd"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Publication Year")}
-                    </label>
-                    <input
-                      type="number"
-                      name="publicationYear"
-                      value={formData.publicationYear}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                        errors.publicationYear
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                      placeholder="YYYY"
-                      min="1900"
-                      max={new Date().getFullYear()}
-                    />
-                    {renderError("publicationYear")}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Publisher")}
-                    </label>
-                    <input
-                      type="text"
-                      name="publisher"
-                      value={formData.publisher}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      placeholder={t("Publisher name")}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Number of Pages")}
-                    </label>
-                    <input
-                      type="number"
-                      name="pages"
-                      value={formData.pages}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                        errors.pages
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                      placeholder={t("Number of Pages")}
-                      min="1"
-                    />
-                    {renderError("pages")}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Upload Images */}
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  {t("Upload Book Images")}
-                </h2>
-
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center ${
-                    errors.images
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                >
-                  <Image className="mx-auto w-12 h-12 text-gray-400 mb-4" />
-                  <p className="text-lg font-medium text-gray-900 mb-2">
-                    {t("Upload Book Images")}
-                  </p>
-                  <p className="text-gray-500 mb-4">
-                    {t(
-                      "uploadImagesHint",
-                      "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each)."
-                    )}
-                  </p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="image-upload"
-                  />
-                  <label
-                    htmlFor="image-upload"
-                    className="inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
-                  >
-                    <Upload className="w-5 h-5 mr-2" />
-                    {t("Choose Images")}
-                  </label>
-                  {renderError("images")}
-                </div>
-
-                {/* Preview Images */}
-                {formData.images.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      {t("Preview")} ({formData.images.length}/5)
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                      {formData.images.map((image, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={image.preview}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 3: Publisher Information */}
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  {t("Publisher Info", "Publisher Information")}
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Your Name")} *
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Book Title")} *
+                      </label>
                       <input
                         type="text"
-                        name="sellerName"
-                        value={formData.sellerName}
+                        name="title"
+                        value={formData.title}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.sellerName
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          errors.title
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300 focus:ring-indigo-500"
                         }`}
-                        placeholder={t("Enter your full name")}
+                        placeholder={t("Enter book title")}
                       />
+                      {renderError("title")}
                     </div>
-                    {renderError("sellerName")}
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Email Address")} *
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Author")} *
+                      </label>
                       <input
-                        type="email"
-                        name="sellerEmail"
-                        value={formData.sellerEmail}
+                        type="text"
+                        name="author"
+                        value={formData.author}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.sellerEmail
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          errors.author
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300 focus:ring-indigo-500"
                         }`}
-                        placeholder={t("Enter your email")}
+                        placeholder={t("Enter author name")}
                       />
+                      {renderError("author")}
                     </div>
-                    {renderError("sellerEmail")}
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Category")} *
+                      </label>
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          errors.category
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-indigo-500"
+                        }`}
+                      >
+                        {categories.map((cat) => (
+                          <option key={cat.value} value={cat.value}>
+                            {t(cat.label)}
+                          </option>
+                        ))}
+                      </select>
+                      {renderError("category")}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Price")} *
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                          type="number"
+                          name="price"
+                          value={formData.price}
+                          onChange={handleInputChange}
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.price
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder="0.00"
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                      {renderError("price")}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Language")}
+                      </label>
+                      <select
+                        name="language"
+                        value={formData.language}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      >
+                        {languages.map((lang) => (
+                          <option key={lang.value} value={lang.value}>
+                            {lang.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Phone Number") + " "}
+                      {t("Description") + " "}
                       <span className="text-xs text-gray-500 ml-1">
-                        {`(${t("Optional")})`}
+                        {t(
+                          "DescriptionOptional",
+                          "Optional, max 1000 characters"
+                        )}
                       </span>
                     </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <input
-                        type="tel"
-                        name="sellerPhone"
-                        value={formData.sellerPhone}
-                        onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.sellerPhone
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      rows="4"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                        errors.description
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-indigo-500"
+                      }`}
+                      placeholder={t(
+                        "describeBook",
+                        "Describe your book's content, special features, and any notable aspects..."
+                      )}
+                    />
+                    <div className="flex justify-between mt-1">
+                      {renderError("description")}
+                      <span
+                        className={`text-xs ${
+                          formData.description.length > 1000
+                            ? "text-red-500"
+                            : "text-gray-500"
                         }`}
-                        placeholder="e.g., 01012345678 or 0212345678"
-                      />
+                      >
+                        {formData.description.length}/1000
+                      </span>
                     </div>
-                    {renderError("sellerPhone")}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t("Location/City")} *
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ISBN {`(${t("Optional")})`}
+                      </label>
                       <input
                         type="text"
-                        name="sellerLocation"
-                        value={formData.sellerLocation}
+                        name="isbn"
+                        value={formData.isbn}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.sellerLocation
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          errors.isbn
                             ? "border-red-500 focus:ring-red-500"
                             : "border-gray-300 focus:ring-indigo-500"
                         }`}
-                        placeholder={t("Enter your city")}
+                        placeholder={`ISBN ${t("number")}`}
+                      />
+                      {renderError("isbn")}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Edition")}
+                      </label>
+                      <input
+                        type="text"
+                        name="edition"
+                        value={formData.edition}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        placeholder="e.g., 1st, 2nd"
                       />
                     </div>
-                    {renderError("sellerLocation")}
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Step 4: Review & Publish */}
-            {currentStep === 4 && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {t("Review Your Listing")}
-                  </h2>
-                  <p className="text-gray-600">
-                    {t(
-                      "Please review all the information below before publishing your book."
-                    )}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Book Details Summary */}
-                  <div className="space-y-6">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <BookOpen className="w-5 h-5 mr-2" />
-                        {t("Book Details")}
-                      </h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Title")}:
-                          </span>
-                          <p className="text-gray-900 text-right">
-                            {formData.title}
-                          </p>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Author")}:
-                          </span>
-                          <p className="text-gray-900 text-right">
-                            {formData.author}
-                          </p>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Category")}:
-                          </span>
-                          <p className="text-gray-900 text-right capitalize">
-                            {formData.category}
-                          </p>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Price")}:
-                          </span>
-                          <p className="text-gray-900 text-right">
-                            ₹{formData.price}
-                          </p>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Language")}:
-                          </span>
-                          <p className="text-gray-900 text-right capitalize">
-                            {formData.language}
-                          </p>
-                        </div>
-                        {formData.description && (
-                          <div>
-                            <span className="font-medium text-gray-700">
-                              {t("Description")}:
-                            </span>
-                            <p className="text-gray-900 mt-1 text-sm bg-white p-2 rounded border">
-                              {formData.description}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Additional Book Details */}
-                    {(formData.isbn ||
-                      formData.edition ||
-                      formData.publicationYear ||
-                      formData.pages) && (
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-gray-900 mb-3">
-                          {t("Additional Details")}
-                        </h4>
-                        <div className="space-y-2 text-sm">
-                          {formData.isbn && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                {t("ISBN")}:
-                              </span>
-                              <span className="text-gray-900">
-                                {formData.isbn}
-                              </span>
-                            </div>
-                          )}
-                          {formData.edition && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                {t("Edition")}:
-                              </span>
-                              <span className="text-gray-900">
-                                {formData.edition}
-                              </span>
-                            </div>
-                          )}
-                          {formData.publicationYear && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                {t("Publication Year")}:
-                              </span>
-                              <span className="text-gray-900">
-                                {formData.publicationYear}
-                              </span>
-                            </div>
-                          )}
-                          {formData.pages && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                {t("Pages")}:
-                              </span>
-                              <span className="text-gray-900">
-                                {formData.pages}
-                              </span>
-                            </div>
-                          )}
-                          {formData.publisher && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Publisher:</span>
-                              <span className="text-gray-900">
-                                {formData.publisher}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Seller Information Summary */}
-                  <div className="space-y-6">
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <User className="w-5 h-5 mr-2" />
-                        {t("Publisher Info", "Publisher Information")}
-                      </h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Name")}:
-                          </span>
-                          <p className="text-gray-900 text-right">
-                            {formData.sellerName}
-                          </p>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Email")}:
-                          </span>
-                          <p className="text-gray-900 text-right">
-                            {formData.sellerEmail}
-                          </p>
-                        </div>
-                        {formData.sellerPhone && (
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
-                              {t("Phone")}:
-                            </span>
-                            <p className="text-gray-900 text-right">
-                              {formData.sellerPhone}
-                            </p>
-                          </div>
-                        )}
-                        <div className="flex justify-between">
-                          <span className="font-medium text-gray-700">
-                            {t("Location")}:
-                          </span>
-                          <p className="text-gray-900 text-right">
-                            {formData.sellerLocation}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Images Preview */}
-                    {formData.images.length > 0 && (
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                          <Image className="w-5 h-5 mr-2" />
-                          {t("Book Images")} ({formData.images.length})
-                        </h4>
-                        <div className="grid grid-cols-3 gap-2">
-                          {formData.images.map((image, index) => (
-                            <img
-                              key={index}
-                              src={image.preview}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-20 object-cover rounded-lg border"
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Publish Button Section */}
-                    <div className="bg-yellow-50 p-6 rounded-lg border-2 border-dashed border-yellow-200">
-                      <h4 className="font-semibold text-gray-900 mb-3 text-center">
-                        {t("Ready to Publish?")}
-                      </h4>
-                      <p className="text-sm text-gray-600 text-center mb-4">
-                        {t(
-                          "Once published, your book will be visible to all users on the platform."
-                        )}
-                      </p>
-                      <button
-                        onClick={handlePublish}
-                        disabled={isPublishing}
-                        className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        {isPublishing ? (
-                          <>
-                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                            {t("Publishing Your Book...")}
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-5 h-5" />
-                            {t("Publish Book Now")}
-                          </>
-                        )}
-                      </button>
-                      <p className="text-xs text-gray-500 text-center mt-2">
-                        {t(
-                          "By publishing, you agree to our terms and conditions"
-                        )}
-                      </p>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Publication Year")}
+                      </label>
+                      <input
+                        type="number"
+                        name="publicationYear"
+                        value={formData.publicationYear}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          errors.publicationYear
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-indigo-500"
+                        }`}
+                        placeholder="YYYY"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                      />
+                      {renderError("publicationYear")}
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
 
-            {/* Navigation Buttons */}
-            <div
-              dir="ltr"
-              className="flex flex-col sm:flex-row justify-center gap-4 sm:justify-between   mt-8 pt-6 border-t border-gray-200"
-            >
-              <button
-                type="button"
-                onClick={prevStep}
-                disabled={currentStep === 1}
-                className={`px-6 py-3 rounded-lg font-medium ${
-                  currentStep === 1
-                    ? " bg-gray-200 text-gray-500 cursor-not-allowed"
-                    : currentStep === 4
-                    ? "hidden sm:block bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
-                }`}
-              >
-                {t("Previous")}
-              </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Publisher")}
+                      </label>
+                      <input
+                        type="text"
+                        name="publisher"
+                        value={formData.publisher}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        placeholder={t("Publisher name")}
+                      />
+                    </div>
 
-              {currentStep < 4 ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 cursor-pointer"
-                >
-                  {currentStep === 3 ? t("Review & Publish") : t("Next")}
-                </button>
-              ) : (
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 cursor-pointer"
-                  >
-                    {t("Edit Details")}
-                  </button>
-                  <button
-                    onClick={handlePublish}
-                    disabled={isPublishing}
-                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer"
-                  >
-                    {isPublishing ? (
-                      <>
-                        <div className=" animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        {t("Publishing...")}
-                      </>
-                    ) : (
-                      t("Publish Book")
-                    )}
-                  </button>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Number of Pages")}
+                      </label>
+                      <input
+                        type="number"
+                        name="pages"
+                        value={formData.pages}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          errors.pages
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-indigo-500"
+                        }`}
+                        placeholder={t("Number of Pages")}
+                        min="1"
+                      />
+                      {renderError("pages")}
+                    </div>
+                  </div>
                 </div>
               )}
-            </div>
-          </form>
-        </div>
 
-        {/* Help Text */}
-        <div className="max-w-4xl mx-auto mt-8 text-center text-sm text-gray-500">
-          <p>
-            {t(
-              "By listing your book, you agree to our terms of service. Your name and email will be shared with potential buyers."
-            )}
-          </p>
+              {/* Step 2: Upload Images */}
+              {currentStep === 2 && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    {t("Upload Book Images")}
+                  </h2>
+
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-8 text-center ${
+                      errors.images
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <Image className="mx-auto w-12 h-12 text-gray-400 mb-4" />
+                    <p className="text-lg font-medium text-gray-900 mb-2">
+                      {t("Upload Book Images")}
+                    </p>
+                    <p className="text-gray-500 mb-4">
+                      {t(
+                        "uploadImagesHint",
+                        "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each)."
+                      )}
+                    </p>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
+                    >
+                      <Upload className="w-5 h-5 mr-2" />
+                      {t("Choose Images")}
+                    </label>
+                    {renderError("images")}
+                  </div>
+
+                  {/* Preview Images */}
+                  {formData.images.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        {t("Preview")} ({formData.images.length}/5)
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {formData.images.map((image, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={image.preview}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Publisher Information */}
+              {currentStep === 3 && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                    {t("Publisher Info", "Publisher Information")}
+                  </h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Your Name")} *
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                          type="text"
+                          name="sellerName"
+                          value={formData.sellerName}
+                          onChange={handleInputChange}
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.sellerName
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder={t("Enter your full name")}
+                        />
+                      </div>
+                      {renderError("sellerName")}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Email Address")} *
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                          type="email"
+                          name="sellerEmail"
+                          value={formData.sellerEmail}
+                          onChange={handleInputChange}
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.sellerEmail
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder={t("Enter your email")}
+                        />
+                      </div>
+                      {renderError("sellerEmail")}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Phone Number") + " "}
+                        <span className="text-xs text-gray-500 ml-1">
+                          {`(${t("Optional")})`}
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                          type="tel"
+                          name="sellerPhone"
+                          value={formData.sellerPhone}
+                          onChange={handleInputChange}
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.sellerPhone
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder="e.g., 01012345678 or 0212345678"
+                        />
+                      </div>
+                      {renderError("sellerPhone")}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t("Location/City")} *
+                      </label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                          type="text"
+                          name="sellerLocation"
+                          value={formData.sellerLocation}
+                          onChange={handleInputChange}
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.sellerLocation
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder={t("Enter your city")}
+                        />
+                      </div>
+                      {renderError("sellerLocation")}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Review & Publish */}
+              {currentStep === 4 && (
+                <div className="space-y-6">
+                  <div className="text-center mb-8">
+                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      {t("Review Your Listing")}
+                    </h2>
+                    <p className="text-gray-600">
+                      {t(
+                        "Please review all the information below before publishing your book."
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Book Details Summary */}
+                    <div className="space-y-6">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <BookOpen className="w-5 h-5 mr-2" />
+                          {t("Book Details")}
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Title")}:
+                            </span>
+                            <p className="text-gray-900 text-right">
+                              {formData.title}
+                            </p>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Author")}:
+                            </span>
+                            <p className="text-gray-900 text-right">
+                              {formData.author}
+                            </p>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Category")}:
+                            </span>
+                            <p className="text-gray-900 text-right capitalize">
+                              {formData.category}
+                            </p>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Price")}:
+                            </span>
+                            <p className="text-gray-900 text-right">
+                              ₹{formData.price}
+                            </p>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Language")}:
+                            </span>
+                            <p className="text-gray-900 text-right capitalize">
+                              {formData.language}
+                            </p>
+                          </div>
+                          {formData.description && (
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                {t("Description")}:
+                              </span>
+                              <p className="text-gray-900 mt-1 text-sm bg-white p-2 rounded border">
+                                {formData.description}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Additional Book Details */}
+                      {(formData.isbn ||
+                        formData.edition ||
+                        formData.publicationYear ||
+                        formData.pages) && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 mb-3">
+                            {t("Additional Details")}
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            {formData.isbn && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  {t("ISBN")}:
+                                </span>
+                                <span className="text-gray-900">
+                                  {formData.isbn}
+                                </span>
+                              </div>
+                            )}
+                            {formData.edition && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  {t("Edition")}:
+                                </span>
+                                <span className="text-gray-900">
+                                  {formData.edition}
+                                </span>
+                              </div>
+                            )}
+                            {formData.publicationYear && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  {t("Publication Year")}:
+                                </span>
+                                <span className="text-gray-900">
+                                  {formData.publicationYear}
+                                </span>
+                              </div>
+                            )}
+                            {formData.pages && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  {t("Pages")}:
+                                </span>
+                                <span className="text-gray-900">
+                                  {formData.pages}
+                                </span>
+                              </div>
+                            )}
+                            {formData.publisher && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Publisher:
+                                </span>
+                                <span className="text-gray-900">
+                                  {formData.publisher}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Seller Information Summary */}
+                    <div className="space-y-6">
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <User className="w-5 h-5 mr-2" />
+                          {t("Publisher Info", "Publisher Information")}
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Name")}:
+                            </span>
+                            <p className="text-gray-900 text-right">
+                              {formData.sellerName}
+                            </p>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Email")}:
+                            </span>
+                            <p className="text-gray-900 text-right">
+                              {formData.sellerEmail}
+                            </p>
+                          </div>
+                          {formData.sellerPhone && (
+                            <div className="flex justify-between">
+                              <span className="font-medium text-gray-700">
+                                {t("Phone")}:
+                              </span>
+                              <p className="text-gray-900 text-right">
+                                {formData.sellerPhone}
+                              </p>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {t("Location")}:
+                            </span>
+                            <p className="text-gray-900 text-right">
+                              {formData.sellerLocation}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Images Preview */}
+                      {formData.images.length > 0 && (
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                            <Image className="w-5 h-5 mr-2" />
+                            {t("Book Images")} ({formData.images.length})
+                          </h4>
+                          <div className="grid grid-cols-3 gap-2">
+                            {formData.images.map((image, index) => (
+                              <img
+                                key={index}
+                                src={image.preview}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-20 object-cover rounded-lg border"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Publish Button Section */}
+                      <div className="bg-yellow-50 p-6 rounded-lg border-2 border-dashed border-yellow-200">
+                        <h4 className="font-semibold text-gray-900 mb-3 text-center">
+                          {t("Ready to Publish?")}
+                        </h4>
+                        <p className="text-sm text-gray-600 text-center mb-4">
+                          {t(
+                            "Once published, your book will be visible to all users on the platform."
+                          )}
+                        </p>
+                        <button
+                          onClick={handlePublish}
+                          disabled={isPublishing}
+                          className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          {isPublishing ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                              {t("Publishing Your Book...")}
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-5 h-5" />
+                              {t("Publish Book Now")}
+                            </>
+                          )}
+                        </button>
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                          {t(
+                            "By publishing, you agree to our terms and conditions"
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div
+                dir="ltr"
+                className="flex flex-col sm:flex-row justify-center gap-4 sm:justify-between   mt-8 pt-6 border-t border-gray-200"
+              >
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  disabled={currentStep === 1}
+                  className={`px-6 py-3 rounded-lg font-medium ${
+                    currentStep === 1
+                      ? " bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : currentStep === 4
+                      ? "hidden sm:block bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
+                  }`}
+                >
+                  {t("Previous")}
+                </button>
+
+                {currentStep < 4 ? (
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 cursor-pointer"
+                  >
+                    {currentStep === 3 ? t("Review & Publish") : t("Next")}
+                  </button>
+                ) : (
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 cursor-pointer"
+                    >
+                      {t("Edit Details")}
+                    </button>
+                    <button
+                      onClick={handlePublish}
+                      disabled={isPublishing}
+                      className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer"
+                    >
+                      {isPublishing ? (
+                        <>
+                          <div className=" animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          {t("Publishing...")}
+                        </>
+                      ) : (
+                        t("Publish Book")
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* Help Text */}
+          <div className="max-w-4xl mx-auto mt-8 text-center text-sm text-gray-500">
+            <p>
+              {t(
+                "By listing your book, you agree to our terms of service. Your name and email will be shared with potential buyers."
+              )}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
-
 export default Publish;

@@ -10,7 +10,7 @@ const FavoriteBooks = () => {
   const [soldCount, setSoldCount] = useState(0);
 
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.3 });
-const { t } = useTranslation();
+const { t, i18n } = useTranslation();
   useEffect(() => {
     if (inView) {
       let book = 0,
@@ -48,8 +48,8 @@ const { t } = useTranslation();
           <div className="w-full lg:w-1/2 text-center lg:text-left">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
               {t("Find Your Favorite")} <br />
-              <span className="text-indigo-500 dark:text-indigo-400">
-                {t("Book Here")}
+              <span dir={i18n.dir()} className="text-indigo-500 dark:text-indigo-400">
+                {t("Book Here")}!
               </span>
             </h1>
 

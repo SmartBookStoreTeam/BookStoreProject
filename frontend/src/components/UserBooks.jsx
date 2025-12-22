@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 
 const UserBooks = () => {
   const { userBooks, addToCart } = useCart();
-  const {t}=useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Don't show anything if no user books
   if (userBooks.length === 0) {
@@ -14,14 +14,18 @@ const UserBooks = () => {
   }
 
   const handleAddToCart = (book) => {
-   addToCart(book);
-    toast.success(`${t("toCart","Added")} "${book.title}" ${t("added","to cart")}`, {
-      duration: 1500,
-      style: {
-        background: "#333",
-        color: "#fff",
-      },
-    });
+    addToCart(book);
+    toast.success(
+      `${t("Added")} "${book.title}" ${t("to Cart")}!`,
+      {
+        duration: 1500,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: `${i18n.dir()}`,
+        },
+      }
+    );
   };
 
   return (
@@ -36,7 +40,8 @@ const UserBooks = () => {
             </h2>
           </div>
           <p className="text-gray-600 dark:text-gray-200 text-lg max-w-2xl mx-auto">
-            {t("Discover")} {userBooks.length} {t("unique books listed by our community members")}
+            {t("Discover")} {userBooks.length}{" "}
+            {t("unique books listed by our community members")}
           </p>
         </div>
 
@@ -122,7 +127,9 @@ const UserBooks = () => {
 
                 {/* Seller Info */}
                 <div className="mt-2 text-xs text-gray-500 dark:text-gray-200">
-                  <p>{t("From")}: {book.sellerName}</p>
+                  <p>
+                    {t("From")}: {book.sellerName}
+                  </p>
                   <p>{book.sellerLocation}</p>
                 </div>
               </div>
