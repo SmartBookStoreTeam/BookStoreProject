@@ -185,7 +185,7 @@ const Publish = () => {
     toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 w-[90%] sm:w-auto text-center rounded-lg font-medium text-white transition-all duration-500 ${
       type === "success" ? "bg-green-500" : "bg-red-500"
     }`;
-    toast.dir = `${i18n.dir()}`;
+    toast.dir = i18n.dir();
     toast.textContent = message;
 
     // Add to page
@@ -233,7 +233,7 @@ const Publish = () => {
       // Reduced size limit to 500KB to prevent localStorage quota issues
       if (file.size > 500 * 1024) {
         showToast(
-          t("Image size should be less than 500KB to avoid storage issues"),
+          t("Image size should be less than 500KB"),
           "error"
         );
         return false;
@@ -495,7 +495,9 @@ const Publish = () => {
         title: formData.title.trim(),
         author: formData.author.trim(),
         description: formData.description.trim(),
-        category: formData.category,
+        category:
+          formData.category.charAt(0).toUpperCase() +
+          formData.category.slice(1),
         price: parseFloat(formData.price),
         condition: formData.condition,
         isbn: formData.isbn.trim(),
@@ -578,6 +580,7 @@ const Publish = () => {
     <>
       {/* Authentication Modal */}
       <AuthModal
+        title={t("Please login or create an account to publish your book")}
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
@@ -598,7 +601,7 @@ const Publish = () => {
           </div>
 
           {/* Progress Steps */}
-          <div className="max-w-4xl mx-auto mb-8">
+          <div className="max-w-6xl mx-auto mb-8">
             <div className="flex flex-col sm:flex-row md:items-center md:justify-between gap-6 sm:gap-2 lg:whitespace-nowrap">
               {steps.map((step, index) => (
                 <div
@@ -647,7 +650,7 @@ const Publish = () => {
           </div>
 
           {/* Form */}
-          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
             <form onSubmit={(e) => e.preventDefault()}>
               {/* Step 1: Book Details */}
               {currentStep === 1 && (
@@ -1291,7 +1294,10 @@ const Publish = () => {
                         >
                           {isPublishing ? (
                             <>
-                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                              <div
+                                dir="auto"
+                                className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"
+                              ></div>
                               {t("Publishing Your Book...")}
                             </>
                           ) : (
@@ -1356,7 +1362,10 @@ const Publish = () => {
                     >
                       {isPublishing ? (
                         <>
-                          <div className=" animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          <div
+                            dir="auto"
+                            className=" animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"
+                          ></div>
                           {t("Publishing...")}
                         </>
                       ) : (

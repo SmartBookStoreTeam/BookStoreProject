@@ -9,6 +9,8 @@ import { useAuth } from "../context/AuthContext";
 import Loading from "../components/loading";
 import { useTranslation } from "react-i18next";
 import AuthModal from "../components/AuthModal";
+// eslint-disable-next-line no-unused-vars
+import { motion } from "framer-motion";
 // Mock data for fallback
 const mockBooks = [
   {
@@ -165,8 +167,8 @@ const Shop = () => {
   // Get unique categories from all books
   const allCategories = [
     ...new Set([
-      ...storeBooks.map((b) => b.category),
-      ...userBooks.map((b) => b.category),
+      ...storeBooks.map((b) => b.category?.toLowerCase()),
+      ...userBooks.map((b) => b.category?.toLowerCase()),
     ]),
   ].filter(Boolean);
 
@@ -175,15 +177,16 @@ const Shop = () => {
     ...allCategories.map((cat) => ({
       value: cat,
       label: cat.charAt(0).toUpperCase() + cat.slice(1),
-      count: allBooks.filter((book) => book.category === cat).length,
+      count: allBooks.filter((book) => book.category?.toLowerCase() === cat)
+        .length,
     })),
   ];
 
   // Book types for filtering
   const bookTypes = [
-    { value: "all", label: t("All Books") },
-    { value: "regular", label: t("Store Books") },
-    { value: "user", label: t("Community Books") },
+    { value: "all", label: "All Books" },
+    { value: "regular", label: "Store Books" },
+    { value: "user", label: "Community Books" },
   ];
 
   // Filter and sort books
@@ -193,7 +196,8 @@ const Shop = () => {
         book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         book.author.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory =
-        selectedCategory === "all" || book.category === selectedCategory;
+        selectedCategory === "all" ||
+        book.category?.toLowerCase() === selectedCategory;
       const matchesType = selectedType === "all" || book.type === selectedType;
       const matchesPrice =
         book.price >= priceRange[0] && book.price <= priceRange[1];
@@ -227,7 +231,7 @@ const Shop = () => {
       style: {
         background: "#333",
         color: "#fff",
-        direction: `${i18n.dir()}`,
+        direction: i18n.dir(),
       },
     });
   };
@@ -235,6 +239,7 @@ const Shop = () => {
   return (
     <>
       <AuthModal
+        title={t("Please login or create an account to add book to your cart")}
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
@@ -276,7 +281,7 @@ const Shop = () => {
                 >
                   {bookTypes.map((type) => (
                     <option key={type.value} value={type.value}>
-                      {type.label}
+                      {t(type.label)}
                     </option>
                   ))}
                 </select>
@@ -337,7 +342,7 @@ const Shop = () => {
             </div>
 
             {/* Price Range Filter */}
-            <div dir={i18n.dir()} className="mt-4">
+            <div dir="auto" className="mt-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
                 {t("Price Range") + " "}: ₹{priceRange[0]} - ₹{priceRange[1]}
               </label>
@@ -370,7 +375,7 @@ const Shop = () => {
 
           {/* Results Count */}
           <div
-            dir={i18n.dir()}
+            dir="auto"
             className="flex justify-between items-center mb-6"
           >
             {loading ? (
@@ -391,9 +396,7 @@ const Shop = () => {
 
           {/* Books Grid/List */}
           {loading ? (
-            <div className="flex flex-col items-center justify-center">
-              <Loading />
-            </div>
+            <Loading height="min-h-[60vh]" />
           ) : filteredBooks.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 dark:text-gray-600 mb-4 transition-colors duration-300">
@@ -428,33 +431,45 @@ const Shop = () => {
                     to={`/book/${book._id || book.id}`}
                     className={
                       viewMode === "grid"
-                        ? "relative w-full block cursor-pointer p-4"
-                        : "relative w-40 shrink-0 block cursor-pointer p-4"
+                        ? "relative w-full block cursor-pointer p-4 group"
+                        : "relative w-40 shrink-0 block cursor-pointer p-4 group"
                     }
                   >
-                    <img
-                      src={
-                        book.type === "user" &&
-                        book.images &&
-                        book.images.length > 0
-                          ? getImageSrc(book.images[0]) ||
-                            "/placeholder-book.jpg"
-                          : book.image ||
-                            book.img ||
-                            (book.images && book.images[0]?.preview) ||
-                            book.images?.[0] ||
-                            "/placeholder-book.jpg"
-                      }
-                      alt={book.title}
+                    <div
                       className={
                         viewMode === "grid"
-                          ? "rounded-2xl w-full h-[300px] object-cover hover:opacity-90 transition-opacity"
-                          : "rounded-2xl w-full h-40 object-cover hover:opacity-90 transition-opacity"
+                          ? "relative w-full h-[300px] rounded-2xl overflow-hidden"
+                          : "relative w-full h-40 rounded-2xl overflow-hidden"
                       }
-                    />
-                    <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-6 bottom-6 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800">
-                      ₹{book.price}
-                    </span>
+                    >
+                      <motion.img
+                        src={
+                          book.type === "user" &&
+                          book.images &&
+                          book.images.length > 0
+                            ? getImageSrc(book.images[0]) ||
+                              "/placeholder-book.jpg"
+                            : book.image ||
+                              book.img ||
+                              (book.images && book.images[0]?.preview) ||
+                              book.images?.[0] ||
+                              "/placeholder-book.jpg"
+                        }
+                        alt={book.title}
+                        className="w-full h-full object-cover rounded-2xl select-none"
+                        draggable="false"
+                        whileHover={{
+                          scale: 1.05,
+                          filter: "brightness(1.1)",
+                        }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      />
+
+                      {/* Price Badge */}
+                      <span className="absolute left-2 bottom-2 text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
+                        ₹{book.price}
+                      </span>
+                    </div>
                   </Link>
 
                   {/* Book Info */}
@@ -468,16 +483,22 @@ const Shop = () => {
                     {/* Title */}
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="text-[15px] font-bold text-gray-900 dark:text-gray-100 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors cursor-pointer mb-2 text-center"
+                      className="text-[15px] font-bold text-gray-900 dark:text-gray-100 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 hover:underline focus:underline transition-colors cursor-pointer mb-2 text-center"
                     >
                       {book.title}
                     </Link>
 
                     {/* Author and Rating in one line */}
                     <div className="flex justify-center items-center mb-2 space-x-1">
-                      <p className="text-xs text-indigo-400 dark:text-indigo-300 line-clamp-1 transition-colors duration-300">
-                        {book.author} •
-                      </p>
+                      <Link
+                        to={`/author/${encodeURIComponent(book.author)}`}
+                        className="text-xs text-indigo-400 dark:text-indigo-300 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors duration-300 cursor-pointer"
+                      >
+                        {book.author}
+                      </Link>
+                      <span className="text-xs text-indigo-400 dark:text-indigo-300">
+                        •
+                      </span>
                       <div className="flex items-center">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
@@ -494,14 +515,18 @@ const Shop = () => {
                     </div>
 
                     {/* Description */}
-                    <p className="text-xs text-center text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3">
+                    <p dir="auto" className="text-xs text-center truncate max-w-56 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3">
                       {book.desc ||
                         book.description ||
                         "No description available"}
                     </p>
 
                     {/* Add to Cart and View Details */}
-                    <div className="mt-auto w-full flex gap-2 flex-col sm:flex-row">
+                    <div
+                      className={`mt-auto w-full flex gap-2 ${
+                        viewMode === "grid" ? "flex-row" : "flex-col"
+                      }`}
+                    >
                       <Link
                         to={`/book/${book._id || book.id}`}
                         className="flex-1 text-center px-2 py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
@@ -516,7 +541,7 @@ const Shop = () => {
                         className="flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
                       >
                         <ShoppingCart size={16} />
-                        <span className="text-xs whitespace-nowrap">
+                        <span className="py-1 text-xs whitespace-nowrap">
                           {t("Add to Cart")}
                         </span>
                       </button>

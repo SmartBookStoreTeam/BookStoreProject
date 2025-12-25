@@ -6,6 +6,7 @@ import Loading from "../components/loading";
 import { useCart } from "../hooks/useCart";
 import { useTranslation } from "react-i18next";
 import AuthModal from "./AuthModal";
+import AuthorBooks from "./AuthorBooks";
 import {
   Star,
   ShoppingCart,
@@ -22,6 +23,31 @@ import {
 
 import { getBookById } from "../api/booksApi";
 import toast from "react-hot-toast";
+import { t } from "i18next";
+
+// Helper function to fill missing book data with placeholders
+const fillMissingBookData = (book) => {
+  if (!book) return null;
+
+  return {
+    ...book,
+    title: book.title || t("Book title not available"),
+    author: book.author || t("Author not available"),
+    description:
+      book.description ||
+      book.desc ||
+      t("No description available for this book. Sorry for the inconvenience."),
+    price: book.price || 0,
+    category: book.category || t("uncategorized"),
+    isbn:
+      book.isbn ||
+      "ISBN-" + Math.random().toString(36).substr(2, 13).toUpperCase(),
+    edition: book.edition || t("First Edition"),
+    publicationYear: book.publicationYear || new Date().getFullYear(),
+    pages: book.pages || 200,
+    ratings: book.ratings || book.rate || book.userRating || 4,
+  };
+};
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -33,6 +59,8 @@ const BookDetails = () => {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState("cart"); // 'cart' or 'preview'
+  const [isImageHovered, setIsImageHovered] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -44,7 +72,7 @@ const BookDetails = () => {
         try {
           const bookData = await getBookById(id);
           if (bookData) {
-            setBook(bookData);
+            setBook(fillMissingBookData(bookData));
             return;
           }
         } catch {
@@ -57,7 +85,7 @@ const BookDetails = () => {
         );
 
         if (localBook) {
-          setBook(localBook);
+          setBook(fillMissingBookData(localBook));
         } else {
           setError(t("Book not found"));
         }
@@ -75,6 +103,7 @@ const BookDetails = () => {
   }, [id, t, userBooks]);
   const handleAddToCart = (book) => {
     if (!user) {
+      setAuthModalMode("cart");
       setShowAuthModal(true);
       return;
     }
@@ -84,21 +113,14 @@ const BookDetails = () => {
       style: {
         background: "#333",
         color: "#fff",
-        direction: `${i18n.dir()}`,
+        direction: i18n.dir(),
       },
     });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center dark:bg-zinc-900 py-20">
-        <div className="text-center">
-          <Loading />
-          <p dir={i18n.dir()} className="text-gray-600 dark:text-gray-200 mt-2">
-            {t("Loading book details...")}
-          </p>
-        </div>
-      </div>
+      <Loading Loading={t("Loading book details...")} height="min-h-screen" />
     );
   }
   if (error || !book) {
@@ -127,7 +149,6 @@ const BookDetails = () => {
     );
   }
 
-  // Helper function to get image source for UserBooks (same as Shop.jsx)
   const getImageSrc = (image) => {
     if (!image) return null;
     if (typeof image === "string") return image;
@@ -151,11 +172,16 @@ const BookDetails = () => {
     <>
       {/* Authentication Modal */}
       <AuthModal
+        title={
+          authModalMode === "cart"
+            ? t("Please login or create an account to add book to your cart")
+            : t("Please login or create an account to preview this book")
+        }
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
-      <div className="min-h-screen bg-gray-50 pt-2 dark:bg-zinc-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+      <div dir="auto" className="bg-gray-50 dark:bg-zinc-900">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
           {/* Back Button */}
           <button
             onClick={() => navigate("/shop")}
@@ -166,67 +192,112 @@ const BookDetails = () => {
           </button>
           {/* Book Details */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden dark:bg-[#1a1a22]">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+            <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_340px] gap-6 lg:gap-10 p-8 lg:p-10">
               {/* Book Image */}
-              <div className="flex flex-col items-center">
-                <div className="w-full max-w-md aspect-3/4 bg-gray-100 rounded-xl overflow-hidden shadow-md">
+              <div className="flex flex-col items-center lg:items-start order-1">
+                <div
+                  className="w-full max-w-xs lg:w-72 aspect-3/4 bg-gray-100 rounded-xl overflow-hidden shadow-md relative group"
+                  onMouseEnter={() => setIsImageHovered(true)}
+                  onMouseLeave={() => setIsImageHovered(false)}
+                >
                   <img
                     src={bookImage}
                     alt={book.title}
                     className="w-full h-full object-cover"
                   />
+
+                  {/* Hover Overlay - Only show if book has PDF */}
+                  {book.pdf && (
+                    <div
+                      className={`absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 rounded-xl ${
+                        isImageHovered ? "opacity-100" : "opacity-0"
+                      }`}
+                    >
+                      {user ? (
+                        <a
+                          href={book.pdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
+                        >
+                          <BookOpen className="w-5 h-5" />
+                          {t("Preview Book")}
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setAuthModalMode("preview");
+                            setShowAuthModal(true);
+                          }}
+                          className="px-6 py-3 bg-white dark:bg-indigo-600 text-gray-900 dark:text-white rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-transform shadow-xl cursor-pointer"
+                        >
+                          <BookOpen className="w-5 h-5" />
+                          {t("Preview Book")}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Additional Images if available */}
                 {book.images && book.images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-2 mt-4 w-full max-w-md">
-                    {book.images.slice(1, 5).map((img, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
-                      >
-                        <img
-                          src={img.preview || img}
-                          alt={`${book.title} ${index + 2}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-4 gap-2 mt-4 w-full max-w-xs lg:w-72">
+                    {book.images.slice(1, 5).map((img, index) => {
+                      const imgSrc =
+                        getImageSrc(img) || img || assets.placeholderBook;
+                      return (
+                        <div
+                          key={index}
+                          className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
+                        >
+                          <img
+                            src={imgSrc}
+                            alt={`${book.title} ${index + 2}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
               {/* Book Info */}
-              <div className="flex flex-col  sm:p-12">
+              <div className="flex flex-col order-2">
                 {/* Title */}
-                <h1 className="text-4xl font-bold text-gray-900 mb-4 dark:text-gray-200">
+                <h1 dir="auto" className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200">
                   {book.title}
                 </h1>
 
                 {/* Author */}
-                <div className="flex items-center text-xl text-gray-700 mb-4 dark:text-gray-200">
-                  <User className="w-5 h-5 mr-2 text-gray-500" />
-                  <span className="font-medium">{book.author}</span>
-                </div>
+                <Link
+                  to={`/author/${encodeURIComponent(book.author)}`}
+                  className="flex items-center text-lg md:text-xl text-gray-700 mb-4 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors cursor-pointer group w-fit"
+                >
+                  <User className="w-5 h-5 mr-2 text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors" />
+                  <span className="font-medium hover:underline">
+                    {book.author}
+                  </span>
+                </Link>
 
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="flex">
+                  <div dir="ltr" className="flex">
                     {Array.from({ length: 5 }).map((_, i) => {
                       const value = i + 1;
                       return (
                         <Star
                           key={i}
                           size={20}
-                          className={`cursor-pointer transition-all
-            ${
-              value <=
-              (book.hoverRating || book.rate || book.userRating || book.ratings)
-                ? "text-yellow-400 fill-yellow-400"
-                : "text-gray-300 fill-gray-300"
-            }
-            hover:text-yellow-400 hover:fill-yellow-400
-          `}
+                          className={`cursor-pointer transition-all ${
+                            value <=
+                            (book.hoverRating ||
+                              book.rate ||
+                              book.userRating ||
+                              book.ratings)
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300 fill-gray-300"
+                          } hover:text-yellow-400 hover:fill-yellow-400`}
                           onMouseEnter={() =>
                             setBook({ ...book, hoverRating: value })
                           }
@@ -244,94 +315,86 @@ const BookDetails = () => {
                     ({book.userRating || book.ratings || book.rate || 0} / 5)
                   </span>
                 </div>
-                {/* Price */}
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-indigo-600 dark:text-indigo-300">
-                    ₹{book.price}
+                {/* Price Card */}
+                <div className="my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                  <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                    {t("Price")}: {book.price} {t("EGP")}
                   </span>
                   {book.originalPrice && book.originalPrice > book.price && (
-                    <span className="text-xl text-gray-400 line-through ml-3">
-                      ₹{book.originalPrice}
+                    <span className="text-lg text-gray-400 line-through ml-3 lg:block lg:mt-1">
+                      {book.originalPrice} {t("EGP")}
                     </span>
                   )}
                 </div>
-                {/* Category and Condition */}
+                {/* Category */}
                 <div className="flex flex-wrap gap-3 mb-6">
-                  <span className="inline-flex items-center bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200 text-sm font-medium px-3 py-1 rounded-full">
+                  <span
+                    className={`inline-flex items-center text-sm font-medium px-3 py-1 rounded-full ${
+                      book.category === "uncategorized"
+                        ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                        : "bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200"
+                    }`}
+                  >
                     <Tag className="w-4 h-4 mr-1" />
-                    {t(book.category)}
+                    {t(
+                      book.category?.charAt(0).toUpperCase() +
+                        book.category?.slice(1)
+                    )}
                   </span>
                 </div>
 
                 {/* Description */}
-
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center dark:text-gray-300">
                     <FileText className="w-5 h-5 mr-2 dark:text-gray-300" />
                     {t("Description")}
                   </h3>
-                  <p className="text-gray-700 leading-relaxed dark:text-gray-300">
-                    {book.description || book.desc}
-                  </p>
-                </div>
-
-                {/* Additional Details */}
-                <div className="grid sm:grid-cols-3  gap-4 mb-6 p-4 bg-gray-50 rounded-lg dark:bg-gray-800">
-                  {book.isbn && (
-                    <div>
-                      <span className="text-sm text-gray-600 dark:text-gray-200">
-                        ISBN:
-                      </span>
-                      <p className="font-medium text-gray-900 dark:text-gray-200 whitespace-nowrap overflow-hidden text-ellipsis hover:whitespace-normal hover:overflow-visible hover:text-gray-900 dark:hover:text-gray-200">
-                        {book.isbn}
-                      </p>
-                    </div>
-                  )}
-                  {book.edition && (
-                    <div>
-                      <span className="text-sm text-gray-600 dark:text-gray-200">
-                        {t("Edition")}:
-                      </span>
-                      <p className="font-medium text-gray-900 dark:text-gray-200">
-                        {book.edition}
-                      </p>
-                    </div>
-                  )}
-                  {book.publicationYear && (
-                    <div>
-                      <span className="text-sm text-gray-600 dark:text-gray-200">
-                        {t("Year")}:
-                      </span>
-                      <p className="font-medium text-gray-900 dark:text-gray-200">
-                        {book.publicationYear}
-                      </p>
-                    </div>
-                  )}
-                  {book.pages && (
-                    <div>
-                      <span className="text-sm text-gray-600 dark:text-gray-200">
-                        {t("Pages")}:
-                      </span>
-                      <p className="font-medium text-gray-900 dark:text-gray-200">
-                        {book.pages}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Seller Info (for user books) */}
-                {book.sellerName && (
-                  <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                      {t("Publisher Information")}
-                    </h3>
-                    <p className="text-gray-900 font-medium">
-                      {book.sellerName}
+                  <div className="pr-2">
+                    <p dir="auto" className="text-gray-700 leading-relaxed dark:text-gray-300">
+                      {book.description || book.desc}
                     </p>
-                    {book.sellerLocation && (
-                      <p className="text-sm text-gray-600">
-                        {book.sellerLocation}
-                      </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price & Actions*/}
+              <div className="flex flex-col space-y-4 order-3 lg:w-full">
+                {/* Price Card */}
+                <div className="hidden md:block p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                  <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                    {t("Price")}: {book.price} {t("EGP")}
+                  </span>
+                  {book.originalPrice && book.originalPrice > book.price && (
+                    <span className="text-lg text-gray-400 line-through ml-3 lg:block lg:mt-1">
+                      {book.originalPrice} {t("EGP")}
+                    </span>
+                  )}
+                </div>
+
+                {/* Preview Book Link */}
+                {book.pdf && (
+                  <div className="text-left">
+                    {user ? (
+                      <a
+                        href={book.pdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
+                      >
+                        <BookOpen className="w-5 h-5" />
+                        {t("Preview Book")}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setAuthModalMode("preview");
+                          setShowAuthModal(true);
+                        }}
+                        className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
+                      >
+                        <BookOpen className="w-5 h-5" />
+                        {t("Preview Book")}
+                      </button>
                     )}
                   </div>
                 )}
@@ -342,32 +405,86 @@ const BookDetails = () => {
                     e.stopPropagation();
                     handleAddToCart(book);
                   }}
-                  className={`w-full py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-colors ${"bg-gray-900 hover:bg-gray-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer"}`}
+                  className="w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl lg:transform lg:hover:scale-[1.02]"
                 >
-                  <ShoppingCart className="w-5 h-5" />
+                  <ShoppingCart className="w-6 h-6" />
                   {t("Add to Cart")}
                 </button>
 
-                {/* Quick Actions */}
-                <div className="mt-4 flex gap-3 flex-col lg:flex-row">
+                {/* Secondary Actions */}
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-3">
                   <Link
                     to="/shop"
-                    className="flex-1 text-center py-2 border-2 border-gray-300 rounded-lg hover:bg-zinc-200 hover:border-gray-400 transition-colors text-gray-700 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium"
+                    className="hidden md:block w-full text-center px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-gray-200 font-medium block"
                   >
                     {t("Continue Shopping")}
                   </Link>
                   <Link
                     to="/cart"
-                    className="flex-1 text-center py-2 border-2 border-indigo-600 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-indigo-600 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium"
+                    className="w-full text-center px-4 py-3 border-2 border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all text-indigo-600 dark:text-indigo-300 font-medium block"
                   >
                     {t("View Cart")}
                   </Link>
                 </div>
               </div>
             </div>
+
+            {/* Additional Details*/}
+            <div className="px-8 lg:px-10 pb-8 lg:pb-10">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 dark:text-gray-300">
+                {t("Additional Details")}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-gray-50 rounded-lg dark:bg-gray-800">
+                <div>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    ISBN:
+                  </span>
+                  <p
+                    className="font-medium text-gray-900 dark:text-gray-200 text-sm break-words"
+                    title={book.isbn}
+                  >
+                    {book.isbn}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    {t("Edition")}:
+                  </span>
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
+                    {book.edition}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    {t("Year")}:
+                  </span>
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
+                    {book.publicationYear}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    {t("Pages")}:
+                  </span>
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
+                    {book.pages}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Author Books Section */}
+      {book && book.author && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-6 xl:px-8 py-12">
+          <AuthorBooks
+            authorName={book.author}
+            excludeBookId={book._id || book.id}
+          />
+        </div>
+      )}
     </>
   );
 };

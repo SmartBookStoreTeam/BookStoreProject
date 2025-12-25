@@ -200,9 +200,7 @@ const Releases = () => {
           {t("New Releases")}
         </h1>
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loading />
-          </div>
+          <Loading Loading={t("Loading books...")} height="h-96"/>
         ) : (
           <Carousel books={allBooks} />
         )}
