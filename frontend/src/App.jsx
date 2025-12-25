@@ -11,6 +11,7 @@ import BookDetailsPage from "./pages/BookDetails";
 import AdminBookDetails from "./pages/admin/AdminBookDetails";
 import { useScrollToTop } from "./hooks/useScrollTop";
 import Profile from "./pages/Profile";
+import AuthorProfile from "./pages/AuthorProfile";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -26,15 +27,18 @@ import Register from "./pages/Register";
 import AdminLogin from "./pages/AdminLogin";
 import UserLogin from "./pages/UserLogin";
 import { useTheme } from "./hooks/useTheme";
+import { useTranslation } from "react-i18next";
 
 function App() {
   useScrollToTop();
   useTheme();
+  const { i18n } = useTranslation();
+
   return (
     <AuthProvider>
       <CartProvider>
         <Toaster position="top-center" />
-        <Routes>
+        <Routes key={i18n.language}>
           {/* Public Routes */}
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
@@ -44,6 +48,7 @@ function App() {
             <Route path="publish" element={<Publish />} />
             <Route path="cart" element={<Cart />} />
             <Route path="user-books" element={<UserBooks />} />
+            <Route path="author/:name" element={<AuthorProfile />} />
             <Route path="profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Route>

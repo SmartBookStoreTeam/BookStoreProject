@@ -1,8 +1,8 @@
 import Carousel from "./Carousel";
-import {assets} from "../assets/assets";
+import { assets } from "../assets/assets";
 import { useTranslation } from "react-i18next";
 const TopRated = () => {
-  const {t}=useTranslation();
+  const { t } = useTranslation();
   const books = [
     {
       id: 1,
@@ -132,7 +132,7 @@ const TopRated = () => {
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {t("Top Rated Books")}
         </h1>
-          <Carousel books={books} />
+        <Carousel books={books} />
       </div>
     </div>
   );

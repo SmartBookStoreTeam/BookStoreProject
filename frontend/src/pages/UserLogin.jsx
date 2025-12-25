@@ -17,7 +17,7 @@ const UserLogin = () => {
 
   const navigate = useNavigate();
   const { login } = useAuth();
-const {t,i18n}=useTranslation();
+const {t}=useTranslation();
 
   const togglePassword = () => {
     setShowPassword((prev) => !prev);
@@ -118,6 +118,7 @@ const {t,i18n}=useTranslation();
             </div>
 
             <button
+            dir="auto"
               type="submit"
               disabled={loading}
               className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition cursor-pointer"
@@ -126,12 +127,12 @@ const {t,i18n}=useTranslation();
             </button>
           </form>
 
-          <div dir={i18n.dir()} className="mt-8 text-center">
+          <div dir="auto" className="mt-8 text-center">
             <p className="text-gray-600 dark:text-zinc-400">
               {t("Don't have an account?")}{" "}
               <button
                 onClick={() => navigate("/register")}
-                className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium cursor-pointer"
+                className="text-indigo-600 dark:text-indigo-400 transition-colors duration-300 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline focus:underline font-medium cursor-pointer"
               >
                 {t("Sign up")}
               </button>

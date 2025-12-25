@@ -1,8 +1,8 @@
 import Carousel from "./Carousel";
-import {assets} from "../assets/assets";
+import { assets } from "../assets/assets";
 import { useTranslation } from "react-i18next";
 const Popular = () => {
-  const {t}=useTranslation();
+  const { t } = useTranslation();
   const books = [
     {
       id: 1,
@@ -125,7 +125,6 @@ const Popular = () => {
       category: "cooking",
     },
   ];
-
 
   return (
     <div className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8">

@@ -2,21 +2,25 @@ import { assets } from "../assets/assets";
 import { FaFacebook, FaTwitter, FaLinkedin } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 const Footer = () => {
-const {t,i18n}=useTranslation();
-    const toggleLanguage = () => {
-      const newLang = i18n.language === "en" ? "ar" : "en";
-      i18n.changeLanguage(newLang);
-      localStorage.setItem("language", newLang);
-}
+  const { t, i18n } = useTranslation();
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ar" : "en";
+    i18n.changeLanguage(newLang);
+    localStorage.setItem("language", newLang);
+  };
   return (
-    <div className="bg-black text-white py-12">
+    <div dir="auto" className="bg-black text-white py-12">
       <div className="container mx-auto px-6 md:px-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
             <h1 className="text-2xl font-bold mb-4">{t("Books")}</h1>
-            <p dir={i18n.dir()} className="text-gray-300 text-sm leading-relaxed max-w-xs">
-              {t("booksDelivered","Books Delivered. Imagination Unlimited. Your one-stop destination for all your reading needs.")}.
+            <p className="text-gray-300 text-sm leading-relaxed max-w-xs">
+              {t(
+                "booksDelivered",
+                "Books Delivered. Imagination Unlimited. Your one-stop destination for all your reading needs."
+              )}
+              .
             </p>
           </div>
 
@@ -60,7 +64,7 @@ const {t,i18n}=useTranslation();
           </div>
 
           {/* Contact Info */}
-          <div dir={i18n.dir()}>
+          <div>
             <h1 className="text-xl font-semibold mb-4">{t("Contact")}</h1>
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-start">
@@ -110,14 +114,20 @@ const {t,i18n}=useTranslation();
             </div>
           </div>
         </div>
-<div className="flex items-center gap-2 my-5">
-  <img className="w-6 h-6" src={assets.eg} alt="Egypt" />
-  <button className="hover:underline focus:underline text-gray-200 cursor-pointer" onClick={toggleLanguage}>{t("En")}</button>
-</div>
+        <div className="flex items-center gap-2 my-5">
+          <img className="w-6 h-6" src={assets.eg} alt="Egypt" />
+          <button
+            className="hover:underline focus:underline text-gray-200 cursor-pointer"
+            onClick={toggleLanguage}
+          >
+            {t("En")}
+          </button>
+        </div>
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
-          <p dir={i18n.dir()} className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} Books Store. {t("All rights reserved")}.
+          <p className="text-gray-400 text-sm">
+            © {new Date().getFullYear()} Books Store. {t("All rights reserved")}
+            .
           </p>
         </div>
       </div>

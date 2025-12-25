@@ -15,17 +15,14 @@ const UserBooks = () => {
 
   const handleAddToCart = (book) => {
     addToCart(book);
-    toast.success(
-      `${t("Added")} "${book.title}" ${t("to Cart")}!`,
-      {
-        duration: 1500,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: `${i18n.dir()}`,
-        },
-      }
-    );
+    toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
+      duration: 1500,
+      style: {
+        background: "#333",
+        color: "#fff",
+        direction: i18n.dir(),
+      },
+    });
   };
 
   return (
@@ -87,11 +84,14 @@ const UserBooks = () => {
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 dark:text-gray-200 mb-2">
+                <Link
+                  to={`/author/${encodeURIComponent(book.author)}`}
+                  className="text-sm text-gray-600 dark:text-gray-200 mb-2 hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline transition-colors cursor-pointer"
+                >
                   by {book.author}
-                </p>
+                </Link>
 
-                {/* Category and Condition */}
+                {/* Category*/}
                 <div className="flex items-center gap-2 mb-3">
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full capitalize">
                     {book.category}

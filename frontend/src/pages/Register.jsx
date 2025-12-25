@@ -15,7 +15,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-const {t,i18n}=useTranslation();
+const {t}=useTranslation();
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -137,6 +137,7 @@ const {t,i18n}=useTranslation();
 
             {/* Submit */}
             <button
+            dir="auto"
               type="submit"
               disabled={loading}
               className="w-full bg-indigo-600 dark:bg-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -146,13 +147,13 @@ const {t,i18n}=useTranslation();
           </form>
 
           {/* Login Link */}
-          <div dir={i18n.dir()} className="mt-6 text-center">
+          <div dir="auto" className="mt-6 text-center">
             <span className="text-sm font-medium text-gray-800 dark:text-zinc-300">
               {t("Already have an account?")}{" "}
             </span>
             <button
               onClick={() => navigate("/user-login")}
-              className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium cursor-pointer"
+              className="text-indigo-600 dark:text-indigo-400 transition-colors duration-300 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline focus:underline font-medium cursor-pointer"
             >
               {t("Login")}
             </button>
