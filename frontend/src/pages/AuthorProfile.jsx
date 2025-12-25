@@ -1,17 +1,63 @@
-import { Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useCart } from "../hooks/useCart";
-import { Trash2, ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star, User, ArrowLeft, BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
+import { getBooks } from "../api/booksApi";
+import Loading from "../components/loading";
+// eslint-disable-next-line no-unused-vars
+import { motion } from "framer-motion";
 
-const UserBooks = () => {
-  const { userBooks, removeUserBook, addToCart } = useCart();
-  const { t, i18n } = useTranslation();
+const AuthorProfile = () => {
+  const { name } = useParams();
+  const navigate = useNavigate();
+  const { addToCart, userBooks } = useCart();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authorBooks, setAuthorBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAuthorBooks = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch books from API
+        const response = await getBooks();
+        const apiBooks = response.books || response || [];
+
+        // Filter API books by author name
+        const filteredApiBooks = apiBooks.filter(
+          (book) =>
+            book.author?.toLowerCase() ===
+            decodeURIComponent(name).toLowerCase()
+        );
+
+        // Filter userBooks by author name
+        const filteredUserBooks = userBooks.filter(
+          (book) =>
+            book.author?.toLowerCase() ===
+            decodeURIComponent(name).toLowerCase()
+        );
+
+        // Combine both sources
+        setAuthorBooks([...filteredApiBooks, ...filteredUserBooks]);
+      } catch (error) {
+        console.error("Error fetching author books:", error);
+        setAuthorBooks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (name) {
+      fetchAuthorBooks();
+    }
+  }, [name, userBooks]);
 
   const handleAddToCart = (book) => {
     if (!user) {
@@ -41,6 +87,10 @@ const UserBooks = () => {
     return null;
   };
 
+  if (loading) {
+    return <Loading Loading="Loading author books..." height="min-h-screen" />;
+  }
+
   return (
     <>
       {/* Authentication Modal */}
@@ -49,29 +99,50 @@ const UserBooks = () => {
         onClose={() => setShowAuthModal(false)}
       />
 
-      <div className="min-h-screen bg-gray-50 pt-20 dark:bg-zinc-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
-              {t("Community Books")}
-            </h1>
-            <span className="text-gray-600 dark:text-gray-400">
-              {userBooks.length} {t("books listed")}
-            </span>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            {t("Go Back")}
+          </button>
+
+          {/* Author Header */}
+          <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-8 mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
+                <User className="w-8 h-8 text-indigo-600 dark:text-indigo-300" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
+                  {decodeURIComponent(name)}
+                </h1>
+                <p
+                  dir="auto"
+                  className="text-gray-600 dark:text-gray-400"
+                >
+                  {authorBooks.length > 2
+                    ? `${authorBooks.length} ${t("books available")}`
+                    : `${authorBooks.length} ${t("book available")}`}
+                </p>
+              </div>
+            </div>
           </div>
 
-          {userBooks.length === 0 ? (
+          {/* Books Grid */}
+          {authorBooks.length === 0 ? (
             <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg">
+              <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
-                {t("No books listed yet.")}
-              </p>
-              <p className="text-gray-400 dark:text-gray-500">
-                {t("Be the first to list a book!")}
+                {t("No books found for this author.")}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {userBooks.map((book, index) => {
+              {authorBooks.map((book, index) => {
                 const bookImage =
                   getImageSrc(book.images?.[0]) ||
                   book.image ||
@@ -86,28 +157,18 @@ const UserBooks = () => {
                     {/* Book Image */}
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="relative w-full block cursor-pointer group"
+                      className="relative w-full block cursor-pointer group overflow-hidden rounded-2xl"
                     >
-                      <img
-                        className="rounded-2xl w-full h-[300px] sm:h-[250px] lg:h-[300px] object-cover group-hover:opacity-90 transition-opacity"
+                      <motion.img
+                        className="w-full h-[300px] sm:h-[250px] lg:h-[300px] object-cover"
                         src={bookImage}
                         alt={book.title}
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
                       />
-                      <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800">
+                      <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-10 pointer-events-none">
                         ₹{book.price}
                       </span>
-                      {/* Delete Button */}
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          removeUserBook(book.id);
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-md transition-colors cursor-pointer"
-                        title={t("Remove book")}
-                      >
-                        <Trash2 size={16} />
-                      </button>
                     </Link>
 
                     {/* Book Info */}
@@ -151,7 +212,7 @@ const UserBooks = () => {
                     </p>
 
                     {/* Add to Cart and Details Buttons */}
-                    <div className="mt-auto mb-2 w-full flex gap-2 sm:flex-col lg:flex-row">
+                    <div className="mt-auto w-full flex gap-2 sm:flex-col lg:flex-row">
                       <Link
                         to={`/book/${book._id || book.id}`}
                         className="flex-1 text-center px-2 py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm"
@@ -171,12 +232,6 @@ const UserBooks = () => {
                         </span>
                       </button>
                     </div>
-                    {/* Listed Date */}
-                    {book.listedAt && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
-                        {new Date(book.listedAt).toLocaleDateString()}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -188,4 +243,4 @@ const UserBooks = () => {
   );
 };
 
-export default UserBooks;
+export default AuthorProfile;

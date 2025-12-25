@@ -12,7 +12,7 @@ const Cart = () => {
     getCartTotal,
     getCartItemsCount,
   } = useCart();
-  const { t, i18n } = useTranslation();
+  const { t} = useTranslation();
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors">
@@ -36,23 +36,22 @@ const Cart = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors">
+    <div dir="auto" className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors">
       <div className="container mx-auto px-6 max-w-4xl">
         {/* Header */}
         <div
-          dir={i18n.dir()}
           className="flex justify-between items-center mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             {t("Shopping Cart")}
           </h1>
-          <span dir={i18n.dir()} className="text-gray-600 dark:text-gray-400">
-            {getCartItemsCount()} {t("items")}
+          <span className="text-gray-600 dark:text-gray-400">
+            {getCartItemsCount()} {getCartItemsCount() === 1 ? t("item") : t("items")}
           </span>
         </div>
 
         {/* Cart Items */}
-        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 divide-y divide-gray-200 dark:divide-zinc-700">
           {cartItems.map((item) => (
             <div key={item.id} className="p-6 flex gap-4 items-center">
               <Link to={`/book/${item._id || item.id}`}>
@@ -73,12 +72,15 @@ const Cart = () => {
 
               <div className="flex-1">
                 <Link to={`/book/${item._id || item.id}`}>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 hover:underline focus:underline hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 hover:underline focus:underline hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 transition-colors cursor-pointer">
                     {item.title}
                   </h3>
                 </Link>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  by {item.author}
+                <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                  {t("by")}{" "}
+                  <span className="hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 transition-colors cursor-pointer">
+                    {item.author}
+                  </span>
                 </p>
 
                 <div className="flex items-center mt-1">
@@ -113,8 +115,8 @@ const Cart = () => {
         </div>
 
         {/* Summary */}
-        <div className="mt-8 bg-white dark:bg-zinc-800 rounded-lg shadow border p-6">
-          <div dir={i18n.dir()} className="flex justify-between mb-4">
+        <div className="mt-8 bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 p-6">
+          <div className="flex justify-between mb-4">
             <span className="text-xl font-bold text-gray-900 dark:text-gray-200">
               {t("Total")}:
             </span>
@@ -123,7 +125,7 @@ const Cart = () => {
             </span>
           </div>
 
-          <div className="flex gap-4">
+          <div dir="ltr" className="flex gap-4">
             <button
               onClick={clearCart}
               className="flex-1 bg-gray-200 py-3 rounded-lg hover:bg-gray-300 cursor-pointer"
@@ -135,7 +137,7 @@ const Cart = () => {
             </button>
           </div>
 
-          <Link
+          <Link dir="ltr"
             to="/shop"
             className="flex items-center justify-center mt-4 text-indigo-600 hover:underline focus:underline dark:text-indigo-400 cursor-pointer"
           >

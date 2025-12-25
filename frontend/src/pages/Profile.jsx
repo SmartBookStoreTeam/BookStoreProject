@@ -80,28 +80,28 @@ const Profile = () => {
   const stats = [
     {
       icon: ShoppingBag,
-      label: t("Total Books"),
+      label: "Total Books",
       value: 0, //Implement orders from backend
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-100 dark:bg-blue-900/30",
     },
     {
       icon: BookOpen,
-      label: t("Books Listed"),
+      label: "Books Listed",
       value: userBooks.length,
       color: "text-green-600 dark:text-green-400",
       bg: "bg-green-100 dark:bg-green-900/30",
     },
     {
       icon: ShoppingCart,
-      label: t("In Cart"),
+      label: "In Cart",
       value: cartItems.length,
       color: "text-indigo-600 dark:text-indigo-400",
       bg: "bg-indigo-100 dark:bg-indigo-900/30",
     },
     {
       icon: User,
-      label: t("Member Since"),
+      label: "Member Since",
       value: new Date().getFullYear(),
       color: "text-purple-600 dark:text-purple-400",
       bg: "bg-purple-100 dark:bg-purple-900/30",
@@ -115,7 +115,7 @@ const Profile = () => {
     style: {
       background: "#333",
       color: "#fff",
-      direction: `${i18n.dir()}`}});
+      direction: i18n.dir()}});
     setShowEditModal(false);
   };
 
@@ -134,7 +134,7 @@ const Profile = () => {
       style: {
         background: "#333",
         color: "#fff",
-        direction: `${i18n.dir()}`}});
+        direction: i18n.dir()}});
       
     }
   };
@@ -160,7 +160,7 @@ const Profile = () => {
     style: {
       background: "#333",
       color: "#fff",
-      direction: `${i18n.dir()}`} });
+      direction: i18n.dir()}} );
   };
 
   return (
@@ -220,7 +220,7 @@ const Profile = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {stat.label}
+                    {t(stat.label)}
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {stat.value}
@@ -366,7 +366,7 @@ const Profile = () => {
                               style: {
                                 background: "#333",
                                 color: "#fff",
-                                direction: `${i18n.dir()}`}});
+                                direction: i18n.dir()}});
                             }
                           }}
                           className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors cursor-pointer"

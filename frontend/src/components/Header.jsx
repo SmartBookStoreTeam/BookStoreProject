@@ -57,6 +57,15 @@ const Header = () => {
     if (theme === "light") setTheme("dark");
     else setTheme("light");
   };
+
+  // Helper function to check if dark mode is actually active
+  const isDarkModeActive = () => {
+    if (theme === "dark") return true;
+    if (theme === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    return false;
+  };
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
@@ -166,14 +175,14 @@ const Header = () => {
                     </div>
                     <div
                       className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
-                        theme === "dark"
+                        isDarkModeActive()
                           ? "bg-indigo-500 dark:bg-indigo-400"
                           : "bg-zinc-300 dark:bg-zinc-600"
                       }`}
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          theme === "dark" ? "translate-x-5" : "translate-x-1"
+                          isDarkModeActive() ? "translate-x-5" : "translate-x-1"
                         }`}
                       />
                     </div>
@@ -250,7 +259,11 @@ const Header = () => {
 
                 {/* Dropdown */}
                 {openDropdown && (
-                  <div ref={profileRef} onClick={(e) => e.stopPropagation()} className="absolute right-0 top-12 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50">
+                  <div
+                    ref={profileRef}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 top-12 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50"
+                  >
                     <Link
                       to="/profile"
                       onClick={closeDropdown}
@@ -376,14 +389,14 @@ const Header = () => {
                   }}
                   type="button"
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${
-                    theme === "dark"
+                    isDarkModeActive()
                       ? "bg-indigo-500 dark:bg-indigo-400"
                       : "bg-zinc-300 dark:bg-zinc-600"
                   }`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform pointer-events-none ${
-                      theme === "dark" ? "translate-x-6" : "translate-x-1"
+                      isDarkModeActive() ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
                 </button>

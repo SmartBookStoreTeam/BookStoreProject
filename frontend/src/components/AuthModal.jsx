@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-const AuthModal = ({ isOpen, onClose }) => {
+const AuthModal = ({ isOpen, onClose ,title}) => {
   const { t } = useTranslation();
 
   if (!isOpen) return null;
@@ -26,7 +26,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           </h2>
 
           <p className="text-gray-600 dark:text-gray-300 mb-8">
-            {t("Please login or create an account to add books to your cart or publishing your books")}
+            {t(title)}
           </p>
 
           <div className="flex flex-col gap-3">
