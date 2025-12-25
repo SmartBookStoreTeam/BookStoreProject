@@ -184,6 +184,7 @@ const BookDetails = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
           {/* Back Button */}
           <button
+            dir="ltr"
             onClick={() => navigate("/shop")}
             className="md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-7 transition-colors cursor-pointer"
           >
