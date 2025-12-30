@@ -18,9 +18,13 @@ const UserBooks = () => {
     toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
       duration: 1500,
       style: {
-        background: "#333",
+      background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        maxWidth: "90vw",
+        minWidth: "320px",
+        padding: "12px",
+        textAlign: "center",
       },
     });
   };
