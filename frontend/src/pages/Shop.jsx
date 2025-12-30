@@ -6,9 +6,10 @@ import { getBooks } from "../api/booksApi";
 import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
 import { useTranslation } from "react-i18next";
 import AuthModal from "../components/AuthModal";
+import { FaCartPlus } from "react-icons/fa";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 // Mock data for fallback
@@ -103,6 +104,7 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState("grid");
   const [priceRange, setPriceRange] = useState([0, 50]);
+  const [maxPriceLimit, setMaxPriceLimit] = useState(50);
   const [apiBooks, setApiBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const { t, i18n } = useTranslation();
@@ -132,22 +134,27 @@ const Shop = () => {
           // Update price range based on actual book prices
           const prices = booksData.map((b) => b.price);
           const userBookPrices = userBooks.map((b) => b.price || 0);
-          const maxPrice = Math.max(...prices, ...userBookPrices, 50);
-          setPriceRange([0, Math.ceil(maxPrice)]);
+          const maxPrice = Math.ceil(
+            Math.max(...prices, ...userBookPrices, 50)
+          );
+          setMaxPriceLimit(maxPrice);
+          setPriceRange([0, maxPrice]);
         } else {
           // Use mock data if API returns empty
           setApiBooks(mockBooks);
           const prices = mockBooks.map((b) => b.price);
-          const maxPrice = Math.max(...prices, 50);
-          setPriceRange([0, Math.ceil(maxPrice)]);
+          const maxPrice = Math.ceil(Math.max(...prices, 50));
+          setMaxPriceLimit(maxPrice);
+          setPriceRange([0, maxPrice]);
         }
       } catch (error) {
         console.error(t("Error fetching books:"), error);
         // Use mock data as fallback
         setApiBooks(mockBooks);
         const prices = mockBooks.map((b) => b.price);
-        const maxPrice = Math.max(...prices, 50);
-        setPriceRange([0, Math.ceil(maxPrice)]);
+        const maxPrice = Math.ceil(Math.max(...prices, 50));
+        setMaxPriceLimit(maxPrice);
+        setPriceRange([0, maxPrice]);
         console.log("Using mock data as fallback for shop page");
       } finally {
         setLoading(false);
@@ -232,6 +239,10 @@ const Shop = () => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        maxWidth: "90vw",
+        minWidth: "320px",
+        padding: "12px",
+        textAlign: "center",
       },
     });
   };
@@ -259,7 +270,7 @@ const Shop = () => {
           <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-gray-200 dark:border-zinc-700 p-6 mb-8 transition-colors duration-300">
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Search Bar */}
-              <div className="flex-1 relative">
+              <div className="touch-area flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 transition-colors duration-300" />
                 <input
                   type="text"
@@ -274,52 +285,58 @@ const Shop = () => {
               {/* Filters */}
               <div className="flex gap-4 flex-wrap">
                 {/* Book Type Filter */}
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
-                >
-                  {bookTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {t(type.label)}
-                    </option>
-                  ))}
-                </select>
+                <div className="touch-area relative rounded-lg">
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
+                  >
+                    {bookTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {t(type.label)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Category Filter with counts */}
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 min-w-48 transition-colors duration-300"
-                >
-                  {categories.map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {t(category.label)} ({category.count})
-                    </option>
-                  ))}
-                </select>
+                <div className="touch-area relative rounded-lg">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 min-w-48 transition-colors duration-300"
+                  >
+                    {categories.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {t(category.label)} ({category.count})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Sort By */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
-                >
-                  <option value="name">{t("Sort by Name")}</option>
-                  <option value="price-low">
-                    {t("price-low", "Price: Low to High")}
-                  </option>
-                  <option value="price-high">
-                    {t("price-high", "Price: High to Low")}
-                  </option>
-                  <option value="rating">{t("Highest Rated")}</option>
-                </select>
+                <div className="touch-area relative rounded-lg">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-colors duration-300"
+                  >
+                    <option value="name">{t("Sort by Name")}</option>
+                    <option value="price-low">
+                      {t("price-low", "Price: Low to High")}
+                    </option>
+                    <option value="price-high">
+                      {t("price-high", "Price: High to Low")}
+                    </option>
+                    <option value="rating">{t("Highest Rated")}</option>
+                  </select>
+                </div>
 
                 {/* View Mode Toggle */}
                 <div className="flex border border-gray-300 dark:border-zinc-600 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-3 transition-colors duration-300 ${
+                    className={`touch-area p-3 transition-colors duration-300 ${
                       viewMode === "grid"
                         ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300"
                         : "bg-white dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-600"
@@ -329,7 +346,7 @@ const Shop = () => {
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-3 transition-colors duration-300 ${
+                    className={`touch-area p-3 transition-colors duration-300 ${
                       viewMode === "list"
                         ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300"
                         : "bg-white dark:bg-zinc-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-600"
@@ -342,7 +359,7 @@ const Shop = () => {
             </div>
 
             {/* Price Range Filter */}
-            <div dir="auto" className="mt-4">
+            <div dir={i18n.dir()} className="mt-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
                 {t("Price Range") + " "}: ₹{priceRange[0]} - ₹{priceRange[1]}
               </label>
@@ -350,7 +367,7 @@ const Shop = () => {
                 <input
                   type="range"
                   min="0"
-                  max="50"
+                  max={maxPriceLimit}
                   step="1"
                   value={priceRange[0]}
                   onChange={(e) =>
@@ -361,7 +378,7 @@ const Shop = () => {
                 <input
                   type="range"
                   min="0"
-                  max="50"
+                  max={maxPriceLimit}
                   step="1"
                   value={priceRange[1]}
                   onChange={(e) =>
@@ -375,7 +392,7 @@ const Shop = () => {
 
           {/* Results Count */}
           <div
-            dir="auto"
+            dir={i18n.dir()}
             className="flex justify-between items-center mb-6"
           >
             {loading ? (
@@ -396,7 +413,7 @@ const Shop = () => {
 
           {/* Books Grid/List */}
           {loading ? (
-            <Loading height="min-h-[60vh]" />
+            <Loading height="min-h-[60vh]" animate={true} />
           ) : filteredBooks.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 dark:text-gray-600 mb-4 transition-colors duration-300">
@@ -419,7 +436,7 @@ const Shop = () => {
             >
               {filteredBooks.map((book) => (
                 <div
-                  key={book.id}
+                  key={book._id || book.id}
                   className={
                     viewMode === "grid"
                       ? "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex flex-col"
@@ -438,8 +455,8 @@ const Shop = () => {
                     <div
                       className={
                         viewMode === "grid"
-                          ? "relative w-full h-[300px] rounded-2xl overflow-hidden"
-                          : "relative w-full h-40 rounded-2xl overflow-hidden"
+                          ? "touch-area relative w-full h-[300px] rounded-2xl overflow-hidden"
+                          : "touch-area relative w-full h-40 rounded-2xl overflow-hidden"
                       }
                     >
                       <motion.img
@@ -477,13 +494,14 @@ const Shop = () => {
                     className={
                       viewMode === "grid"
                         ? "p-4 flex flex-col flex-1"
-                        : "p-6 flex-1"
+                        : "p-4 flex-1 flex flex-col min-w-0 overflow-hidden"
                     }
                   >
                     {/* Title */}
                     <Link
+                      dir="auto"
                       to={`/book/${book._id || book.id}`}
-                      className="text-[15px] font-bold text-gray-900 dark:text-gray-100 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 hover:underline focus:underline transition-colors cursor-pointer mb-2 text-center"
+                      className="touch-area text-[15px] font-bold text-gray-900 dark:text-gray-100 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 hover:underline focus:underline transition-colors cursor-pointer mb-2 text-center"
                     >
                       {book.title}
                     </Link>
@@ -492,7 +510,7 @@ const Shop = () => {
                     <div className="flex justify-center items-center mb-2 space-x-1">
                       <Link
                         to={`/author/${encodeURIComponent(book.author)}`}
-                        className="text-xs text-indigo-400 dark:text-indigo-300 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors duration-300 cursor-pointer"
+                        className="touch-area text-xs text-indigo-400 dark:text-indigo-300 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors duration-300 cursor-pointer"
                       >
                         {book.author}
                       </Link>
@@ -515,7 +533,10 @@ const Shop = () => {
                     </div>
 
                     {/* Description */}
-                    <p dir="auto" className="text-xs text-center truncate max-w-56 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3">
+                    <p
+                      dir="auto"
+                      className="touch-area text-xs text-center truncate max-w-[450px] text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3"
+                    >
                       {book.desc ||
                         book.description ||
                         "No description available"}
@@ -529,7 +550,7 @@ const Shop = () => {
                     >
                       <Link
                         to={`/book/${book._id || book.id}`}
-                        className="flex-1 text-center px-2 py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
+                        className="touch-area flex-1 text-center px-2 py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm cursor-pointer"
                       >
                         {t("Details")}
                       </Link>
@@ -538,12 +559,10 @@ const Shop = () => {
                           e.stopPropagation();
                           handleAddToCart(book);
                         }}
-                        className="flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
+                        className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
                       >
-                        <ShoppingCart size={16} />
-                        <span className="py-1 text-xs whitespace-nowrap">
-                          {t("Add to Cart")}
-                        </span>
+                        <FaCartPlus size={14} />
+                        <span className="text-xs">{t("Add to Cart")}</span>
                       </button>
                     </div>
                   </div>

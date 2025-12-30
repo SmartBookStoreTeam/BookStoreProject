@@ -165,19 +165,23 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("userBooks", JSON.stringify(newState));
     return newState;
   };
-  // Add to your CartProvider
-  const [userBooks, userBooksDispatch] = useReducer(userBooksReducer, []);
-
-  // Load from localStorage on component mount
-  useEffect(() => {
-    const savedUserBooks = localStorage.getItem("userBooks");
-    if (savedUserBooks) {
-      userBooksDispatch({
-        type: "LOAD_USER_BOOKS",
-        payload: JSON.parse(savedUserBooks),
-      });
+  // Load userBooks from localStorage synchronously
+  const loadUserBooksFromStorage = () => {
+    try {
+      const saved = localStorage.getItem("userBooks");
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Error loading userBooks from localStorage:", error);
+      return [];
     }
-  }, []);
+  };
+
+  // Add to your CartProvider - loads synchronously from localStorage
+  const [userBooks, userBooksDispatch] = useReducer(
+    userBooksReducer,
+    null,
+    loadUserBooksFromStorage
+  );
 
   const addUserBook = (bookData) => {
     // Add logic to save user book

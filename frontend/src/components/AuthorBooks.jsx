@@ -3,11 +3,11 @@ import { useCart } from "../hooks/useCart";
 import { useTranslation } from "react-i18next";
 import Carousel from "./Carousel";
 import { getBooks } from "../api/booksApi";
-import Loading from "./loading";
+import Loading from "./Loading";
 
 const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
   const { userBooks } = useCart();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [authorBooks, setAuthorBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -96,7 +96,7 @@ const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
   }, [authorName, userBooks, excludeBookId]);
 
   if (loading) {
-    return <Loading Loading={t("Loading author books...")} height="h-96" />;
+    return <Loading loading={t("Loading author books...")} height="h-96" animate={true} />;
   }
 
   // Don't render if no books found
@@ -106,7 +106,10 @@ const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
 
   return (
     <div>
-      <h2 dir="auto" className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-200 mb-6">
+      <h2
+        dir={i18n.dir()}
+        className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-200 mb-6"
+      >
         {title || `${t("More books by")} ${authorName}`}
       </h2>
       <Carousel books={authorBooks} carouselId={`author-${authorName}`} />

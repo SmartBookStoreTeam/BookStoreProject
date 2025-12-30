@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { getBooks } from "../api/booksApi";
 import { useCart } from "../hooks/useCart";
-import Loading from "./loading";
+import Loading from "./Loading";
 
 // Mock books as fallback
 const mockBooks = [
@@ -194,13 +194,16 @@ const Releases = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8">
+    <div
+      id="releases"
+      className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8"
+    >
       <div className="container mx-auto px-6 md:px-20 relative">
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {t("New Releases")}
         </h1>
         {loading ? (
-          <Loading Loading={t("Loading books...")} height="h-96"/>
+          <Loading loading={t("Loading books...")} height="h-96" animate={true}/>
         ) : (
           <Carousel books={allBooks} />
         )}

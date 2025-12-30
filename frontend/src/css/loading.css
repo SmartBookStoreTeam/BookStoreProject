@@ -111,6 +111,16 @@
   text-align: center;
   color: var(--text);
 }
+.no-animation *,
+.no-animation {
+  animation: none !important;
+  transition: none !important;
+}
+
+.loader-error {
+  filter: grayscale(20%);
+  opacity:0.8;
+}
 
 @keyframes page-2 {
   0% {

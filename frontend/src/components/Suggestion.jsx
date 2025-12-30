@@ -128,7 +128,10 @@ const Suggestion = ({ title = "Our Suggestions" }) => {
   ];
 
   return (
-    <div className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8">
+    <div
+      id="suggestions"
+      className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8"
+    >
       <div className="container mx-auto px-6 md:px-20 relative">
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {t(title)}

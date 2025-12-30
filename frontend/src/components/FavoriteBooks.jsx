@@ -10,7 +10,7 @@ const FavoriteBooks = () => {
   const [soldCount, setSoldCount] = useState(0);
 
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.3 });
-const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   useEffect(() => {
     if (inView) {
       let book = 0,
@@ -31,12 +31,14 @@ const { t } = useTranslation();
   }, [inView]);
 
   return (
-    <div ref={ref} className="bg-white dark:bg-zinc-900 transition-colors duration-300">
+    <div
+      ref={ref}
+      className="bg-white dark:bg-zinc-900 transition-colors duration-300"
+    >
       <div className="container mx-auto px-6 md:px-20 py-12">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-
           {/* Left Side */}
-          <div className="w-full lg:w-1/2 flex justify-center lg:justify-start">
+          <div className="touch-area w-full lg:w-1/2 flex justify-center lg:justify-start">
             <img
               className="w-75 h-75 md:w-100 md:h-100 object-contain rounded-2xl"
               src={assets.groupBooks}
@@ -46,24 +48,30 @@ const { t } = useTranslation();
 
           {/* Right Side */}
           <div className="w-full lg:w-1/2 text-center lg:text-left">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <h1 className="touch-area text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
               {t("Find Your Favorite")} <br />
-              <span dir="auto" className="text-indigo-500 dark:text-indigo-400">
+              <span
+                dir={i18n.dir()}
+                className="text-indigo-500 dark:text-indigo-400"
+              >
                 {t("Book Here")}!
               </span>
             </h1>
 
-            <p className="text-gray-600 dark:text-gray-300 text-[16px] leading-relaxed mb-8 max-w-2xl transition-colors duration-300">
-              {t("LandingExploreParagraph","Find Your Favorite — 1200+ Books Available")}
+            <p className="touch-area text-gray-600 dark:text-gray-300 text-[16px] leading-relaxed mb-8 max-w-2xl transition-colors duration-300">
+              {t(
+                "LandingExploreParagraph",
+                "Find Your Favorite — 1200+ Books Available"
+              )}
             </p>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 mb-8 max-w-md mx-auto lg:mx-0">
+            <div className="touch-area grid grid-cols-3 gap-6 mb-8 max-w-md mx-auto lg:mx-0">
               <div>
                 <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 transition-colors duration-300">
                   {bookCount}+
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                <div className="touch-area text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Book Listing")}
                 </div>
               </div>
@@ -71,7 +79,7 @@ const { t } = useTranslation();
                 <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 transition-colors duration-300">
                   {userCount}+
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                <div className="touch-area text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Register User")}
                 </div>
               </div>
@@ -79,19 +87,18 @@ const { t } = useTranslation();
                 <div className="text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1 transition-colors duration-300">
                   {soldCount}+
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                <div className="touch-area text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Books Sold")}
                 </div>
               </div>
             </div>
 
-            <Link 
-              to={"/explore"} 
-              className="inline-block bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 cursor-pointer text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg dark:shadow-indigo-900/50 hover:shadow-xl"
+            <Link
+              to={"/explore"}
+              className="touch-area inline-block bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 cursor-pointer text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg dark:shadow-indigo-900/50 hover:shadow-xl"
             >
               {t("Explore Now")}
             </Link>
-
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { navLinks } from "../assets/assets";
 import { ShoppingCart, Menu, X, User } from "lucide-react"; // User icon for register
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useCart } from "../hooks/useCart";
 import {
@@ -17,14 +17,28 @@ import {
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import { useNavigation } from "../context/NavigationContext";
 const Header = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { requestNavigation } = useNavigation();
+
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ar" : "en";
     i18n.changeLanguage(newLang);
     localStorage.setItem("language", newLang);
   };
   const links = navLinks;
+
+  // Safe navigation handler - checks if navigation is blocked
+  const handleSafeNavigation = (e, to, callback) => {
+    e.preventDefault();
+    const allowed = requestNavigation(to);
+    if (allowed) {
+      if (callback) callback();
+      navigate(to);
+    }
+  };
 
   // Icon mapping
   const getIcon = (iconName, size = 18) => {
@@ -50,6 +64,7 @@ const Header = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const settingsRef = useRef(null);
   const menuRef = useRef(null);
+  const sidebarRef = useRef(null);
   const toggleDropdown = () => setOpenDropdown(!openDropdown);
   const closeDropdown = () => setOpenDropdown(false);
 
@@ -71,7 +86,12 @@ const Header = () => {
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
         setOpenSettings(false);
       }
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
         setIsMenuOpen(false);
       }
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -91,7 +111,8 @@ const Header = () => {
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-2xl font-bold tracking-tight"
+            onClick={(e) => handleSafeNavigation(e, "/")}
+            className="touch-area flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-2xl font-bold tracking-tight"
           >
             <span>{t("Books")}</span>
           </Link>
@@ -103,6 +124,7 @@ const Header = () => {
                 <li key={to} className="relative">
                   <NavLink
                     to={to}
+                    onClick={(e) => handleSafeNavigation(e, to)}
                     className={({ isActive }) =>
                       `flex items-center gap-2 relative pb-1 after:absolute after:left-0 after:bottom-0 
                   after:h-0.5 after:w-full after:bg-indigo-500 
@@ -126,7 +148,11 @@ const Header = () => {
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center gap-6 flex-shrink-0">
             {/* Cart */}
-            <Link to="/cart" className="relative">
+            <Link
+              to="/cart"
+              onClick={(e) => handleSafeNavigation(e, "/cart")}
+              className="relative"
+            >
               <ShoppingCart
                 size={24}
                 className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
@@ -138,51 +164,55 @@ const Header = () => {
               )}
             </Link>
             {/* Settings preferance */}
-            <div className="relative hidden md:flex">
+            <div
+              dir="auto"
+              className="relative hidden md:flex"
+              ref={settingsRef}
+            >
               <button
                 onClick={toggleSettings}
-                className="p-2 rounded-full bg-zinc-300 dark:bg-zinc-700 text-indigo-900 focus:rotate-180 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 transition cursor-pointer"
+                className={`p-2 rounded-full bg-zinc-300 dark:bg-zinc-700 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer ${
+                  openSettings ? "rotate-180 dark:text-indigo-400" : "rotate-0"
+                }`}
               >
                 <Settings size={20} />
               </button>
 
               {/* Dropdown */}
               {openSettings && (
-                <div
-                  ref={settingsRef}
-                  className="absolute right-0 mt-13 w-50 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50"
-                >
+                <div className="absolute right-0 mt-13 w-56 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50">
                   {/* Dark Mode */}
                   <div
                     onClick={toggleTheme}
-                    className="flex items-center justify-between py-2 px-3 cursor-pointer rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition duration-300"
+                    className="group flex items-center justify-between py-2 px-3 cursor-pointer rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition duration-300"
                   >
                     <div className="flex items-center gap-2">
                       {theme === "light" ? (
                         <Sun
-                          className="text-indigo-950 dark:text-zinc-200"
+                          className="text-indigo-950 dark:text-zinc-200 group-hover:rotate-360 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
                           size={18}
                         />
                       ) : (
                         <Moon
-                          className="text-indigo-950 dark:text-zinc-200"
+                          className="text-indigo-950 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
                           size={18}
                         />
                       )}
-                      <span className="font-medium text-indigo-950 dark:text-zinc-200">
+                      <span className="font-medium text-indigo-950 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300 whitespace-nowrap">
                         {t("Dark Mode")}
                       </span>
                     </div>
                     <div
-                      className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
+                      dir="ltr"
+                      className={`relative inline-flex h-5 w-10 ms-3 items-center rounded-full bg-zinc-300 transition-colors group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400${
                         isDarkModeActive()
                           ? "bg-indigo-500 dark:bg-indigo-400"
                           : "bg-zinc-300 dark:bg-zinc-600"
                       }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          isDarkModeActive() ? "translate-x-5" : "translate-x-1"
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform group-hover:scale-125 ${
+                          isDarkModeActive() ? "translate-x-5" : "translate-x-0"
                         }`}
                       />
                     </div>
@@ -191,29 +221,30 @@ const Header = () => {
                   {/* Language */}
                   <div
                     onClick={toggleLanguage}
-                    className="flex items-center justify-between py-2 px-3 cursor-pointer rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition duration-300"
+                    className="group flex items-center justify-between py-2 px-3 cursor-pointer rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition duration-300"
                   >
                     <div className="flex items-center gap-2">
                       <Languages
-                        className="text-indigo-950 dark:text-zinc-200"
+                        className="text-indigo-950 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
                         size={18}
                       />
-                      <span className="font-medium text-indigo-950 dark:text-zinc-200">
+                      <span className="font-medium text-indigo-950 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300 whitespace-nowrap">
                         {t("Language")}
                       </span>
                     </div>
                     <div
-                      className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
+                      dir="ltr"
+                      className={`relative inline-flex h-5 w-10 ms-3 items-center dark:bg-transparent rounded-full transition-colors group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400${
                         i18n.language === "ar"
                           ? "bg-indigo-500 dark:bg-indigo-400"
                           : "bg-indigo-500 dark:bg-indigo-400"
                       }`}
                     >
                       <span
-                        className={`flex items-center justify-center h-4 w-4 transform rounded-full bg-white text-[10px] font-bold text-indigo-600 transition-transform pointer-events-none ${
+                        className={`flex items-center justify-center h-5 w-5 transform rounded-full bg-white text-[10px] font-bold text-indigo-600 transition-transform pointer-events-none group-hover:scale-125 ${
                           i18n.language === "ar"
                             ? "translate-x-5"
-                            : "translate-x-1"
+                            : "translate-x-0"
                         }`}
                       >
                         {i18n.language === "ar" ? "AR" : "EN"}
@@ -227,16 +258,21 @@ const Header = () => {
             {!user ? (
               <Link
                 to="/register"
+                onClick={(e) => handleSafeNavigation(e, "/register")}
                 className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
               >
                 <User size={24} />
                 {t("Register")}
               </Link>
             ) : (
-              <div className="relative flex items-center gap-2">
+              <div
+                className="relative flex items-center gap-2"
+                ref={profileRef}
+              >
                 {/* Avatar + Name */}
                 <Link
                   to="/profile"
+                  onClick={(e) => handleSafeNavigation(e, "/profile")}
                   className="w-8 h-8 rounded-full
              bg-indigo-500 dark:bg-indigo-400
              text-white dark:text-zinc-900
@@ -260,13 +296,14 @@ const Header = () => {
                 {/* Dropdown */}
                 {openDropdown && (
                   <div
-                    ref={profileRef}
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-0 top-12 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50"
                   >
                     <Link
                       to="/profile"
-                      onClick={closeDropdown}
+                      onClick={(e) => {
+                        handleSafeNavigation(e, "/profile", closeDropdown);
+                      }}
                       className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 dark:text-white"
                     >
                       {t("Profile")}
@@ -277,7 +314,7 @@ const Header = () => {
                         logout();
                         closeDropdown();
                       }}
-                      className="w-full text-left px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 dark:text-red-500 font-bold cursor-pointer"
+                      className="w-full text-left px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 text-red-500 font-bold cursor-pointer"
                     >
                       {t("Logout")}
                     </button>
@@ -290,7 +327,7 @@ const Header = () => {
           {/* Mobile Cart + Menu */}
           <div className="flex items-center gap-4 md:hidden">
             {/* Mobile Cart */}
-            <Link to="/cart" className="relative" onClick={closeMenu}>
+            <Link to="/cart" className="relative touch-area" onClick={closeMenu}>
               <ShoppingCart
                 size={24}
                 className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
@@ -306,7 +343,7 @@ const Header = () => {
             <button
               ref={menuRef}
               onClick={toggleMenu}
-              className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+              className="touch-area text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -315,6 +352,7 @@ const Header = () => {
 
         {/* Mobile Sidebar */}
         <div
+          ref={sidebarRef}
           className={`md:hidden fixed top-0 left-0 w-3/4 max-w-xs bg-zinc-200 dark:bg-zinc-900 h-full p-6 border-r border-zinc-300 dark:border-zinc-700 transform transition-transform duration-300 z-40 ${
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
@@ -322,8 +360,8 @@ const Header = () => {
           {/* Mobile Logo */}
           <Link
             to="/"
-            onClick={closeMenu}
-            className="flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
+            onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
+            className="touch-area flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
           >
             <span>{t("Books")}</span>
           </Link>
@@ -333,9 +371,9 @@ const Header = () => {
               <li key={to}>
                 <NavLink
                   to={to}
-                  onClick={closeMenu}
+                  onClick={(e) => handleSafeNavigation(e, to, closeMenu)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 py-2 px-4 rounded-lg transition-colors ${
+                    `touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors ${
                       isActive
                         ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
                         : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
@@ -352,9 +390,9 @@ const Header = () => {
             <li>
               <NavLink
                 to="/cart"
-                onClick={closeMenu}
+                onClick={(e) => handleSafeNavigation(e, "/cart", closeMenu)}
                 className={({ isActive }) =>
-                  `relative flex items-center gap-2 py-2 px-4 rounded-lg transition-colors ${
+                  `touch-area relative flex items-center gap-2 py-2 px-4 rounded-lg transition-colors ${
                     isActive
                       ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
                       : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
@@ -375,7 +413,7 @@ const Header = () => {
             <li>
               <div
                 onClick={toggleTheme}
-                className="flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                className="touch-area flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
               >
                 <Moon size={18} />
                 <span className="text-indigo-950 dark:text-zinc-200 font-medium absolute left-11">
@@ -406,7 +444,7 @@ const Header = () => {
             <li>
               <div
                 onClick={toggleLanguage}
-                className="flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                className="touch-area flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
               >
                 <Languages size={18} />
                 <span className="text-indigo-950 dark:text-zinc-200 font-medium absolute left-11">
@@ -440,8 +478,10 @@ const Header = () => {
               {!user ? (
                 <Link
                   to="/register"
-                  onClick={closeMenu}
-                  className="flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                  onClick={(e) =>
+                    handleSafeNavigation(e, "/register", closeMenu)
+                  }
+                  className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
                 >
                   <User size={18} /> {t("Register")}
                 </Link>
@@ -449,10 +489,12 @@ const Header = () => {
                 <>
                   <Link
                     to="/profile"
-                    onClick={closeMenu}
-                    className="flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                    onClick={(e) =>
+                      handleSafeNavigation(e, "/profile", closeMenu)
+                    }
+                    className="touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
                   >
-                    <div className="w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 flex items-center justify-center font-semibold">
+                    <div className="touch-area w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 flex items-center justify-center font-semibold">
                       {firstLetter}
                     </div>
                     {firstName}
@@ -463,7 +505,7 @@ const Header = () => {
                       logout();
                       closeMenu();
                     }}
-                    className="flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700 text-left"
+                    className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors text-red-500 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-left"
                   >
                     {t("Logout")}
                   </button>

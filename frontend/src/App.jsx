@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
@@ -22,10 +23,13 @@ import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
 import { AuthProvider } from "./context/AuthContext";
+import { NavigationProvider } from "./context/NavigationContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import UserProtectedRoute from "./components/UserProtectedRoute";
 import Register from "./pages/Register";
 import AdminLogin from "./pages/AdminLogin";
 import UserLogin from "./pages/UserLogin";
+import PdfViewer from "./pages/PdfViewer";
 import { useTheme } from "./hooks/useTheme";
 import { useTranslation } from "react-i18next";
 
@@ -34,48 +38,65 @@ function App() {
   useTheme();
   const { i18n } = useTranslation();
 
+  // Update HTML lang attribute based on current language
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
   return (
     <AuthProvider>
       <CartProvider>
-        <Toaster position="top-center" />
-        <Routes key={i18n.language}>
-          {/* Public Routes */}
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="explore" element={<Explore />} />
-            <Route path="shop" element={<Shop />} />
-            <Route path="book/:id" element={<BookDetailsPage />} />
-            <Route path="publish" element={<Publish />} />
-            <Route path="cart" element={<Cart />} />
-            <Route path="user-books" element={<UserBooks />} />
-            <Route path="author/:name" element={<AuthorProfile />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
+        <NavigationProvider>
+          <Toaster position="top-center" />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="explore" element={<Explore />} />
+              <Route path="shop" element={<Shop />} />
+              <Route path="book/:id" element={<BookDetailsPage />} />
+              <Route path="publish" element={<Publish />} />
+              <Route path="cart" element={<Cart />} />
+              <Route path="user-books" element={<UserBooks />} />
+              <Route path="author/:name" element={<AuthorProfile />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
 
-          {/* Auth Routes */}
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<AdminLogin />} />
-          <Route path="/user-login" element={<UserLogin />} />
+            {/* PDF Viewer - Full Screen (Outside Layout) */}
+            <Route
+              path="book/pdf/:bookId"
+              element={
+                <UserProtectedRoute>
+                  <PdfViewer />
+                </UserProtectedRoute>
+              }
+            />
 
-          {/* Admin Routes - Protected */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="books" element={<AdminBooks />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="customers" element={<AdminCustomers />} />
-            <Route path="analytics" element={<AdminAnalytics />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="/admin/books/:id" element={<AdminBookDetails />} />
-          </Route>
-        </Routes>
+            {/* Auth Routes */}
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<AdminLogin />} />
+            <Route path="/user-login" element={<UserLogin />} />
+
+            {/* Admin Routes - Protected */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="books" element={<AdminBooks />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="customers" element={<AdminCustomers />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="/admin/books/:id" element={<AdminBookDetails />} />
+            </Route>
+          </Routes>
+        </NavigationProvider>
       </CartProvider>
     </AuthProvider>
   );

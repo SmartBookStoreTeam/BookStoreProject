@@ -20,6 +20,7 @@
     "@heroicons/react": "^2.2.0",
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/default-layout": "^3.12.0",
+    "@react-pdf-viewer/zoom": "^3.12.0",
     "@tailwindcss/vite": "^4.1.14",
     "aws-sdk": "^2.1693.0",
     "axios": "^1.13.2",
@@ -40,6 +41,7 @@
     "react-i18next": "^16.5.0",
     "react-icons": "^5.5.0",
     "react-intersection-observer": "^9.16.0",
+    "react-loading-skeleton": "^3.5.0",
     "react-router-dom": "^6.30.1",
     "tailwindcss": "^4.1.14"
   },

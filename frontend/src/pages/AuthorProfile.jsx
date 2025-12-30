@@ -7,7 +7,8 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
 import { getBooks } from "../api/booksApi";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
+import { FaCartPlus } from "react-icons/fa";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
@@ -71,6 +72,10 @@ const AuthorProfile = () => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        maxWidth: "90vw",
+        minWidth: "320px",
+        padding: "12px",
+        textAlign: "center",
       },
     });
   };
@@ -88,7 +93,7 @@ const AuthorProfile = () => {
   };
 
   if (loading) {
-    return <Loading Loading="Loading author books..." height="min-h-screen" />;
+    return <Loading loading={t("Loading author books...")} height="min-h-screen" animate={true}/>;
   }
 
   return (
@@ -104,7 +109,7 @@ const AuthorProfile = () => {
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+            className="touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             {t("Go Back")}
@@ -114,15 +119,15 @@ const AuthorProfile = () => {
           <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-8 mb-8">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                <User className="w-8 h-8 text-indigo-600 dark:text-indigo-300" />
+                <User className="touch-area w-8 h-8 text-indigo-600 dark:text-indigo-300" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
+                <h1 className="touch-area text-3xl font-bold text-gray-900 dark:text-gray-200">
                   {decodeURIComponent(name)}
                 </h1>
                 <p
-                  dir="auto"
-                  className="text-gray-600 dark:text-gray-400"
+                  dir={i18n.dir()}
+                  className="touch-area text-gray-600 dark:text-gray-400"
                 >
                   {authorBooks.length > 2
                     ? `${authorBooks.length} ${t("books available")}`
@@ -136,7 +141,10 @@ const AuthorProfile = () => {
           {authorBooks.length === 0 ? (
             <div className="text-center py-12 bg-white dark:bg-zinc-800 rounded-lg">
               <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
+              <p
+                dir={i18n.dir()}
+                className="touch-area text-gray-500 dark:text-gray-400 text-lg mb-4"
+              >
                 {t("No books found for this author.")}
               </p>
             </div>
@@ -157,7 +165,7 @@ const AuthorProfile = () => {
                     {/* Book Image */}
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="relative w-full block cursor-pointer group overflow-hidden rounded-2xl"
+                      className="relative w-full block touch-area cursor-pointer group overflow-hidden rounded-2xl"
                     >
                       <motion.img
                         className="w-full h-[300px] sm:h-[250px] lg:h-[300px] object-cover"
@@ -174,7 +182,7 @@ const AuthorProfile = () => {
                     {/* Book Info */}
                     <Link
                       to={`/book/${book._id || book.id}`}
-                      className="text-[15px] font-bold mt-3 dark:text-gray-200 mb-1 text-center line-clamp-1 text-gray-700 hover:text-indigo-500 dark:hover:text-indigo-200 focus:text-indigo-500 dark:focus:text-indigo-200 hover:underline focus:underline transition-colors cursor-pointer"
+                      className="touch-area text-[15px] font-bold mt-3 dark:text-gray-200 mb-1 text-center line-clamp-1 text-gray-700 hover:text-indigo-500 dark:hover:text-indigo-200 focus:text-indigo-500 dark:focus:text-indigo-200 hover:underline focus:underline transition-colors cursor-pointer"
                     >
                       {book.title}
                     </Link>
@@ -182,7 +190,7 @@ const AuthorProfile = () => {
                     <div className="flex justify-center items-center mb-2 space-x-1">
                       <Link
                         to={`/author/${encodeURIComponent(book.author)}`}
-                        className="text-xs text-indigo-400 dark:text-indigo-300 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors duration-300 cursor-pointer"
+                        className="touch-area text-xs text-indigo-400 dark:text-indigo-300 line-clamp-1 hover:text-indigo-600 dark:hover:text-indigo-200 hover:underline transition-colors duration-300 cursor-pointer"
                       >
                         {book.author}
                       </Link>
@@ -205,7 +213,10 @@ const AuthorProfile = () => {
                       </div>
                     </div>
 
-                    <p dir="auto" className="text-xs text-center truncate max-w-[200px] text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300">
+                    <p
+                      dir="auto"
+                      className="touch-area text-xs text-center truncate max-w-[250px] text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300"
+                    >
                       {book.desc ||
                         book.description ||
                         "No description available"}
@@ -215,7 +226,7 @@ const AuthorProfile = () => {
                     <div className="mt-auto w-full flex gap-2 sm:flex-col lg:flex-row">
                       <Link
                         to={`/book/${book._id || book.id}`}
-                        className="flex-1 text-center px-2 py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm"
+                        className="flex-1 touch-area text-center px-2 py-2 border border-indigo-500 rounded-lg transition-colors text-indigo-600 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-zinc-700 font-medium text-sm"
                       >
                         {t("Details")}
                       </Link>
@@ -224,9 +235,9 @@ const AuthorProfile = () => {
                           e.stopPropagation();
                           handleAddToCart(book);
                         }}
-                        className="flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                        className="flex-1 touch-area cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
                       >
-                        <ShoppingCart className="w-4 h-4" />
+                        <FaCartPlus className="w-4 h-4" />
                         <span className="text-xs whitespace-nowrap">
                           {t("Add to Cart")}
                         </span>

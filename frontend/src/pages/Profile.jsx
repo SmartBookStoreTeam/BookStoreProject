@@ -199,7 +199,7 @@ const Profile = () => {
             {/* Edit Button */}
             <button
               onClick={() => setShowEditModal(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
+              className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
             >
               <Edit className="w-4 h-4" />
               {t("Edit Profile")}
@@ -245,7 +245,7 @@ const Profile = () => {
             {selectedCategories.length > 0 && (
               <button
                 onClick={saveCategoryPreferences}
-                className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer font-medium"
+                className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer font-medium"
               >
                 {t("Save Preferences")}
               </button>
@@ -260,7 +260,7 @@ const Profile = () => {
                 <button
                   key={category.value}
                   onClick={() => toggleCategory(category.value)}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all duration-200 cursor-pointer font-medium text-sm ${
+                  className={`touch-area px-4 py-3 rounded-lg border-2 transition-all duration-200 cursor-pointer font-medium text-sm ${
                     isSelected
                       ? "bg-indigo-600 dark:bg-indigo-500 border-indigo-600 dark:border-indigo-500 text-white shadow-md transform scale-105"
                       : "bg-white dark:bg-zinc-700 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-400 hover:bg-gray-50 dark:hover:bg-zinc-600"
@@ -288,7 +288,7 @@ const Profile = () => {
           <div className="flex justify-end items-center mb-6">
             <Link
               to="/publish"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
+              className="touch-area bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
             >
               <BookOpen className="w-4 h-4" />
               {t("List New Book")}
@@ -322,6 +322,7 @@ const Profile = () => {
                     className="bg-gray-50 dark:bg-zinc-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                   >
                     {/* Book Image */}
+                    <div className="touch-area">
                     {imageSrc ? (
                       <img
                         src={imageSrc}
@@ -333,14 +334,18 @@ const Profile = () => {
                         <span className="text-gray-400">{t("No Image")}</span>
                       </div>
                     )}
+                    </div>
 
                     <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 mb-2">
+                      <h3 className="touch-area font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 mb-2">
                         {book.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        by {book.author}
+                      <div className="flex gap-1">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 mb-2" >by </span>
+                      <p className="touch-area text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        {book.author}
                       </p>
+                      </div>
                       <p className="text-indigo-600 dark:text-indigo-400 font-bold mb-3">
                         ₹{book.price}
                       </p>
@@ -349,7 +354,7 @@ const Profile = () => {
                       <div className="flex gap-2">
                         <Link
                           to={`/book/${book.id}`}
-                          className="flex-1 bg-gray-200 dark:bg-zinc-600 hover:bg-gray-300 dark:hover:bg-zinc-500 text-gray-900 dark:text-gray-100 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
+                          className="touch-area flex-1 bg-gray-200 dark:bg-zinc-600 hover:bg-gray-300 dark:hover:bg-zinc-500 text-gray-900 dark:text-gray-100 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
                         >
                           <Eye size={14} />
                           {t("View")}
@@ -369,7 +374,7 @@ const Profile = () => {
                                 direction: i18n.dir()}});
                             }
                           }}
-                          className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors cursor-pointer"
+                          className="touch-area bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors cursor-pointer"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -390,13 +395,13 @@ const Profile = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={logout}
-              className="bg-gray-900 dark:bg-zinc-700 hover:bg-gray-800 dark:hover:bg-zinc-600 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+              className="touch-area bg-gray-900 dark:bg-zinc-700 hover:bg-gray-800 dark:hover:bg-zinc-600 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
             >
               {t("Logout")}
             </button>
             <button
               onClick={handleDeleteAccount}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
+              className="touch-area bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
             >
               {t("Delete Account")}
             </button>
