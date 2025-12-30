@@ -9,13 +9,13 @@ const Footer = () => {
     localStorage.setItem("language", newLang);
   };
   return (
-    <div dir="auto" className="bg-black text-white py-12">
+    <div dir={i18n.dir()} className="bg-black text-white py-12">
       <div className="container mx-auto px-6 md:px-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <h1 className="text-2xl font-bold mb-4">{t("Books")}</h1>
-            <p className="text-gray-300 text-sm leading-relaxed max-w-xs">
+            <h1 className="touch-area text-2xl font-bold mb-4">{t("Books")}</h1>
+            <p className="touch-area text-gray-300 text-sm leading-relaxed max-w-xs">
               {t(
                 "booksDelivered",
                 "Books Delivered. Imagination Unlimited. Your one-stop destination for all your reading needs."
@@ -26,36 +26,36 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h1 className="text-xl font-semibold mb-4">{t("Quick Links")}</h1>
+            <h1 className="touch-area text-xl font-semibold mb-4">{t("Quick Links")}</h1>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/"
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                  className="touch-area text-gray-300 hover:text-white transition-colors duration-200"
                 >
                   {t("Home")}
                 </a>
               </li>
               <li>
                 <a
-                  href="/about"
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                  href="/"
+                  className="touch-area text-gray-300 hover:text-white transition-colors duration-200"
                 >
                   {t("About Us")}
                 </a>
               </li>
               <li>
                 <a
-                  href="/contact"
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                  href="/"
+                  className="touch-area text-gray-300 hover:text-white transition-colors duration-200"
                 >
                   {t("Contact")}
                 </a>
               </li>
               <li>
                 <a
-                  href="/books"
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                  href="/shop"
+                  className="touch-area text-gray-300 hover:text-white transition-colors duration-200"
                 >
                   {t("All Books")}
                 </a>
@@ -65,19 +65,19 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h1 className="text-xl font-semibold mb-4">{t("Contact")}</h1>
+            <h1 className="touch-area text-xl font-semibold mb-4">{t("Contact")}</h1>
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-start">
-                <span className="min-w-[80px]">{t("Email")}:</span>
-                <span>samy@gmail.com</span>
+                <span className="touch-area min-w-[80px]">{t("Email")}:</span>
+                <span className="touch-area" dir="ltr">samy@gmail.com</span>
               </li>
               <li className="flex items-start">
-                <span className="min-w-[80px]">{t("Phone")}:</span>
-                <span>+20 10 123 4561</span>
+                <span className="touch-area min-w-[80px]">{t("Phone")}:</span>
+                <span className="touch-area" dir="ltr">+20 10 123 4561</span>
               </li>
               <li className="flex items-start">
-                <span className="min-w-[80px]">{t("Address")}:</span>
-                <span>MMEC, Mullana - 133207</span>
+                <span className="touch-area min-w-[80px]">{t("Address")}:</span>
+                <span className="touch-area" dir="ltr">MMEC, Mullana - 133207</span>
               </li>
             </ul>
           </div>
@@ -101,6 +101,11 @@ const Footer = () => {
                 src={assets.amercanExpress}
                 alt="American Express"
               />
+              <img
+                className="w-11 h-8 object-contain rounded bg-white"
+                src={assets.meeza}
+                alt="Meeza"
+              />
             </div>
 
             {/* Social Media (Optional) */}
@@ -114,14 +119,17 @@ const Footer = () => {
             </div>
           </div>
         </div>
+        {/* Country */}
         <div className="flex items-center gap-2 my-5">
-          <img className="w-6 h-6" src={assets.eg} alt="Egypt" />
-          <button
-            className="hover:underline focus:underline text-gray-200 cursor-pointer"
-            onClick={toggleLanguage}
-          >
-            {t("En")}
-          </button>
+          <div className="flex flex-row items-center" dir="ltr">
+            <img className="w-6 h-6" src={assets.eg} alt="Egypt" />
+            <button
+              className="touch-area hover:underline focus:underline text-gray-200 cursor-pointer ml-2"
+              onClick={toggleLanguage}
+            >
+              {t("En")}
+            </button>
+          </div>
         </div>
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">

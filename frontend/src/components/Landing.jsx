@@ -87,17 +87,24 @@ const Landing = () => {
                 </span>
 
                 {/* Visible typing text overlaid on top */}
-                <span dir="auto"
+                <span
+                  dir={i18n.dir()}
                   className="absolute top-0 left-0 right-0 text-center lg:text-left"
                 >
                   {displayedText}{" "}
-                  <span dir="auto" className="text-indigo-500 dark:text-indigo-400 transition-colors duration-300">
+                  <span
+                    dir={i18n.dir()}
+                    className="text-indigo-500 dark:text-indigo-400 transition-colors duration-300"
+                  >
                     {displayedText2}
                   </span>
                 </span>
               </h1>
 
-              <p dir="auto" className="text-indigo-950 dark:text-indigo-200 text-base sm:text-lg leading-relaxed transition-colors duration-300">
+              <p
+                dir={i18n.dir()}
+                className="text-indigo-950 dark:text-indigo-200 text-base sm:text-lg leading-relaxed transition-colors duration-300"
+              >
                 {t(
                   "landingParagraph",
                   "Find and read more you'll love, and keep track of the books you want to read. Be part of the world's largest community of book lovers on Goodreads."
@@ -105,7 +112,7 @@ const Landing = () => {
               </p>
 
               {/* Search bar */}
-              <div className="relative flex items-center w-full max-w-md mx-auto lg:mx-0">
+              <div className="touch-area relative flex items-center w-full max-w-md mx-auto lg:mx-0">
                 <Search
                   className="absolute left-4 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors duration-300"
                   size={20}

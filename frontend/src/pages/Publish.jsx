@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Upload,
   Image,
@@ -9,48 +9,204 @@ import {
   Phone,
   MapPin,
   CheckCircle,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { useAuth } from "../context/AuthContext";
+import { useNavigation } from "../context/NavigationContext";
 import AuthModal from "../components/AuthModal";
+import { useLocation, useNavigate } from "react-router-dom";
+
+// Helper to get initial form data from sessionStorage
+const getInitialFormData = () => {
+  const saved = sessionStorage.getItem("publishFormData");
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
+const getInitialStep = () => {
+  const saved = sessionStorage.getItem("publishCurrentStep");
+  return saved ? parseInt(saved, 10) : 1;
+};
+
+// Check if form has any data
+const hasFormData = (formData) => {
+  return (
+    formData.title.trim() !== "" ||
+    formData.author.trim() !== "" ||
+    formData.description.trim() !== "" ||
+    formData.category !== "" ||
+    formData.price !== "" ||
+    formData.isbn.trim() !== "" ||
+    formData.images.length > 0 ||
+    formData.sellerName.trim() !== "" ||
+    formData.sellerEmail.trim() !== "" ||
+    formData.sellerPhone.trim() !== "" ||
+    formData.sellerLocation.trim() !== "" ||
+    formData.edition.trim() !== "" ||
+    formData.publisher.trim() !== "" ||
+    formData.publicationYear !== "" ||
+    formData.pages !== ""
+  );
+};
 
 const Publish = () => {
   const { t, i18n } = useTranslation();
   const { addUserBook } = useCart();
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
-    // Book Information
-    title: "",
-    author: "",
-    description: "",
-    category: "",
-    price: "",
-    condition: "excellent",
-    isbn: "",
+  const [formData, setFormData] = useState(
+    () =>
+      getInitialFormData() || {
+        // Book Information
+        title: "",
+        author: "",
+        description: "",
+        category: "",
+        price: "",
+        condition: "excellent",
+        isbn: "",
 
-    // Book Images
-    images: [],
+        // Book Images
+        images: [],
 
-    // Seller Information
-    sellerName: "",
-    sellerEmail: "",
-    sellerPhone: "",
-    sellerLocation: "",
+        // Seller Information
+        sellerName: "",
+        sellerEmail: "",
+        sellerPhone: "",
+        sellerLocation: "",
 
-    // Additional Details
-    edition: "",
-    publisher: "",
-    publicationYear: "",
-    pages: "",
-    language: "english",
-  });
+        // Additional Details
+        edition: "",
+        publisher: "",
+        publicationYear: "",
+        pages: "",
+        language: "english",
+      }
+  );
 
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(getInitialStep);
   // const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [errors, setErrors] = useState({});
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Import navigation context
+  const {
+    registerBlocker,
+    showWarningModal,
+    pendingPath,
+    confirmLeave,
+    cancelLeave,
+  } = useNavigation();
+
+  // Register blocker with navigation context
+  useEffect(() => {
+    const shouldBlock = hasFormData(formData);
+    const onLeave = () => {
+      sessionStorage.removeItem("publishFormData");
+      sessionStorage.removeItem("publishCurrentStep");
+    };
+    registerBlocker(shouldBlock, onLeave);
+
+    // Cleanup: unregister blocker when component unmounts
+    return () => {
+      registerBlocker(false, null);
+    };
+  }, [formData, registerBlocker]);
+
+  // Handle navigation context modal
+  useEffect(() => {
+    if (showWarningModal && pendingPath) {
+      setShowLeaveModal(true);
+      setPendingNavigation(pendingPath);
+    }
+  }, [showWarningModal, pendingPath]);
+
+  // Handle browser back button
+  useEffect(() => {
+    if (!hasFormData(formData)) return;
+
+    const handlePopState = (e) => {
+      e.preventDefault();
+      // Push current state back to prevent navigation
+      window.history.pushState(null, "", location.pathname);
+      setShowLeaveModal(true);
+      setPendingNavigation("back");
+    };
+
+    // Push initial state
+    window.history.pushState(null, "", location.pathname);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [formData, location.pathname]);
+
+  // Handle browser refresh/close
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasFormData(formData)) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [formData]);
+
+  // Handle leaving the page
+  const handleLeave = () => {
+    sessionStorage.removeItem("publishFormData");
+    sessionStorage.removeItem("publishCurrentStep");
+    setShowLeaveModal(false);
+
+    // If this came from navigation context, use confirmLeave
+    if (showWarningModal) {
+      const path = confirmLeave();
+      if (path) {
+        navigate(path);
+      }
+    } else if (pendingNavigation === "back") {
+      window.history.go(-2); // Go back 2 steps (one for pushState, one for actual back)
+    } else if (pendingNavigation) {
+      navigate(pendingNavigation);
+    }
+    setPendingNavigation(null);
+  };
+
+  const handleStay = () => {
+    setShowLeaveModal(false);
+    setPendingNavigation(null);
+    // If this came from navigation context, cancel it
+    if (showWarningModal) {
+      cancelLeave();
+    }
+  };
+
+  // Persist form data to sessionStorage on change
+  useEffect(() => {
+    sessionStorage.setItem("publishFormData", JSON.stringify(formData));
+  }, [formData]);
+
+  // Persist current step to sessionStorage on change
+  useEffect(() => {
+    sessionStorage.setItem("publishCurrentStep", currentStep.toString());
+  }, [currentStep]);
 
   const categories = [
     { value: "", label: "Select Category" },
@@ -232,10 +388,7 @@ const Publish = () => {
 
       // Reduced size limit to 500KB to prevent localStorage quota issues
       if (file.size > 500 * 1024) {
-        showToast(
-          t("Image size should be less than 500KB"),
-          "error"
-        );
+        showToast(t("Image size should be less than 500KB"), "error");
         return false;
       }
       return true;
@@ -387,14 +540,27 @@ const Publish = () => {
   const nextStep = () => {
     // Check if user is authenticated
     if (!user) {
+      // Save intent to advance to next step after login
+      sessionStorage.setItem("publishPendingNextStep", "true");
       setShowAuthModal(true);
       return;
     }
-
     if (validateStep(currentStep)) {
       setCurrentStep((prev) => prev + 1);
     }
   };
+
+  // Auto-advance to next step after user logs in
+  useEffect(() => {
+    if (user && sessionStorage.getItem("publishPendingNextStep") === "true") {
+      sessionStorage.removeItem("publishPendingNextStep");
+      // Only advance if current step validation passes
+      if (validateStep(currentStep)) {
+        setCurrentStep((prev) => prev + 1);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const prevStep = () => {
     setCurrentStep((prev) => prev - 1);
@@ -539,6 +705,9 @@ const Publish = () => {
       });
       setCurrentStep(1);
       setErrors({});
+      // Clear sessionStorage after successful publish
+      sessionStorage.removeItem("publishFormData");
+      sessionStorage.removeItem("publishCurrentStep");
     } catch (error) {
       showToast(t("Failed to publish your book. Please try again"), error);
     } finally {
@@ -580,12 +749,63 @@ const Publish = () => {
     <>
       {/* Authentication Modal */}
       <AuthModal
+        icon={
+          <BookOpen className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400" />
+        }
         title={t("Please login or create an account to publish your book")}
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
 
-      <div dir="auto" className="min-h-screen bg-gray-50 pt-20">
+      {/* Navigation Warning Modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div
+            dir={i18n.dir()}
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-amber-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {t("Unsaved Changes")}
+                </h3>
+              </div>
+              <button
+                onClick={handleStay}
+                className="touch-area text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              {t(
+                "You have unsaved book information. If you leave this page, all your entered data will be lost."
+              )}
+            </p>
+
+            <div dir="rtl" className="flex gap-3">
+              <button
+                onClick={handleStay}
+                className="touch-area flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                {t("Stay on Page")}
+              </button>
+              <button
+                onClick={handleLeave}
+                className="touch-area flex-1 px-4 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors cursor-pointer"
+              >
+                {t("Leave Page")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div dir={i18n.dir()} className="min-h-screen bg-gray-50 pt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
           {/* Header */}
           <div className="text-center mb-8">
@@ -611,7 +831,7 @@ const Publish = () => {
                   <button
                     type="button"
                     onClick={() => goToStep(step.number)}
-                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
+                    className={`touch-area flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
                       currentStep >= step.number
                         ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 hover:scale-110"
                         : "border-gray-300 text-gray-500 hover:border-gray-400 hover:bg-gray-50"
@@ -627,7 +847,7 @@ const Publish = () => {
                   <button
                     type="button"
                     onClick={() => goToStep(step.number)}
-                    className={`ml-2 font-medium transition-colors cursor-pointer focus:underline hover:underline focus:outline-none mx-2 ${
+                    className={`touch-area ml-2 font-medium transition-colors cursor-pointer focus:underline hover:underline focus:outline-none mx-2 ${
                       currentStep >= step.number
                         ? "text-indigo-600"
                         : "text-gray-500"
@@ -664,18 +884,20 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Book Title")} *
                       </label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.title
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                        placeholder={t("Enter book title")}
-                      />
+                      <div className="touch-area relative rounded-lg">
+                        <input
+                          type="text"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.title
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder={t("Enter book title")}
+                        />
+                      </div>
                       {renderError("title")}
                     </div>
 
@@ -683,18 +905,20 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Author")} *
                       </label>
-                      <input
-                        type="text"
-                        name="author"
-                        value={formData.author}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.author
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                        placeholder={t("Enter author name")}
-                      />
+                      <div className="touch-area relative rounded-lg">
+                        <input
+                          type="text"
+                          name="author"
+                          value={formData.author}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.author
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder={t("Enter author name")}
+                        />
+                      </div>
                       {renderError("author")}
                     </div>
 
@@ -702,22 +926,24 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Category")} *
                       </label>
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.category
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                      >
-                        {categories.map((cat) => (
-                          <option key={cat.value} value={cat.value}>
-                            {t(cat.label)}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="touch-area relative rounded-lg">
+                        <select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.category
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                        >
+                          {categories.map((cat) => (
+                            <option key={cat.value} value={cat.value}>
+                              {t(cat.label)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       {renderError("category")}
                     </div>
 
@@ -725,7 +951,7 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Price")} *
                       </label>
-                      <div className="relative">
+                      <div className="touch-area relative rounded-lg">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                           type="number"
@@ -749,18 +975,20 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Language")}
                       </label>
-                      <select
-                        name="language"
-                        value={formData.language}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      >
-                        {languages.map((lang) => (
-                          <option key={lang.value} value={lang.value}>
-                            {lang.label}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="touch-area relative rounded-lg">
+                        <select
+                          name="language"
+                          value={formData.language}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        >
+                          {languages.map((lang) => (
+                            <option key={lang.value} value={lang.value}>
+                              {lang.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -774,6 +1002,7 @@ const Publish = () => {
                         )}
                       </span>
                     </label>
+                    <div className="touch-area relative rounded-lg">
                     <textarea
                       name="description"
                       value={formData.description}
@@ -789,6 +1018,7 @@ const Publish = () => {
                         "Describe your book's content, special features, and any notable aspects..."
                       )}
                     />
+                    </div>
                     <div className="flex justify-between mt-1">
                       {renderError("description")}
                       <span
@@ -808,18 +1038,20 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         ISBN {`(${t("Optional")})`}
                       </label>
-                      <input
-                        type="text"
-                        name="isbn"
-                        value={formData.isbn}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.isbn
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                        placeholder={`ISBN ${t("number")}`}
-                      />
+                      <div className="touch-area relative rounded-lg">
+                        <input
+                          type="text"
+                          name="isbn"
+                          value={formData.isbn}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.isbn
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder={`ISBN ${t("number")}`}
+                        />
+                      </div>
                       {renderError("isbn")}
                     </div>
 
@@ -827,34 +1059,38 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Edition")}
                       </label>
-                      <input
-                        type="text"
-                        name="edition"
-                        value={formData.edition}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        placeholder="e.g., 1st, 2nd"
-                      />
+                      <div className="touch-area relative rounded-lg">
+                        <input
+                          type="text"
+                          name="edition"
+                          value={formData.edition}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          placeholder="e.g., 1st, 2nd"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Publication Year")}
                       </label>
-                      <input
-                        type="number"
-                        name="publicationYear"
-                        value={formData.publicationYear}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.publicationYear
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                        placeholder="YYYY"
-                        min="1900"
-                        max={new Date().getFullYear()}
-                      />
+                      <div className="touch-area relative rounded-lg">
+                        <input
+                          type="number"
+                          name="publicationYear"
+                          value={formData.publicationYear}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.publicationYear
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder="YYYY"
+                          min="1900"
+                          max={new Date().getFullYear()}
+                        />
+                      </div>
                       {renderError("publicationYear")}
                     </div>
                   </div>
@@ -864,33 +1100,37 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Publisher")}
                       </label>
-                      <input
-                        type="text"
-                        name="publisher"
-                        value={formData.publisher}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        placeholder={t("Publisher name")}
-                      />
+                      <div className="touch-area relative rounded-lg">
+                        <input
+                          type="text"
+                          name="publisher"
+                          value={formData.publisher}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          placeholder={t("Publisher name")}
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Number of Pages")}
                       </label>
-                      <input
-                        type="number"
-                        name="pages"
-                        value={formData.pages}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                          errors.pages
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-indigo-500"
-                        }`}
-                        placeholder={t("Number of Pages")}
-                        min="1"
-                      />
+                      <div className="touch-area relative rounded-lg">
+                        <input
+                          type="number"
+                          name="pages"
+                          value={formData.pages}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                            errors.pages
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-indigo-500"
+                          }`}
+                          placeholder={t("Number of Pages")}
+                          min="1"
+                        />
+                      </div>
                       {renderError("pages")}
                     </div>
                   </div>
@@ -931,7 +1171,7 @@ const Publish = () => {
                     />
                     <label
                       htmlFor="image-upload"
-                      className="inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
+                      className="touch-area inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
                     >
                       <Upload className="w-5 h-5 mr-2" />
                       {t("Choose Images")}
@@ -956,7 +1196,7 @@ const Publish = () => {
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="touch-area absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                             >
                               ×
                             </button>
@@ -980,7 +1220,7 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Your Name")} *
                       </label>
-                      <div className="relative">
+                      <div className="touch-area relative rounded-lg">
                         <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                           type="text"
@@ -1002,7 +1242,7 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Email Address")} *
                       </label>
-                      <div className="relative">
+                      <div className="touch-area relative rounded-lg">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                           type="email"
@@ -1027,7 +1267,7 @@ const Publish = () => {
                           {`(${t("Optional")})`}
                         </span>
                       </label>
-                      <div className="relative">
+                      <div className="touch-area relative rounded-lg">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                           type="tel"
@@ -1049,7 +1289,7 @@ const Publish = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t("Location/City")} *
                       </label>
-                      <div className="relative">
+                      <div className="touch-area relative rounded-lg">
                         <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                           type="text"
@@ -1290,12 +1530,12 @@ const Publish = () => {
                         <button
                           onClick={handlePublish}
                           disabled={isPublishing}
-                          className="w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                          className="touch-area w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
                         >
                           {isPublishing ? (
                             <>
                               <div
-                                dir="auto"
+                                dir={i18n.dir()}
                                 className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"
                               ></div>
                               {t("Publishing Your Book...")}
@@ -1327,7 +1567,7 @@ const Publish = () => {
                   type="button"
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className={`px-6 py-3 rounded-lg font-medium ${
+                  className={`touch-area px-6 py-3 rounded-lg font-medium ${
                     currentStep === 1
                       ? " bg-gray-200 text-gray-500 cursor-not-allowed"
                       : currentStep === 4
@@ -1342,7 +1582,7 @@ const Publish = () => {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 cursor-pointer"
+                    className="touch-area px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 cursor-pointer"
                   >
                     {currentStep === 3 ? t("Review & Publish") : t("Next")}
                   </button>
@@ -1351,19 +1591,19 @@ const Publish = () => {
                     <button
                       type="button"
                       onClick={prevStep}
-                      className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 cursor-pointer"
+                      className="touch-area px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 cursor-pointer"
                     >
                       {t("Edit Details")}
                     </button>
                     <button
                       onClick={handlePublish}
                       disabled={isPublishing}
-                      className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer"
+                      className="touch-area px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer"
                     >
                       {isPublishing ? (
                         <>
                           <div
-                            dir="auto"
+                            dir={i18n.dir()}
                             className=" animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"
                           ></div>
                           {t("Publishing...")}

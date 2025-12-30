@@ -2,11 +2,19 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+.container {
+  width: 100%;
+  max-width: 100%;
+}
+
 
 input {
   outline: none;
 }
-
+::selection {
+  background-color: #4f46e5;
+  color: #fff;
+}
 body,
 p,
 li,
@@ -36,18 +44,56 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   background: #4f46e5;
   border-radius: 50%;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.5);
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   background: #4f46e5;
   border-radius: 50%;
   cursor: pointer;
   border: none;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+/* Touch Feedback */
+.touch-area {
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+}
+
+/* Use this on elements that are NOT position: absolute */
+.touch-area:not(.absolute) {
+  position: relative;
+}
+
+.touch-area::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 120, 255, 0.25);
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.touch-area.touch-active::after {
+  opacity: 1;
 }

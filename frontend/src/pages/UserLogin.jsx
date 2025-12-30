@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { EyeIcon } from "lucide-react";
 import {
@@ -17,7 +17,10 @@ const UserLogin = () => {
 
   const navigate = useNavigate();
   const { login } = useAuth();
-const {t}=useTranslation();
+  const { t, i18n } = useTranslation();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
 
   const togglePassword = () => {
     setShowPassword((prev) => !prev);
@@ -37,17 +40,18 @@ const {t}=useTranslation();
     }
 
     setLoading(false);
-    navigate("/");
+    navigate(from, { replace: true });
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-zinc-950 dark:to-zinc-900 flex items-center justify-center p-4 transition-colors">
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-xl p-8 relative">
-          {/* Close */}
+         {/* Close Button */}
           <button
-            onClick={() => navigate("/")}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer"
+            onClick={() => navigate(from, { replace: true })}
+            className="touch-area absolute top-4 right-4 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            aria-label="Close"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -80,6 +84,7 @@ const {t}=useTranslation();
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 {t("Email Address")}
               </label>
+              <div className="touch-area relative rounded-lg">
               <input
                 type="email"
                 value={email}
@@ -88,13 +93,14 @@ const {t}=useTranslation();
                 placeholder="example@mail.com"
                 required
               />
+              </div>
             </div>
 
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 {t("Password")}
               </label>
-
+              <div className="touch-area relative rounded-lg">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -103,11 +109,12 @@ const {t}=useTranslation();
                 placeholder="••••••••"
                 required
               />
+              </div>
 
               <button
                 type="button"
                 onClick={togglePassword}
-                className="absolute right-3 top-11 text-gray-500 dark:text-zinc-400 hover:text-indigo-500 cursor-pointer"
+                className="touch-area absolute right-3 top-11 text-gray-500 dark:text-zinc-400 hover:text-indigo-500 cursor-pointer"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />
@@ -118,21 +125,21 @@ const {t}=useTranslation();
             </div>
 
             <button
-            dir="auto"
+              dir={i18n.dir()}
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition cursor-pointer"
+              className="touch-area w-full bg-indigo-600 dark:bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 transition cursor-pointer"
             >
               {loading ? t("Signing in...") : t("Sign In")}
             </button>
           </form>
 
-          <div dir="auto" className="mt-8 text-center">
+          <div dir={i18n.dir()} className="mt-8 text-center">
             <p className="text-gray-600 dark:text-zinc-400">
               {t("Don't have an account?")}{" "}
               <button
                 onClick={() => navigate("/register")}
-                className="text-indigo-600 dark:text-indigo-400 transition-colors duration-300 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline focus:underline font-medium cursor-pointer"
+                className="touch-area text-indigo-600 dark:text-indigo-400 transition-colors duration-300 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline focus:underline font-medium cursor-pointer"
               >
                 {t("Sign up")}
               </button>
