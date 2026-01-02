@@ -3,6 +3,8 @@ import {
   registerUser,
   loginUser,
   getMe,
+  googleAuth,
+  verifyEmail,
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -78,6 +80,74 @@ router.post("/register", registerUser);
  *         description: Invalid email or password
  */
 router.post("/login", loginUser);
+
+/**
+ * @swagger
+ * /api/auth/google:
+ *   post:
+ *     summary: Authenticate with Google OAuth
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - user
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Google access token
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   sub:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   picture:
+ *                     type: string
+ *     responses:
+ *       200:
+ *         description: Google authentication successful
+ *       400:
+ *         description: Invalid Google user data
+ */
+router.post("/google", googleAuth);
+
+/**
+ * @swagger
+ * /api/auth/verify-email:
+ *   post:
+ *     summary: Verify user email with code
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: samy@email.com
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired code
+ */
+router.post("/verify-email", verifyEmail);
 
 /**
  * @swagger
