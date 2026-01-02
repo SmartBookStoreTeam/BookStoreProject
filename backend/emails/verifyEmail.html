@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify Email</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background: #f4f6fb;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <div style="padding: 40px 0">
+      <div
+        style="
+          max-width: 520px;
+          margin: auto;
+          background: #ffffff;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        "
+      >
+        <!-- Header -->
+        <div style="background: #4f46e5; padding: 20px; text-align: center">
+          <h1 style="color: #ffffff; margin: 0; font-size: 22px">
+            Verify your email
+          </h1>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 30px; color: #333">
+          <p>Hi 👋</p>
+
+          <p>
+            Thank you for creating an account.<br />
+            Please use the verification code below:
+          </p>
+
+          <div style="text-align: center; margin: 30px 0">
+            <span
+              style="
+                display: inline-block;
+                font-size: 32px;
+                letter-spacing: 8px;
+                font-weight: bold;
+                background: #f3f4f6;
+                padding: 15px 25px;
+                border-radius: 10px;
+              "
+            >
+              {{CODE}}
+            </span>
+          </div>
+
+          <p style="font-size: 14px; color: #555">
+            This code will expire in <b>10 minutes</b>.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div
+          style="
+            background: #f9fafb;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+          "
+        >
+          © {{YEAR}} Book FLy
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
