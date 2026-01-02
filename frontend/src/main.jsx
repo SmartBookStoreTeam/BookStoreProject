@@ -4,6 +4,10 @@ import "./index.css";
 import "./i18n.js";
 import App from "./App.jsx";
 import { BrowserRouter as Router } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 const applyTheme = () => {
   const theme = localStorage.getItem("theme") || "system";
   const root = document.documentElement;
@@ -23,6 +27,7 @@ const applyTheme = () => {
   }
 };
 applyTheme();
+
 let activeTouchElement = null;
 let touchStartY = 0;
 
@@ -66,13 +71,16 @@ const handleTouchEnd = () => {
 
 document.addEventListener("touchend", handleTouchEnd);
 document.addEventListener("touchcancel", handleTouchEnd);
+
 createRoot(document.getElementById("root")).render(
-  <Router
-    future={{
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-    }}
-  >
-    <App />
-  </Router>
+  <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <App />
+    </Router>
+  </GoogleOAuthProvider>
 );

@@ -131,7 +131,7 @@ const Landing = () => {
             </div>
 
             {/* Animated Book Stack */}
-            <div className="relative flex items-center justify-center w-full lg:w-[500px] h-[300px] sm:h-[350px] lg:h-[420px] overflow-visible order-1 lg:order-2">
+            <div className="relative flex items-center justify-center w-full lg:w-125 h-75 sm:h-87.5 lg:h-105 overflow-visible order-1 lg:order-2">
               {bookImages.map((img, i) => {
                 const finalRotation = i * 2;
                 const finalOffset = i * 25;
@@ -160,7 +160,7 @@ const Landing = () => {
                       ease: "easeInOut",
                       times: [0, 0.5, 1],
                     }}
-                    className="absolute w-[180px] h-[260px] sm:w-[220px] sm:h-80 lg:w-[260px] lg:h-[380px] object-cover rounded-xl shadow-lg dark:shadow-zinc-800/50 transition-shadow duration-300"
+                    className="absolute w-45 h-65 sm:w-55 sm:h-80 lg:w-65 lg:h-95 object-cover rounded-xl shadow-lg dark:shadow-zinc-800/50 transition-shadow duration-300"
                     style={{
                       zIndex: bookImages.length - i,
                     }}

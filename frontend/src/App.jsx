@@ -32,6 +32,7 @@ import UserLogin from "./pages/UserLogin";
 import PdfViewer from "./pages/PdfViewer";
 import { useTheme } from "./hooks/useTheme";
 import { useTranslation } from "react-i18next";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function App() {
   useScrollToTop();
@@ -77,6 +78,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<AdminLogin />} />
             <Route path="/user-login" element={<UserLogin />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
 
             {/* Admin Routes - Protected */}
             <Route

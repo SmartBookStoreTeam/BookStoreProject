@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 import { EyeIcon } from "lucide-react";
 import {
   BookOpenIcon,
@@ -8,6 +9,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
+
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,11 +45,19 @@ const UserLogin = () => {
     navigate(from, { replace: true });
   };
 
+  const handleGoogleSuccess = () => {
+    navigate(from, { replace: true });
+  };
+
+  const handleGoogleError = (error) => {
+    setError(error || "Google login failed");
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-zinc-950 dark:to-zinc-900 flex items-center justify-center p-4 transition-colors">
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-xl p-8 relative">
-         {/* Close Button */}
+          {/* Close Button */}
           <button
             onClick={() => navigate(from, { replace: true })}
             className="touch-area absolute top-4 right-4 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
@@ -72,27 +82,46 @@ const UserLogin = () => {
             </p>
           </div>
 
+          {/* Error Box */}
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
+
+          {/* Google Login Button */}
+          <GoogleLoginButton
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-zinc-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400">
+                {t("Or continue with email")}
+              </span>
+            </div>
+          </div>
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
-                {error}
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
                 {t("Email Address")}
               </label>
               <div className="touch-area relative rounded-lg">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 outline-none"
-                placeholder="example@mail.com"
-                required
-              />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  placeholder="example@mail.com"
+                  required
+                />
               </div>
             </div>
 
@@ -101,14 +130,14 @@ const UserLogin = () => {
                 {t("Password")}
               </label>
               <div className="touch-area relative rounded-lg">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 pr-12 focus:ring-2 focus:ring-indigo-500 outline-none"
-                placeholder="••••••••"
-                required
-              />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-500 pr-12 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  placeholder="••••••••"
+                  required
+                />
               </div>
 
               <button

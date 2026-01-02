@@ -1530,7 +1530,7 @@ const Publish = () => {
                         <button
                           onClick={handlePublish}
                           disabled={isPublishing}
-                          className="touch-area w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                          className="touch-area w-full py-4 bg-linear-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
                         >
                           {isPublishing ? (
                             <>

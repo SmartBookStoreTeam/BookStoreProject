@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 import {
   BookOpenIcon,
   EyeIcon,
   EyeSlashIcon,
-  ArrowLeftIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
+
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,7 +22,6 @@ const Register = () => {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || "/";
-
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePassword = () => {
@@ -36,8 +36,9 @@ const Register = () => {
     const result = await register(name, email, password);
 
     if (result.success) {
-      // Pass the from state to login page
-      navigate("/user-login", { state: { from: location.state?.from } });
+      navigate("/verify-email", {
+        state: { email },
+      });
     } else {
       setError(result.error);
     }
@@ -45,9 +46,17 @@ const Register = () => {
     setLoading(false);
   };
 
+  const handleGoogleSuccess = () => {
+    // User registered/logged in with Google, redirect to home
+    navigate(from, { replace: true });
+  };
+
+  const handleGoogleError = (error) => {
+    setError(error || "Google registration failed");
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-[#0f0f14] dark:to-[#11111a] flex items-center justify-center p-4 transition-colors relative">
-      {/* Back to Store Button */}
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-[#1a1a22] rounded-2xl shadow-xl p-8 border border-zinc-200 dark:border-zinc-700 transition-colors relative">
           {/* Close Button */}
@@ -58,6 +67,7 @@ const Register = () => {
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
+
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
@@ -73,14 +83,33 @@ const Register = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Box */}
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
-                {error}
-              </div>
-            )}
+          {/* Error Box */}
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
 
+          {/* Google Register Button */}
+          <GoogleLoginButton
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-zinc-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-[#1a1a22] text-gray-500 dark:text-zinc-400">
+                {t("Or register with email")}
+              </span>
+            </div>
+          </div>
+
+          {/* Email/Password Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
@@ -97,6 +126,7 @@ const Register = () => {
                 />
               </div>
             </div>
+
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
@@ -113,6 +143,7 @@ const Register = () => {
                 />
               </div>
             </div>
+
             {/* Password */}
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
