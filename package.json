@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "vite": "^7.3.0"
   }
 }
