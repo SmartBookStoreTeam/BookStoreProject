@@ -18,6 +18,8 @@ import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "../context/NavigationContext";
+import UserAvatar from "../components/UserAvatar";
+
 const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -54,8 +56,9 @@ const Header = () => {
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
   const [openSettings, setOpenSettings] = useState(false);
+
   const firstName = user?.name?.split(" ")[0];
-  const firstLetter = firstName?.charAt(0)?.toUpperCase();
+
   const profileRef = useRef(null);
   const toggleSettings = () => setOpenSettings(!openSettings);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -146,7 +149,7 @@ const Header = () => {
           </nav>
 
           {/* Desktop Right Side */}
-          <div className="hidden md:flex items-center gap-6 flex-shrink-0">
+          <div className="hidden md:flex items-center gap-6 shrink-0">
             {/* Cart */}
             <Link
               to="/cart"
@@ -273,19 +276,11 @@ const Header = () => {
                 <Link
                   to="/profile"
                   onClick={(e) => handleSafeNavigation(e, "/profile")}
-                  className="w-8 h-8 rounded-full
-             bg-indigo-500 dark:bg-indigo-400
-             text-white dark:text-zinc-900
-             hover:bg-indigo-700 dark:hover:bg-indigo-600
-             hover:text-white dark:hover:text-white
-             border border-indigo-600
-             hover:scale-110 hover:shadow-lg
-             focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
-             flex items-center justify-center font-semibold
-             transition duration-300"
+                  className="hover:scale-110 transition"
                 >
-                  {firstLetter}
+                  <UserAvatar user={user} size={32} className="shadow-md" />
                 </Link>
+
                 <button
                   onClick={toggleDropdown}
                   className="flex items-center gap-3 text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
@@ -327,7 +322,11 @@ const Header = () => {
           {/* Mobile Cart + Menu */}
           <div className="flex items-center gap-4 md:hidden">
             {/* Mobile Cart */}
-            <Link to="/cart" className="relative touch-area" onClick={closeMenu}>
+            <Link
+              to="/cart"
+              className="relative touch-area"
+              onClick={closeMenu}
+            >
               <ShoppingCart
                 size={24}
                 className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
@@ -494,9 +493,8 @@ const Header = () => {
                     }
                     className="touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
                   >
-                    <div className="touch-area w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 flex items-center justify-center font-semibold">
-                      {firstLetter}
-                    </div>
+                    <UserAvatar user={user} size={32} className="shadow-md" />
+
                     {firstName}
                   </Link>
 

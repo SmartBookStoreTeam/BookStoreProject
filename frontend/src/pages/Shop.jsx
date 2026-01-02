@@ -455,7 +455,7 @@ const Shop = () => {
                     <div
                       className={
                         viewMode === "grid"
-                          ? "touch-area relative w-full h-[300px] rounded-2xl overflow-hidden"
+                          ? "touch-area relative w-full h-75 rounded-2xl overflow-hidden"
                           : "touch-area relative w-full h-40 rounded-2xl overflow-hidden"
                       }
                     >
@@ -535,7 +535,7 @@ const Shop = () => {
                     {/* Description */}
                     <p
                       dir="auto"
-                      className="touch-area text-xs text-center truncate max-w-[450px] text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3"
+                      className="touch-area text-xs text-center truncate max-w-112.5 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3"
                     >
                       {book.desc ||
                         book.description ||

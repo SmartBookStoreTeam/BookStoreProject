@@ -9,8 +9,6 @@ export const AuthProvider = ({ children }) => {
   );
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
- 
-
   const register = async (name, email, password) => {
     try {
       await api.post("/auth/register", {
@@ -51,6 +49,46 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // NEW: Google OAuth Login/Register
+  const googleLogin = async (googleUser, accessToken) => {
+    try {
+      const res = await api.post("/auth/google", {
+        token: accessToken,
+        user: googleUser,
+      });
+
+      // Save in localStorage
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token);
+
+      setUser(res.data.user);
+      setToken(res.data.token);
+
+      return { success: true, user: res.data.user };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || "Google login failed",
+      };
+    }
+  };
+
+  const verifyEmail = async (email, code) => {
+    try {
+      const res = await api.post("/auth/verify-email", { email, code });
+
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.user);
+
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || "Verification failed",
+      };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -59,7 +97,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, register, googleLogin, verifyEmail }}
+    >
       {children}
     </AuthContext.Provider>
   );

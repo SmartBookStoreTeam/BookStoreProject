@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
+import UserAvatar from "../components/UserAvatar";
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -58,15 +59,6 @@ const Profile = () => {
     navigate("/register");
     return null;
   }
-
-  const getInitials = (name) => {
-    return name
-      ?.split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   const getImageSrc = (image) => {
     if (!image) return null;
@@ -111,11 +103,14 @@ const Profile = () => {
   const handleEditSubmit = (e) => {
     e.preventDefault();
     // Implement API call to update user info
-    toast.success(t("Profile updated successfully!"), {duration: 1500,
-    style: {
-      background: "#333",
-      color: "#fff",
-      direction: i18n.dir()}});
+    toast.success(t("Profile updated successfully!"), {
+      duration: 1500,
+      style: {
+        background: "#333",
+        color: "#fff",
+        direction: i18n.dir(),
+      },
+    });
     setShowEditModal(false);
   };
 
@@ -130,12 +125,14 @@ const Profile = () => {
       // Implement account deletion
       logout();
       navigate("/");
-      toast.success(t("Account deleted successfully!"), {duration: 1500,
-      style: {
-        background: "#333",
-        color: "#fff",
-        direction: i18n.dir()}});
-      
+      toast.success(t("Account deleted successfully!"), {
+        duration: 1500,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
     }
   };
 
@@ -156,11 +153,14 @@ const Profile = () => {
       "categoryPreferences",
       JSON.stringify(selectedCategories)
     );
-    toast.success(t("Preferences saved successfully!"), {duration: 1500,
-    style: {
-      background: "#333",
-      color: "#fff",
-      direction: i18n.dir()}} );
+    toast.success(t("Preferences saved successfully!"), {
+      duration: 1500,
+      style: {
+        background: "#333",
+        color: "#fff",
+        direction: i18n.dir(),
+      },
+    });
   };
 
   return (
@@ -173,9 +173,7 @@ const Profile = () => {
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             {/* Avatar */}
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-              {getInitials(user.name)}
-            </div>
+            <UserAvatar user={user} size={96} className="shadow-lg text-3xl" />
 
             {/* User Info */}
             <div className="flex-1 text-center sm:text-left">
@@ -323,17 +321,17 @@ const Profile = () => {
                   >
                     {/* Book Image */}
                     <div className="touch-area">
-                    {imageSrc ? (
-                      <img
-                        src={imageSrc}
-                        alt={book.title}
-                        className="w-full h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gray-200 dark:bg-zinc-600 flex items-center justify-center">
-                        <span className="text-gray-400">{t("No Image")}</span>
-                      </div>
-                    )}
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt={book.title}
+                          className="w-full h-48 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-gray-200 dark:bg-zinc-600 flex items-center justify-center">
+                          <span className="text-gray-400">{t("No Image")}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="p-4">
@@ -341,10 +339,12 @@ const Profile = () => {
                         {book.title}
                       </h3>
                       <div className="flex gap-1">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 mb-2" >by </span>
-                      <p className="touch-area text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {book.author}
-                      </p>
+                        <span className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          by{" "}
+                        </span>
+                        <p className="touch-area text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          {book.author}
+                        </p>
                       </div>
                       <p className="text-indigo-600 dark:text-indigo-400 font-bold mb-3">
                         ₹{book.price}
@@ -367,11 +367,14 @@ const Profile = () => {
                               )
                             ) {
                               removeUserBook(book.id);
-                              toast.success(t("Book removed successfully!"), {duration: 1500,
-                              style: {
-                                background: "#333",
-                                color: "#fff",
-                                direction: i18n.dir()}});
+                              toast.success(t("Book removed successfully!"), {
+                                duration: 1500,
+                                style: {
+                                  background: "#333",
+                                  color: "#fff",
+                                  direction: i18n.dir(),
+                                },
+                              });
                             }
                           }}
                           className="touch-area bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors cursor-pointer"
