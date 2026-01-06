@@ -196,10 +196,14 @@ const Carousel = ({ books, carouselId = "default" }) => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        width: "fit-content",
         maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
+        minWidth: "200px",
+        padding: "12px 16px",
         textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     });
   };
@@ -404,7 +408,13 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         alt={book.desc || book.description || book.title}
                         draggable="false"
                         whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 1.1 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
+                        onContextMenu={(e) => {
+                          const isMobile =
+                            window.matchMedia("(max-width: 768px)").matches;
+                          if (isMobile) e.preventDefault();
+                        }}
                       />
                     </div>
                     <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">

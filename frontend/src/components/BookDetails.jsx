@@ -8,7 +8,7 @@ import SkeletonLoading from "./SkeletonLoading";
 import Loading from "./Loading";
 import AuthModal from "./AuthModal";
 import AuthorBooks from "./AuthorBooks";
-import { FaCartPlus } from "react-icons/fa";
+import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import {
   Star,
   ShoppingCart,
@@ -18,12 +18,12 @@ import {
   Tag,
   FileText,
   Eye,
-  ChevronLeft,
 } from "lucide-react";
 
 import { getBookById } from "../api/booksApi";
 import toast from "react-hot-toast";
 import { t } from "i18next";
+import { useGlobalLoading } from "../context/LoadingContext";
 
 // Helper function to fill missing book data with placeholders
 const fillMissingBookData = (book) => {
@@ -52,7 +52,7 @@ const fillMissingBookData = (book) => {
 const BookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks } = useCart();
+  const { addToCart, userBooks, cartItems } = useCart();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,6 +61,17 @@ const BookDetails = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState("cart"); // 'cart' or 'preview'
   const [isImageHovered, setIsImageHovered] = useState(false);
+  const { setIsLoading } = useGlobalLoading();
+
+  // Sync local loading with global loading bar
+  useEffect(() => {
+    setIsLoading(loading);
+
+    // Cleanup: reset loading when component unmounts
+    return () => {
+      setIsLoading(false);
+    };
+  }, [loading, setIsLoading]);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -101,25 +112,53 @@ const BookDetails = () => {
       fetchBook();
     }
   }, [id, t, userBooks]);
-  const handleAddToCart = (book) => {
+
+  // Check if book is already in cart
+  const isBookInCart =
+    book &&
+    cartItems &&
+    cartItems.some((item) => {
+      return (
+        item.id === book.id ||
+        item._id === book._id ||
+        item.id === book._id ||
+        item._id === book.id
+      );
+    });
+
+  const handleAddToCart = (bookToAdd) => {
     if (!user) {
       setAuthModalMode("cart");
       setShowAuthModal(true);
       return;
     }
-    addToCart(book);
-    toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
-      duration: 1500,
-      style: {
-        background: "#333",
-        color: "#fff",
-        direction: i18n.dir(),
-        maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
-        textAlign: "center",
-      },
-    });
+
+    // If book is already in cart, go to checkout
+    if (isBookInCart) {
+      navigate("/checkout", { state: { books: cartItems } });
+      return;
+    }
+
+    // Otherwise, add to cart
+    const result = addToCart(bookToAdd);
+    if (result.success) {
+      toast.success(`${t("Added")} "${bookToAdd.title}" ${t("to Cart")}!`, {
+        duration: 1500,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+          width: "fit-content",
+          maxWidth: "90vw",
+          minWidth: "200px",
+          padding: "12px 16px",
+          textAlign: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+      });
+    }
   };
   if (loading) {
     return <SkeletonLoading />;
@@ -128,8 +167,12 @@ const BookDetails = () => {
     return (
       <div className="pt-20 flex items-center justify-center dark:bg-zinc-900 py-20">
         <div className="text-center max-w-md mx-auto px-4">
-          <Loading error={t("error","We are sorry, book not found")} height="h-60" status="error"/>
-          
+          <Loading
+            error={t("error", "We are sorry, book not found")}
+            height="h-60"
+            status="error"
+          />
+
           <button
             className="touch-area bg-gray-800 dark:bg-gray-800 hover:bg-gray-700 dark:hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
             onClick={() => navigate(-1)}
@@ -182,15 +225,18 @@ const BookDetails = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
-      <div dir={i18n.dir()} className="bg-gray-50 dark:bg-zinc-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
+      <div
+        dir={i18n.dir()}
+        className="bg-gray-50 dark:bg-zinc-900 overflow-x-hidden"
+      >
+        <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back Button */}
           <button
             dir="ltr"
             onClick={() => navigate("/shop")}
-            className="touch-area flex md:hidden items-center justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-7 transition-colors cursor-pointer"
+            className="group touch-area flex md:hidden items-center justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-7 transition-colors cursor-pointer"
           >
-            <ChevronLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
             {t("Back to Shop")}
           </button>
           {/* Book Details */}
@@ -218,7 +264,7 @@ const BookDetails = () => {
                     >
                       {user ? (
                         <Link
-                          to={`/book/pdf/${book._id || book.id}`}
+                          to={`/pdf-viewer/${book._id || book.id}`}
                           className="touch-area px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
                         >
                           <BookOpen className="w-5 h-5" />
@@ -383,7 +429,7 @@ const BookDetails = () => {
                   <div className="touch-area text-left">
                     {user ? (
                       <Link
-                        to={`/book/pdf/${book._id || book.id}`}
+                        to={`/pdf-viewer/${book._id || book.id}`}
                         className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
                       >
                         <BookOpen className="w-5 h-5" />
@@ -404,7 +450,7 @@ const BookDetails = () => {
                   </div>
                 )}
 
-                {/* Add to Cart Button */}
+                {/* Add to Cart / Go to Checkout Button */}
                 <button
                   dir="ltr"
                   onClick={(e) => {
@@ -413,8 +459,17 @@ const BookDetails = () => {
                   }}
                   className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
                 >
-                  <FaCartPlus className="w-6 h-6" />
-                  {t("Add to Cart")}
+                  {isBookInCart ? (
+                    <>
+                      <FaShoppingCart className="w-6 h-6" />
+                      {t("Go to Checkout")}
+                    </>
+                  ) : (
+                    <>
+                      <FaCartPlus className="w-6 h-6" />
+                      {t("Add to Cart")}
+                    </>
+                  )}
                 </button>
 
                 {/* Secondary Actions */}
@@ -489,7 +544,7 @@ const BookDetails = () => {
 
       {/* Author Books Section */}
       {book && book.author && (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-6 xl:px-8 py-12">
+        <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <AuthorBooks
             authorName={book.author}
             excludeBookId={book._id || book.id}

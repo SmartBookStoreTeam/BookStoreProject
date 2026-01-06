@@ -73,7 +73,7 @@ const Landing = () => {
   return (
     <div className="bg-zinc-200 dark:bg-zinc-900 transition-colors duration-300">
       <section className="relative flex items-center dark:bg-zinc-900  justify-center min-h-screen overflow-hidden">
-        <div className="container mx-auto px-6 md:px-20 py-12">
+        <div className="w-full max-w-7xl mx-auto px-4 py-12">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
             {/* Text Content */}
             <div className="w-full lg:max-w-xl text-center lg:text-left space-y-6 flex flex-col justify-center order-2 lg:order-1">

@@ -197,6 +197,14 @@ export const CartProvider = ({ children }) => {
     userBooksDispatch({ type: "REMOVE_USER_BOOK", payload: bookId });
   };
 
+  const getCheckoutData = () => {
+    return {
+      items: cartItems,
+      total: getCartTotal(),
+      isDigitalOnly: true, // All books are PDF for now
+    };
+  };
+
   const value = {
     cartItems,
     addToCart,
@@ -205,6 +213,7 @@ export const CartProvider = ({ children }) => {
     clearCart,
     getCartTotal,
     getCartItemsCount,
+    getCheckoutData,
     addUserBook,
     userBooks,
     removeUserBook,

@@ -26,10 +26,14 @@ const UserBooks = () => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        width: "fit-content",
         maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
+        minWidth: "200px",
+        padding: "12px 16px",
         textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     });
   };
@@ -55,7 +59,7 @@ const UserBooks = () => {
       />
 
       <div className="min-h-screen bg-gray-50 pt-20 dark:bg-zinc-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
+        <div className="w-full max-w-7xl mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
               {t("Community Books")}

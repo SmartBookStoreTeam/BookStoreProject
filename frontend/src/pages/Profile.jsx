@@ -13,6 +13,7 @@ import {
   Trash2,
   Eye,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -164,8 +165,16 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-20 transition-colors duration-300">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-5 transition-colors duration-300">
+      <div className="w-full max-w-7xl mx-auto px-4">
+           {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
+            {t("Go Back")}
+          </button>
         <h1 className="text-3xl text-center font-bold text-gray-900 dark:text-gray-100 mb-8">
           {t("Profile")}
         </h1>
@@ -283,7 +292,7 @@ const Profile = () => {
           {t("My Listed Books")}
         </h1>
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
-          <div className="flex justify-end items-center mb-6">
+          <div dir={i18n.dir()} className="flex justify-end items-center mb-6">
             <Link
               to="/publish"
               className="touch-area bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
@@ -296,12 +305,16 @@ const Profile = () => {
           {userBooks.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p
+                dir={i18n.dir()}
+                className="text-gray-600 dark:text-gray-400 mb-4"
+              >
                 {t("You haven't listed any books yet")}
               </p>
               <Link
+                dir={i18n.dir()}
                 to="/publish"
-                className="text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="touch-area text-indigo-600 dark:text-indigo-400 hover:underline"
               >
                 {t("List your first book")}
               </Link>
@@ -422,7 +435,7 @@ const Profile = () => {
               </h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
+                className="touch-area text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -433,43 +446,47 @@ const Profile = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t("Name")}
                 </label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-gray-100"
-                  required
-                />
+                <div className="touch-area">
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, name: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-gray-100"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t("Email")}
                 </label>
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, email: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-gray-100"
-                  required
-                />
+                <div className="touch-area">
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, email: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-gray-100"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-900 dark:text-gray-100 py-2 rounded-lg transition-colors cursor-pointer"
+                  className="touch-area flex-1 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-900 dark:text-gray-100 py-2 rounded-lg transition-colors cursor-pointer"
                 >
                   {t("Cancel")}
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition-colors cursor-pointer"
+                  className="touch-area flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition-colors cursor-pointer"
                 >
                   {t("Save Changes")}
                 </button>

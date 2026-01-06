@@ -10,6 +10,7 @@ import Loading from "../components/Loading";
 import { useTranslation } from "react-i18next";
 import AuthModal from "../components/AuthModal";
 import { FaCartPlus } from "react-icons/fa";
+import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 // Mock data for fallback
@@ -110,6 +111,17 @@ const Shop = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const { setIsLoading } = useGlobalLoading();
+
+  // Sync local loading with global loading bar
+  useEffect(() => {
+    setIsLoading(loading);
+
+    // Cleanup: reset loading when component unmounts
+    return () => {
+      setIsLoading(false);
+    };
+  }, [loading, setIsLoading]);
 
   const getImageSrc = (image) => {
     if (!image) return null;
@@ -239,10 +251,14 @@ const Shop = () => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        width: "fit-content",
         maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
+        minWidth: "200px",
+        padding: "12px 16px",
         textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     });
   };
@@ -255,7 +271,7 @@ const Shop = () => {
         onClose={() => setShowAuthModal(false)}
       />
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
+        <div className="w-full max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-300">
@@ -479,7 +495,16 @@ const Shop = () => {
                           scale: 1.05,
                           filter: "brightness(1.1)",
                         }}
+                        whileTap={{
+                          scale: 1.05,
+                          filter: "brightness(1.1)",
+                        }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
+                        onContextMenu={(e) => {
+                          const isMobile =
+                            window.matchMedia("(max-width: 768px)").matches;
+                          if (isMobile) e.preventDefault();
+                        }}
                       />
 
                       {/* Price Badge */}

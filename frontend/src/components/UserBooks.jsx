@@ -18,20 +18,24 @@ const UserBooks = () => {
     toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
       duration: 1500,
       style: {
-      background: "#333",
+        background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        width: "fit-content",
         maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
+        minWidth: "200px",
+        padding: "12px 16px",
         textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     });
   };
 
   return (
     <section className="py-12 bg-gray-50 dark:bg-zinc-900">
-      <div className="container mx-auto px-6">
+      <div className="w-full max-w-7xl mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
