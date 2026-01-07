@@ -2,10 +2,10 @@ import { assets } from "../assets/assets";
 import { Search, MoreHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 const LandingExplore = () => {
-  const {t}=useTranslation()
+  const { t } = useTranslation();
   return (
     <div className="bg-[#E9D5FF]">
-      <div className="container mx-auto px-6 md:px-20 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between md:flex-row flex-col-reverse">
           <div>
             <h1 className="text-2xl text-[#1C2024] font-bold mb-3">
@@ -24,11 +24,7 @@ const LandingExplore = () => {
               />
             </div>
           </div>
-          <img
-            src={assets.landingBooks}
-            alt="Books"
-            className="w-75 h-75"
-          />
+          <img src={assets.landingBooks} alt="Books" className="w-75 h-75" />
         </div>
       </div>
     </div>

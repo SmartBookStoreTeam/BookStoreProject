@@ -25,6 +25,7 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173", // dev frontend
   "http://localhost:5174", // ممكن تستخدمه كمان
+  "http://192.168.1.19:5173", // dev frontend
   // ضع هنا دومين الـ production بعد الرفع
   "https://d1r1pvso22xiyd.cloudfront.net"
 ];

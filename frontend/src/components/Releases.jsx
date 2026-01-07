@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { getBooks } from "../api/booksApi";
 import { useCart } from "../hooks/useCart";
 import Loading from "./Loading";
+import { useGlobalLoading } from "../context/LoadingContext";
 
 // Mock books as fallback
 const mockBooks = [
@@ -135,6 +136,7 @@ const Releases = () => {
   const { userBooks } = useCart();
   const [apiBooks, setApiBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { setIsLoading } = useGlobalLoading();
 
   // Helper function to get image source for UserBooks
   const getImageSrc = (image) => {
@@ -148,6 +150,16 @@ const Releases = () => {
     }
     return null;
   };
+
+  // Sync local loading with global loading bar
+  useEffect(() => {
+    setIsLoading(loading);
+
+    // Cleanup: reset loading when component unmounts
+    return () => {
+      setIsLoading(false);
+    };
+  }, [loading, setIsLoading]);
 
   // Fetch books from API
   useEffect(() => {
@@ -198,12 +210,16 @@ const Releases = () => {
       id="releases"
       className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8"
     >
-      <div className="container mx-auto px-6 md:px-20 relative">
+      <div className="w-full max-w-7xl mx-auto px-4 relative">
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {t("New Releases")}
         </h1>
         {loading ? (
-          <Loading loading={t("Loading books...")} height="h-96" animate={true}/>
+          <Loading
+            loading={t("Loading books...")}
+            height="h-96"
+            animate={true}
+          />
         ) : (
           <Carousel books={allBooks} />
         )}

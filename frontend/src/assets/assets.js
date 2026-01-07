@@ -22,6 +22,7 @@ import visa from "./visa.png";
 import mastercard from "./mastercard.png";
 import amercanExpress from "./amercan express.png";
 import meeza from "./meeza.png";
+import cash from "./cash.png";
 import eg from "./eg.svg";
 
 import landingBooks from "./books-landing.png";
@@ -45,6 +46,7 @@ export const assets = {
  mastercard,
  amercanExpress,
  meeza,
+ cash,
 eg,
  landingBooks,
 };
