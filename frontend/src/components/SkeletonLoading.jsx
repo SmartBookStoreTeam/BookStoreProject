@@ -2,21 +2,21 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 const SkeletonLoading = () => {
   const { i18n, t } = useTranslation();
   const navigate = useNavigate();
   return (
     <div dir={i18n.dir()} className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
+      <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
           dir="ltr"
           onClick={() => navigate("/shop")}
-          className="flex md:hidden items-center active:-translate-x-1 justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-7 transition-colors cursor-pointer"
+          className="group flex md:hidden items-center active:-translate-x-1 justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-7 transition-colors cursor-pointer"
         >
-          <ChevronLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
           {t("Back to Shop")}
         </button>
 

@@ -13,24 +13,50 @@ import {
   Store,
   Users,
   Upload,
+  ChevronDown,
 } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "../context/NavigationContext";
+import { useGlobalLoading } from "../context/LoadingContext";
+
 import UserAvatar from "../components/UserAvatar";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { requestNavigation } = useNavigation();
+  const { isLoading } = useGlobalLoading();
+  const [isPulsing, setIsPulsing] = useState(false);
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === "en" ? "ar" : "en";
-    i18n.changeLanguage(newLang);
-    localStorage.setItem("language", newLang);
-  };
+  // Pulsing effect when loading takes too long
+  useEffect(() => {
+    if (!isLoading) {
+      setIsPulsing(false);
+      return;
+    }
+
+    const pulseTimer = setTimeout(() => {
+      setIsPulsing(true);
+    }, 300);
+
+    return () => {
+      clearTimeout(pulseTimer);
+    };
+  }, [isLoading]);
+
   const links = navLinks;
+
+  //prevent context menu only on mobile/touch devices
+  const handleContextMenu = (e) => {
+    // Prevent context menu on small screens (mobile/tablet)
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (isMobile) {
+      e.preventDefault();
+    }
+    // Allow context menu on desktop (larger screens)
+  };
 
   // Safe navigation handler - checks if navigation is blocked
   const handleSafeNavigation = (e, to, callback) => {
@@ -65,11 +91,17 @@ const Header = () => {
   const closeMenu = () => setIsMenuOpen(false);
 
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [openLanguageDropdown, setOpenLanguageDropdown] = useState(false);
   const settingsRef = useRef(null);
   const menuRef = useRef(null);
   const sidebarRef = useRef(null);
+  const languageRef = useRef(null);
+  const mobileLanguageRef = useRef(null);
   const toggleDropdown = () => setOpenDropdown(!openDropdown);
   const closeDropdown = () => setOpenDropdown(false);
+  const toggleLanguageDropdown = () =>
+    setOpenLanguageDropdown(!openLanguageDropdown);
+  const closeLanguageDropdown = () => setOpenLanguageDropdown(false);
 
   const toggleTheme = () => {
     if (theme === "light") setTheme("dark");
@@ -100,6 +132,15 @@ const Header = () => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setOpenDropdown(false);
       }
+      const clickedInsideDesktop =
+        languageRef.current && languageRef.current.contains(event.target);
+      const clickedInsideMobile =
+        mobileLanguageRef.current &&
+        mobileLanguageRef.current.contains(event.target);
+
+      if (!clickedInsideDesktop && !clickedInsideMobile) {
+        setOpenLanguageDropdown(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -109,13 +150,14 @@ const Header = () => {
   }, []);
   return (
     <header className="fixed top-0 left-0 w-full bg-zinc-200 dark:bg-zinc-900 shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+      <div className="w-full max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
           <Link
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/")}
             className="touch-area flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-2xl font-bold tracking-tight"
+            onContextMenu={handleContextMenu}
           >
             <span>{t("Books")}</span>
           </Link>
@@ -139,6 +181,7 @@ const Header = () => {
                       : "hover:text-indigo-600 dark:hover:text-indigo-400"
                   }`
                     }
+                    onContextMenu={handleContextMenu}
                   >
                     {icon && getIcon(icon, 18)}
                     <span>{t(label)}</span>
@@ -155,6 +198,7 @@ const Header = () => {
               to="/cart"
               onClick={(e) => handleSafeNavigation(e, "/cart")}
               className="relative"
+              onContextMenu={handleContextMenu}
             >
               <ShoppingCart
                 size={24}
@@ -222,37 +266,94 @@ const Header = () => {
                   </div>
 
                   {/* Language */}
-                  <div
-                    onClick={toggleLanguage}
-                    className="group flex items-center justify-between py-2 px-3 cursor-pointer rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition duration-300"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Languages
-                        className="text-indigo-950 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
-                        size={18}
-                      />
-                      <span className="font-medium text-indigo-950 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300 whitespace-nowrap">
-                        {t("Language")}
-                      </span>
-                    </div>
+                  <div className="touch-area relative" ref={languageRef}>
                     <div
-                      dir="ltr"
-                      className={`relative inline-flex h-5 w-10 ms-3 items-center dark:bg-transparent rounded-full transition-colors group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400${
-                        i18n.language === "ar"
-                          ? "bg-indigo-500 dark:bg-indigo-400"
-                          : "bg-indigo-500 dark:bg-indigo-400"
-                      }`}
+                      onClick={toggleLanguageDropdown}
+                      className="group flex items-center justify-between py-2 px-3 cursor-pointer rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 transition duration-300"
                     >
-                      <span
-                        className={`flex items-center justify-center h-5 w-5 transform rounded-full bg-white text-[10px] font-bold text-indigo-600 transition-transform pointer-events-none group-hover:scale-125 ${
-                          i18n.language === "ar"
-                            ? "translate-x-5"
-                            : "translate-x-0"
-                        }`}
+                      <div className="flex items-center gap-2">
+                        <Languages
+                          className="text-indigo-950 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
+                          size={18}
+                        />
+                        <span className="font-medium text-indigo-950 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300 whitespace-nowrap">
+                          {t("Language")}
+                        </span>
+                      </div>
+                      <div
+                        dir="ltr"
+                        className="relative inline-flex items-center gap-0.5 -ms-3 min-w-[60px] justify-end"
                       >
-                        {i18n.language === "ar" ? "AR" : "EN"}
-                      </span>
+                        <div className="text-indigo-950 dark:text-zinc-200 text-xs font-semibold relative h-4 w-14 flex items-center justify-end">
+                          <span
+                            className={`text-indigo-500 dark:text-indigo-200 absolute right-0 transition-all duration-500 ease-in-out transform-gpu ${
+                              i18n.language === "en"
+                                ? "translate-y-0 opacity-100 group-hover:translate-y-4 group-hover:opacity-0"
+                                : "-translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+                            }`}
+                          >
+                            English
+                          </span>
+                          <span
+                            className={`text-in absolute right-0 transition-all duration-500 ease-in-out transform-gpu ${
+                              i18n.language === "ar"
+                                ? "translate-y-0 opacity-100 group-hover:translate-y-4 group-hover:opacity-0"
+                                : "-translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+                            }`}
+                          >
+                            عربي
+                          </span>
+                        </div>
+                        <ChevronDown
+                          size={16}
+                          className="text-indigo-950 dark:text-zinc-200 group-hover:translate-y-1 transition-all duration-500"
+                        />
+                      </div>
                     </div>
+
+                    {/* Language Dropdown */}
+                    {openLanguageDropdown && (
+                      <div className="absolute left-0 mt-1 w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-50">
+                        <div
+                          onClick={() => {
+                            i18n.changeLanguage("en");
+                            localStorage.setItem("language", "en");
+                            closeLanguageDropdown();
+                          }}
+                          className={`flex items-center justify-between py-2 px-3 cursor-pointer transition duration-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
+                            i18n.language === "en"
+                              ? "bg-indigo-100 dark:bg-indigo-900/30"
+                              : ""
+                          }`}
+                        >
+                          <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                            English
+                          </span>
+                          {i18n.language === "en" && (
+                            <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
+                          )}
+                        </div>
+                        <div
+                          onClick={() => {
+                            i18n.changeLanguage("ar");
+                            localStorage.setItem("language", "ar");
+                            closeLanguageDropdown();
+                          }}
+                          className={`flex items-center justify-between py-2 px-3 cursor-pointer transition duration-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
+                            i18n.language === "ar"
+                              ? "bg-indigo-100 dark:bg-indigo-900/30"
+                              : ""
+                          }`}
+                        >
+                          <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                            عربي
+                          </span>
+                          {i18n.language === "ar" && (
+                            <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -263,6 +364,7 @@ const Header = () => {
                 to="/register"
                 onClick={(e) => handleSafeNavigation(e, "/register")}
                 className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+                onContextMenu={handleContextMenu}
               >
                 <User size={24} />
                 {t("Register")}
@@ -300,6 +402,7 @@ const Header = () => {
                         handleSafeNavigation(e, "/profile", closeDropdown);
                       }}
                       className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 dark:text-white"
+                      onContextMenu={handleContextMenu}
                     >
                       {t("Profile")}
                     </Link>
@@ -326,6 +429,7 @@ const Header = () => {
               to="/cart"
               className="relative touch-area"
               onClick={closeMenu}
+              onContextMenu={handleContextMenu}
             >
               <ShoppingCart
                 size={24}
@@ -361,6 +465,7 @@ const Header = () => {
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
             className="touch-area flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
+            onContextMenu={handleContextMenu}
           >
             <span>{t("Books")}</span>
           </Link>
@@ -378,13 +483,13 @@ const Header = () => {
                         : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
                     }`
                   }
+                  onContextMenu={handleContextMenu}
                 >
                   {icon && getIcon(icon, 18)}
                   <span>{t(label)}</span>
                 </NavLink>
               </li>
             ))}
-
             {/* Mobile Cart */}
             <li>
               <NavLink
@@ -397,6 +502,7 @@ const Header = () => {
                       : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
                   }`
                 }
+                onContextMenu={handleContextMenu}
               >
                 <ShoppingCart size={18} />
                 <span>{t("Cart")}</span>
@@ -439,39 +545,6 @@ const Header = () => {
                 </button>
               </div>
             </li>
-            {/* Language */}
-            <li>
-              <div
-                onClick={toggleLanguage}
-                className="touch-area flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-              >
-                <Languages size={18} />
-                <span className="text-indigo-950 dark:text-zinc-200 font-medium absolute left-11">
-                  {" "}
-                  {t("Language")}{" "}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleLanguage();
-                  }}
-                  type="button"
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${
-                    i18n.language === "en"
-                      ? "bg-indigo-500 dark:bg-indigo-400"
-                      : "bg-indigo-500 dark:bg-indigo-400"
-                  }`}
-                >
-                  <span
-                    className={`flex items-center justify-center h-4 w-4 transform rounded-full bg-white text-[10px] font-bold text-indigo-600 transition-transform pointer-events-none ${
-                      i18n.language === "ar" ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  >
-                    {i18n.language === "ar" ? "AR" : "EN"}
-                  </span>
-                </button>
-              </div>
-            </li>
             {/* Register */}
             <li>
               {!user ? (
@@ -481,6 +554,7 @@ const Header = () => {
                     handleSafeNavigation(e, "/register", closeMenu)
                   }
                   className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                  onContextMenu={handleContextMenu}
                 >
                   <User size={18} /> {t("Register")}
                 </Link>
@@ -492,6 +566,7 @@ const Header = () => {
                       handleSafeNavigation(e, "/profile", closeMenu)
                     }
                     className="touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                    onContextMenu={handleContextMenu}
                   >
                     <UserAvatar user={user} size={32} className="shadow-md" />
 
@@ -511,10 +586,134 @@ const Header = () => {
               )}
             </li>
           </ul>
+
+          {/* Language - Fixed at Bottom */}
+          <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+            <div className="relative" ref={mobileLanguageRef}>
+              <div
+                onClick={toggleLanguageDropdown}
+                className="active:bg-zinc-300 dark:active:bg-zinc-800 group flex items-center justify-between relative px-4 py-2 mb-2 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+              >
+                <div className="flex items-center gap-3">
+                  <Languages
+                    className="text-indigo-950 dark:text-zinc-200"
+                    size={18}
+                  />
+                  <span className="text-indigo-950 dark:text-zinc-200 font-medium">
+                    {t("Language")}
+                  </span>
+                </div>
+                <div
+                  dir="ltr"
+                  className="relative inline-flex items-center gap-0.5 ms-3 min-w-[70px] justify-end"
+                >
+                  <div className="text-indigo-950 dark:text-zinc-200 text-xs font-semibold relative h-4 w-14 flex items-center justify-end">
+                    <span
+                      className={`text-indigo-500 dark:text-indigo-200 absolute right-0 transition-all duration-500 ease-in-out transform-gpu ${
+                        i18n.language === "en"
+                          ? "translate-y-0 opacity-100 group-hover:translate-y-4 group-hover:opacity-0"
+                          : "-translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+                      }`}
+                    >
+                      English
+                    </span>
+                    <span
+                      className={`text-indigo-500 dark:text-indigo-200 absolute right-0 transition-all duration-500 ease-in-out transform-gpu ${
+                        i18n.language === "ar"
+                          ? "translate-y-0 opacity-100 group-hover:translate-y-4 group-hover:opacity-0"
+                          : "-translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+                      }`}
+                    >
+                      عربي
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className="text-indigo-950 dark:text-zinc-200 group-hover:translate-y-1 transition-all duration-500"
+                  />
+                </div>
+              </div>
+
+              {/* Mobile Language Dropdown */}
+              {openLanguageDropdown && (
+                <div className="absolute bottom-full left-0 right-0 mb-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden">
+                  <div
+                    onClick={() => {
+                      i18n.changeLanguage("en");
+                      localStorage.setItem("language", "en");
+                      closeLanguageDropdown();
+                    }}
+                    className={`touch-area flex items-center justify-between py-2 px-3 cursor-pointer transition duration-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
+                      i18n.language === "en"
+                        ? "bg-indigo-100 dark:bg-indigo-900/30"
+                        : ""
+                    }`}
+                  >
+                    <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                      English
+                    </span>
+                    {i18n.language === "en" && (
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
+                    )}
+                  </div>
+                  <div
+                    onClick={() => {
+                      i18n.changeLanguage("ar");
+                      localStorage.setItem("language", "ar");
+                      closeLanguageDropdown();
+                    }}
+                    className={`touch-area flex items-center justify-between py-2 px-3 cursor-pointer transition duration-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
+                      i18n.language === "ar"
+                        ? "bg-indigo-100 dark:bg-indigo-900/30"
+                        : ""
+                    }`}
+                  >
+                    <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                      عربي
+                    </span>
+                    {i18n.language === "ar" && (
+                      <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Loading Bar */}
+      <div
+        className={`absolute bottom-0 h-[2px] transition-all duration-300 overflow-hidden ${
+          isLoading ? "w-full opacity-100" : "w-0 opacity-0"
+        } left-0`}
+        style={{
+          background: "linear-gradient(to left, #6366f1, #6366f1, #6366f1)",
+          boxShadow: isPulsing
+            ? "0 0 20px rgba(99, 102, 241, 0.8), 0 0 40px rgba(168, 85, 247, 0.6)"
+            : isLoading
+            ? "0 0 10px rgba(99, 102, 241, 0.5)"
+            : "none",
+        }}
+      >
+        {/* Moving wave effect */}
+        {isPulsing && (
+          <div
+            className={"animate-wave-ltr"}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)",
+              backgroundSize: "50% 100%",
+            }}
+          />
+        )}
       </div>
     </header>
   );
 };
-
 export default Header;

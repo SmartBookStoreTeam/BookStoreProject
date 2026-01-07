@@ -40,13 +40,13 @@ document.addEventListener("touchstart", (e) => {
   el.classList.add("touch-active");
 });
 
-// إزالة touch-active لما يحصل scroll
+//touch-active
 document.addEventListener(
   "touchmove",
   (e) => {
     if (!activeTouchElement) return;
 
-    // لو المستخدم حرك إصبعه أكتر من 10 بكسل، يبقى بيعمل scroll
+    //scroll
     const touchMoveY = e.touches[0].clientY;
     const diff = Math.abs(touchMoveY - touchStartY);
 

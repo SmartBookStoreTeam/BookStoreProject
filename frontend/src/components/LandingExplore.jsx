@@ -32,7 +32,7 @@ const LandingExplore = () => {
 
   return (
     <div className="bg-[#E9D5FF] dark:bg-gray-900 transition-colors duration-300">
-      <div className="container mx-auto px-6 md:px-20 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center dark:bg-gray-900 justify-between md:flex-row flex-col-reverse gap-8 md:gap-0">
           <div className="w-full md:w-1/2">
             <h1

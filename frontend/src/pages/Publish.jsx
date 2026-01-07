@@ -736,8 +736,8 @@ const Publish = () => {
   const renderError = (fieldName) => {
     if (errors[fieldName]) {
       return (
-        <p className="text-red-500 text-sm mt-1 flex items-center">
-          <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
+        <p className="text-red-500 dark:text-red-400 text-sm mt-1 flex items-center">
+          <span className="w-1.5 h-1.5 bg-red-500 dark:bg-red-400 rounded-full mr-2"></span>
           {errors[fieldName]}
         </p>
       );
@@ -762,26 +762,26 @@ const Publish = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div
             dir={i18n.dir()}
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all"
+            className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-amber-600" />
+                <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {t("Unsaved Changes")}
                 </h3>
               </div>
               <button
                 onClick={handleStay}
-                className="touch-area text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="touch-area text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
               {t(
                 "You have unsaved book information. If you leave this page, all your entered data will be lost."
               )}
@@ -790,7 +790,7 @@ const Publish = () => {
             <div dir="rtl" className="flex gap-3">
               <button
                 onClick={handleStay}
-                className="touch-area flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+                className="touch-area flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
               >
                 {t("Stay on Page")}
               </button>
@@ -805,14 +805,17 @@ const Publish = () => {
         </div>
       )}
 
-      <div dir={i18n.dir()} className="min-h-screen bg-gray-50 pt-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
+      <div
+        dir={i18n.dir()}
+        className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-20"
+      >
+        <div className="w-full max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               {t("Publish Your Book")}
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               {t(
                 "PublishBookParagraph",
                 "List your loved books and reach thousands of readers. Fill out the form below to get started."
@@ -833,8 +836,8 @@ const Publish = () => {
                     onClick={() => goToStep(step.number)}
                     className={`touch-area flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
                       currentStep >= step.number
-                        ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 hover:scale-110"
-                        : "border-gray-300 text-gray-500 hover:border-gray-400 hover:bg-gray-50"
+                        ? "bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 hover:scale-110 dark:bg-indigo-500 dark:border-indigo-500"
+                        : "border-gray-300 dark:border-zinc-600 text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-zinc-500 hover:bg-gray-50 dark:hover:bg-zinc-800"
                     } font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
                     title={
                       currentStep >= step.number
@@ -849,8 +852,8 @@ const Publish = () => {
                     onClick={() => goToStep(step.number)}
                     className={`touch-area ml-2 font-medium transition-colors cursor-pointer focus:underline hover:underline focus:outline-none mx-2 ${
                       currentStep >= step.number
-                        ? "text-indigo-600"
-                        : "text-gray-500"
+                        ? "text-indigo-600 dark:text-indigo-400"
+                        : "text-gray-500 dark:text-gray-400"
                     }`}
                   >
                     {t(step.title)}
@@ -860,7 +863,9 @@ const Publish = () => {
                       className={`w-[1.2px] sm:w-8 md:w-16 sm:h-0.5 h-4 mx-4 
   absolute start-1 translate-y-8 
   sm:static sm:translate-y-0 ${
-    currentStep > step.number ? "bg-indigo-600" : "bg-gray-300"
+    currentStep > step.number
+      ? "bg-indigo-600 dark:bg-indigo-500"
+      : "bg-gray-300 dark:bg-zinc-600"
   }`}
                     />
                   )}
@@ -870,18 +875,18 @@ const Publish = () => {
           </div>
 
           {/* Form */}
-          <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+          <div className="max-w-6xl mx-auto bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 md:p-8">
             <form onSubmit={(e) => e.preventDefault()}>
               {/* Step 1: Book Details */}
               {currentStep === 1 && (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
                     {t("Book Information")}
                   </h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Book Title")} *
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -890,7 +895,7 @@ const Publish = () => {
                           name="title"
                           value={formData.title}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
                             errors.title
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -902,7 +907,7 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Author")} *
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -911,7 +916,7 @@ const Publish = () => {
                           name="author"
                           value={formData.author}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
                             errors.author
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -923,7 +928,7 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Category")} *
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -931,7 +936,7 @@ const Publish = () => {
                           name="category"
                           value={formData.category}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full px-4 py-3 border dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-1 ${
                             errors.category
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -948,7 +953,7 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Price")} *
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -958,7 +963,7 @@ const Publish = () => {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:[color-scheme:dark] focus:outline-none focus:ring-1 ${
                             errors.price
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -972,7 +977,7 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Language")}
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -980,7 +985,7 @@ const Publish = () => {
                           name="language"
                           value={formData.language}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full px-4 py-3 border dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                           {languages.map((lang) => (
                             <option key={lang.value} value={lang.value}>
@@ -993,9 +998,9 @@ const Publish = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {t("Description") + " "}
-                      <span className="text-xs text-gray-500 ml-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                         {t(
                           "DescriptionOptional",
                           "Optional, max 1000 characters"
@@ -1003,21 +1008,21 @@ const Publish = () => {
                       </span>
                     </label>
                     <div className="touch-area relative rounded-lg">
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      rows="4"
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
-                        errors.description
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-indigo-500"
-                      }`}
-                      placeholder={t(
-                        "describeBook",
-                        "Describe your book's content, special features, and any notable aspects..."
-                      )}
-                    />
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        rows="4"
+                        className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
+                          errors.description
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-indigo-500"
+                        }`}
+                        placeholder={t(
+                          "describeBook",
+                          "Describe your book's content, special features, and any notable aspects..."
+                        )}
+                      />
                     </div>
                     <div className="flex justify-between mt-1">
                       {renderError("description")}
@@ -1035,7 +1040,7 @@ const Publish = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         ISBN {`(${t("Optional")})`}
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1044,7 +1049,7 @@ const Publish = () => {
                           name="isbn"
                           value={formData.isbn}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
                             errors.isbn
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1056,7 +1061,7 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Edition")}
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1065,14 +1070,14 @@ const Publish = () => {
                           name="edition"
                           value={formData.edition}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                           placeholder="e.g., 1st, 2nd"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Publication Year")}
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1081,7 +1086,7 @@ const Publish = () => {
                           name="publicationYear"
                           value={formData.publicationYear}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:[color-scheme:dark] focus:outline-none focus:ring-1 ${
                             errors.publicationYear
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1097,7 +1102,7 @@ const Publish = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Publisher")}
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1106,14 +1111,14 @@ const Publish = () => {
                           name="publisher"
                           value={formData.publisher}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                           placeholder={t("Publisher name")}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Number of Pages")}
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1122,7 +1127,7 @@ const Publish = () => {
                           name="pages"
                           value={formData.pages}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:[color-scheme:dark] focus:outline-none focus:ring-1 ${
                             errors.pages
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1140,22 +1145,22 @@ const Publish = () => {
               {/* Step 2: Upload Images */}
               {currentStep === 2 && (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200 mb-6">
                     {t("Upload Book Images")}
                   </h2>
 
                   <div
                     className={`border-2 border-dashed rounded-lg p-8 text-center ${
                       errors.images
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300"
+                        ? "border-red-300 dark:border-red-500 bg-red-50 dark:bg-red-950/20"
+                        : "border-gray-300 dark:border-zinc-600"
                     }`}
                   >
-                    <Image className="mx-auto w-12 h-12 text-gray-400 mb-4" />
-                    <p className="text-lg font-medium text-gray-900 mb-2">
+                    <Image className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-500 mb-4" />
+                    <p className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
                       {t("Upload Book Images")}
                     </p>
-                    <p className="text-gray-500 mb-4">
+                    <p className="text-gray-500 dark:text-gray-300 mb-4">
                       {t(
                         "uploadImagesHint",
                         "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each)."
@@ -1182,7 +1187,7 @@ const Publish = () => {
                   {/* Preview Images */}
                   {formData.images.length > 0 && (
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-4">
                         {t("Preview")} ({formData.images.length}/5)
                       </h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -1211,13 +1216,13 @@ const Publish = () => {
               {/* Step 3: Publisher Information */}
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200 mb-6">
                     {t("Publisher Info", "Publisher Information")}
                   </h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Your Name")} *
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1227,7 +1232,7 @@ const Publish = () => {
                           name="sellerName"
                           value={formData.sellerName}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
                             errors.sellerName
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1239,7 +1244,7 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Email Address")} *
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1249,7 +1254,7 @@ const Publish = () => {
                           name="sellerEmail"
                           value={formData.sellerEmail}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
                             errors.sellerEmail
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1261,9 +1266,9 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Phone Number") + " "}
-                        <span className="text-xs text-gray-500 ml-1">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                           {`(${t("Optional")})`}
                         </span>
                       </label>
@@ -1274,7 +1279,7 @@ const Publish = () => {
                           name="sellerPhone"
                           value={formData.sellerPhone}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
                             errors.sellerPhone
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1286,7 +1291,7 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Location/City")} *
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1296,7 +1301,7 @@ const Publish = () => {
                           name="sellerLocation"
                           value={formData.sellerLocation}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 ${
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
                             errors.sellerLocation
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1315,10 +1320,10 @@ const Publish = () => {
                 <div className="space-y-6">
                   <div className="text-center mb-8">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200 mb-2">
                       {t("Review Your Listing")}
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-300">
                       {t(
                         "Please review all the information below before publishing your book."
                       )}
@@ -1328,55 +1333,55 @@ const Publish = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Book Details Summary */}
                     <div className="space-y-6">
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-4 flex items-center">
                           <BookOpen className="w-5 h-5 mr-2" />
                           {t("Book Details")}
                         </h3>
                         <div className="space-y-3">
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Title")}:
                             </span>
-                            <p className="text-gray-900 text-right">
+                            <p className="text-gray-900 dark:text-gray-200 text-right">
                               {formData.title}
                             </p>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Author")}:
                             </span>
-                            <p className="text-gray-900 text-right">
+                            <p className="text-gray-900 dark:text-gray-200 text-right">
                               {formData.author}
                             </p>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Category")}:
                             </span>
-                            <p className="text-gray-900 text-right capitalize">
+                            <p className="text-gray-900 dark:text-gray-200 text-right capitalize">
                               {formData.category}
                             </p>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Price")}:
                             </span>
-                            <p className="text-gray-900 text-right">
+                            <p className="text-gray-900 dark:text-gray-200 text-right">
                               ₹{formData.price}
                             </p>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Language")}:
                             </span>
-                            <p className="text-gray-900 text-right capitalize">
+                            <p className="text-gray-900 dark:text-gray-200 text-right capitalize">
                               {formData.language}
                             </p>
                           </div>
                           {formData.description && (
                             <div>
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-gray-700 dark:text-gray-300">
                                 {t("Description")}:
                               </span>
                               <p className="text-gray-900 mt-1 text-sm bg-white p-2 rounded border">
@@ -1392,57 +1397,57 @@ const Publish = () => {
                         formData.edition ||
                         formData.publicationYear ||
                         formData.pages) && (
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-gray-900 mb-3">
+                        <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-3">
                             {t("Additional Details")}
                           </h4>
                           <div className="space-y-2 text-sm">
                             {formData.isbn && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   {t("ISBN")}:
                                 </span>
-                                <span className="text-gray-900">
+                                <span className="text-gray-900 dark:text-gray-200">
                                   {formData.isbn}
                                 </span>
                               </div>
                             )}
                             {formData.edition && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   {t("Edition")}:
                                 </span>
-                                <span className="text-gray-900">
+                                <span className="text-gray-900 dark:text-gray-200">
                                   {formData.edition}
                                 </span>
                               </div>
                             )}
                             {formData.publicationYear && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   {t("Publication Year")}:
                                 </span>
-                                <span className="text-gray-900">
+                                <span className="text-gray-900 dark:text-gray-200">
                                   {formData.publicationYear}
                                 </span>
                               </div>
                             )}
                             {formData.pages && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   {t("Pages")}:
                                 </span>
-                                <span className="text-gray-900">
+                                <span className="text-gray-900 dark:text-gray-200">
                                   {formData.pages}
                                 </span>
                               </div>
                             )}
                             {formData.publisher && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   Publisher:
                                 </span>
-                                <span className="text-gray-900">
+                                <span className="text-gray-900 dark:text-gray-200">
                                   {formData.publisher}
                                 </span>
                               </div>
@@ -1454,43 +1459,43 @@ const Publish = () => {
 
                     {/* Seller Information Summary */}
                     <div className="space-y-6">
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-4 flex items-center">
                           <User className="w-5 h-5 mr-2" />
                           {t("Publisher Info", "Publisher Information")}
                         </h3>
                         <div className="space-y-3">
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Name")}:
                             </span>
-                            <p className="text-gray-900 text-right">
+                            <p className="text-gray-900 dark:text-gray-200 text-right">
                               {formData.sellerName}
                             </p>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Email")}:
                             </span>
-                            <p className="text-gray-900 text-right">
+                            <p className="text-gray-900 dark:text-gray-200 text-right">
                               {formData.sellerEmail}
                             </p>
                           </div>
                           {formData.sellerPhone && (
                             <div className="flex justify-between">
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-gray-700 dark:text-gray-300">
                                 {t("Phone")}:
                               </span>
-                              <p className="text-gray-900 text-right">
+                              <p className="text-gray-900 dark:text-gray-200 text-right">
                                 {formData.sellerPhone}
                               </p>
                             </div>
                           )}
                           <div className="flex justify-between">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Location")}:
                             </span>
-                            <p className="text-gray-900 text-right">
+                            <p className="text-gray-900 dark:text-gray-200 text-right">
                               {formData.sellerLocation}
                             </p>
                           </div>
@@ -1499,8 +1504,8 @@ const Publish = () => {
 
                       {/* Images Preview */}
                       {formData.images.length > 0 && (
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-3 flex items-center">
                             <Image className="w-5 h-5 mr-2" />
                             {t("Book Images")} ({formData.images.length})
                           </h4>
@@ -1518,11 +1523,11 @@ const Publish = () => {
                       )}
 
                       {/* Publish Button Section */}
-                      <div className="bg-yellow-50 p-6 rounded-lg border-2 border-dashed border-yellow-200">
-                        <h4 className="font-semibold text-gray-900 mb-3 text-center">
+                      <div className="bg-yellow-50 dark:bg-yellow-950/20 p-6 rounded-lg border-2 border-dashed border-yellow-200 dark:border-yellow-700">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-3 text-center">
                           {t("Ready to Publish?")}
                         </h4>
-                        <p className="text-sm text-gray-600 text-center mb-4">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 text-center mb-4">
                           {t(
                             "Once published, your book will be visible to all users on the platform."
                           )}

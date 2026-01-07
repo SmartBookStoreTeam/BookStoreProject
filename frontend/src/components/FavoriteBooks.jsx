@@ -35,7 +35,7 @@ const FavoriteBooks = () => {
       ref={ref}
       className="bg-white dark:bg-zinc-900 transition-colors duration-300"
     >
-      <div className="container mx-auto px-6 md:px-20 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
           {/* Left Side */}
           <div className="touch-area w-full lg:w-1/2 flex justify-center lg:justify-start">

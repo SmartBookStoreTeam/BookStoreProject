@@ -2,17 +2,18 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-.container {
-  width: 100%;
-  max-width: 100%;
+/* Reset box-sizing for all elements to prevent Edge issues */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
-
 
 input {
   outline: none;
 }
 ::selection {
-  background-color: #4f46e5;
+  background-color: #6963e4;
   color: #fff;
 }
 body,
@@ -20,6 +21,15 @@ p,
 li,
 a {
   font-family: "Outfit", "Tajawal", sans-serif;
+}
+
+/* Body background for light and dark modes */
+body {
+  background-color: #f9fafb;
+}
+
+.dark body {
+  background-color: #18181b;
 }
 
 h1,
@@ -87,7 +97,7 @@ input[type="range"]::-moz-range-thumb:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 120, 255, 0.25);
+  background: currentColor;
   opacity: 0;
   transition: opacity 120ms ease;
   pointer-events: none;
@@ -95,5 +105,53 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 .touch-area.touch-active::after {
-  opacity: 1;
+  opacity: 0.1;
+}
+
+/* Make links respond to touch/tap on mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  /* Links with hover:underline should show underline when tapped */
+  a[class*="hover:underline"]:active,
+  [class*="hover:underline"]:active {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  /* Links with hover text colors should show their hover color when tapped */
+  [class*="hover:text-indigo"]:active {
+    color: rgb(99 102 241) !important; /* indigo-500 */
+  }
+
+  .dark [class*="hover:text-indigo"]:active {
+    color: rgb(165 180 252) !important; /* indigo-300 */
+  }
+}
+
+/* Moving wave animation for loading bar - LTR */
+@keyframes wave-ltr {
+  0% {
+    background-position: -50% 0;
+  }
+  100% {
+    background-position: 150% 0;
+  }
+}
+
+/* Moving wave animation for loading bar - RTL */
+@keyframes wave-rtl {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+.animate-wave-ltr {
+  animation: wave-ltr 2s linear infinite;
+}
+
+.animate-wave-rtl {
+  animation: wave-rtl 2s linear infinite;
 }

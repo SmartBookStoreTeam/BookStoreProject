@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaCartPlus } from "react-icons/fa";
+import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import {
-  ChevronLeft,
+  ArrowLeft,
   X,
   Menu,
   ShoppingCart,
@@ -20,6 +20,7 @@ import {
   ScrollMode,
   SpecialZoomLevel,
 } from "@react-pdf-viewer/core";
+import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import toast from "react-hot-toast";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
@@ -37,12 +38,16 @@ const PdfViewer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showHeader, setShowHeader] = useState(false);
-  const { addToCart } = useCart();
+  const { addToCart, cartItems } = useCart();
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
 
   // State for page tracking
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+
+  // Initialize page navigation plugin
+  const pageNavigationPluginInstance = pageNavigationPlugin();
+  const { jumpToPage } = pageNavigationPluginInstance;
 
   // Initialize the plugin instance
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -62,8 +67,8 @@ const PdfViewer = () => {
             ZoomOut,
           } = slots;
           return (
-            <div className="flex items-center w-full">
-              <div className="hidden sm:flex px-1">
+            <div className="flex items-center touch-area justify-center w-full">
+              <div className="hidden sm:flex ml-5 px-1">
                 <ZoomOut />
               </div>
               <div className="hidden sm:flex px-1">
@@ -112,12 +117,16 @@ const PdfViewer = () => {
     ),
   });
 
-  // Appends header to the third page
+  // Appends header to the third page and jump back to page 2
   useEffect(() => {
     if (currentPage >= 3) {
       setShowAddToCartModal(true);
+      // Jump back to page 2 (index 1) when modal appears
+      if (jumpToPage) {
+        jumpToPage(1); // 0-indexed, so 1 = page 2
+      }
     }
-  }, [currentPage]);
+  }, [currentPage, jumpToPage]);
 
   const [isFullScreen, setIsFullScreen] = useState(false);
   const viewerRef = useRef(null);
@@ -148,7 +157,9 @@ const PdfViewer = () => {
       try {
         setLoading(true);
 
-        const response = await axios.get(`/api/books/${bookId}`);
+        const response = await axios.get(
+          `http://localhost:5000/api/books/${bookId}`
+        );
         setBook(response.data);
       } catch (err) {
         console.error("Error fetching book:", err);
@@ -162,30 +173,56 @@ const PdfViewer = () => {
       fetchBook();
     }
   }, [bookId, t]);
-  const handleAddToCart = (book) => {
-    addToCart(book);
-    toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
-      duration: 1500,
-      style: {
-        background: "#333",
-        color: "#fff",
-        direction: i18n.dir(),
-        maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
-        textAlign: "center",
-      },
-    });
+
+  // Check if book is already in cart
+  const isBookInCart =
+    book &&
+    cartItems &&
+    cartItems.some(
+      (item) =>
+        item.id === book.id ||
+        item._id === book._id ||
+        item.id === book._id ||
+        item._id === book.id
+    );
+
+  const handleAddToCart = (bookToAdd) => {
+    // If already in cart, navigate to checkout
+    if (isBookInCart) {
+      navigate("/checkout", { state: { books: cartItems } });
+      return;
+    }
+
+    // Otherwise, add to cart
+    const result = addToCart(bookToAdd);
+    if (result.success) {
+      toast.success(`${t("Added")} "${bookToAdd.title}" ${t("to Cart")}!`, {
+        duration: 1500,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+          width: "fit-content",
+          maxWidth: "90vw",
+          minWidth: "200px",
+          padding: "12px 16px",
+          textAlign: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+      });
+    }
   };
   if (loading) {
     return (
       <div className="relative">
         <button
           dir="ltr"
-          className="touch-area absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-[12px] text-gray-900 dark:text-white text-base transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1 w-auto justify-center"
+          className="group touch-area absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-[12px] text-gray-900 dark:text-white text-base transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1 w-auto justify-center"
           onClick={() => navigate(-1)}
         >
-          <ChevronLeft />
+          <ArrowLeft className="group-hover:-translate-x-1 transition-all" />
           <span>{t("Back")}</span>
         </button>
         <Loading
@@ -202,10 +239,10 @@ const PdfViewer = () => {
       <div className="relative">
         <button
           dir="ltr"
-          className="touch-area absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-[12px] text-gray-900 dark:text-white text-base transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1 w-auto justify-center"
+          className="group touch-area absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-[12px] text-gray-900 dark:text-white text-base transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1 w-auto justify-center"
           onClick={() => navigate(-1)}
         >
-          <ChevronLeft />
+          <ArrowLeft className="group-hover:-translate-x-1 transition-all" />
           <span>{t("Back")}</span>
         </button>
         <Loading
@@ -330,8 +367,17 @@ const PdfViewer = () => {
                 className="touch-area px-4 py-2 text-indigo-200 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-all duration-300 text-center active:scale-95 cursor-pointer"
               >
                 <div className="flex items-center gap-2">
-                  <FaCartPlus size={20} />
-                  {t("Add to Cart")}
+                  {isBookInCart ? (
+                    <>
+                      <FaShoppingCart size={20} />
+                      {t("Go to Checkout")}
+                    </>
+                  ) : (
+                    <>
+                      <FaCartPlus size={20} />
+                      {t("Add to Cart")}
+                    </>
+                  )}
                 </div>
               </button>
               <button
@@ -390,7 +436,7 @@ const PdfViewer = () => {
                     }}
                     className="touch-area flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30 cursor-pointer"
                   >
-                    {t("Add to Cart")}
+                    {isBookInCart ? t("Go to Checkout") : t("Add to Cart")}
                   </button>
                 </div>
               </div>
@@ -409,16 +455,26 @@ const PdfViewer = () => {
                   <X size={24} />
                 </button>
               )}
-              <Viewer
-                fileUrl={book.pdf || "error"}
-                plugins={[defaultLayoutPluginInstance]}
-                defaultScale={SpecialZoomLevel.PageWidth}
-                theme={{
-                  theme: "dark",
-                }}
-                onDocumentLoad={(e) => setTotalPages(e.doc.numPages)}
-                onPageChange={(e) => setCurrentPage(e.currentPage + 1)} // currentPage is 0-indexed
-              />
+              {/* Add blur effect when modal is shown on page 3 */}
+              <div
+                className={`w-full h-full transition-all duration-300 ${
+                  showAddToCartModal ? "blur-md" : ""
+                }`}
+              >
+                <Viewer
+                  fileUrl={book.pdf || "error"}
+                  plugins={[
+                    defaultLayoutPluginInstance,
+                    pageNavigationPluginInstance,
+                  ]}
+                  defaultScale={SpecialZoomLevel.PageWidth}
+                  theme={{
+                    theme: "dark",
+                  }}
+                  onDocumentLoad={(e) => setTotalPages(e.doc.numPages)}
+                  onPageChange={(e) => setCurrentPage(e.currentPage + 1)} // currentPage is 0-indexed
+                />
+              </div>
             </div>
           </Worker>
         ) : (

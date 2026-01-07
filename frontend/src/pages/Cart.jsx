@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Trash2, ShoppingBag, ArrowLeft, Star } from "lucide-react";
 import { assets } from "../assets/assets";
 import { useCart } from "../hooks/useCart";
@@ -13,10 +13,19 @@ const Cart = () => {
     getCartItemsCount,
   } = useCart();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleCheckout = () => {
+    // Navigate to checkout with all books in cart
+    if (cartItems.length > 0) {
+      navigate("/checkout", { state: { books: cartItems } });
+    }
+  };
+
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors">
-        <div className="container mx-auto px-6 text-center">
+        <div className="w-full max-w-7xl mx-auto px-4 text-center">
           <ShoppingBag size={64} className="mx-auto text-gray-400 mb-6" />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200 mb-4">
             {t("emptyCart", "Your Cart is Empty")}
@@ -26,7 +35,7 @@ const Cart = () => {
           </p>
           <Link
             to="/shop"
-            className="inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
+            className="touch-area inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
           >
             <ArrowLeft size={20} className="mr-2" />
             {t("Continue Shopping")}
@@ -35,6 +44,7 @@ const Cart = () => {
       </div>
     );
   }
+
   return (
     <div
       dir={i18n.dir()}
@@ -53,7 +63,7 @@ const Cart = () => {
         </div>
 
         {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 lg:items-start">
           {/* Cart Items */}
           <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 divide-y divide-gray-200 dark:divide-zinc-700 h-fit">
             {cartItems.map((item) => (
@@ -122,7 +132,7 @@ const Cart = () => {
           </div>
 
           {/* Summary Sidebar */}
-          <div className="lg:sticky lg:top-20 h-fit">
+          <aside className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)]">
             <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 p-6">
               <div className="flex justify-between mb-6">
                 <span className="touch-area text-xl font-bold text-gray-900 dark:text-gray-200">
@@ -135,7 +145,10 @@ const Cart = () => {
 
               {/* Buttons in Column */}
               <div className="flex flex-col gap-3">
-                <button className="touch-area w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 cursor-pointer font-medium transition-colors">
+                <button
+                  onClick={handleCheckout}
+                  className="touch-area w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 cursor-pointer font-medium transition-colors"
+                >
                   {t("Checkout")}
                 </button>
                 <button
@@ -154,7 +167,7 @@ const Cart = () => {
                 </Link>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>

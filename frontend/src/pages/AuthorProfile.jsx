@@ -9,6 +9,7 @@ import AuthModal from "../components/AuthModal";
 import { getBooks } from "../api/booksApi";
 import Loading from "../components/Loading";
 import { FaCartPlus } from "react-icons/fa";
+import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
@@ -21,6 +22,17 @@ const AuthorProfile = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authorBooks, setAuthorBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { setIsLoading } = useGlobalLoading();
+
+  // Sync local loading with global loading bar
+  useEffect(() => {
+    setIsLoading(loading);
+
+    // Cleanup: reset loading when component unmounts
+    return () => {
+      setIsLoading(false);
+    };
+  }, [loading, setIsLoading]);
 
   useEffect(() => {
     const fetchAuthorBooks = async () => {
@@ -72,10 +84,14 @@ const AuthorProfile = () => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        width: "fit-content",
         maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
+        minWidth: "200px",
+        padding: "12px 16px",
         textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     });
   };
@@ -93,7 +109,13 @@ const AuthorProfile = () => {
   };
 
   if (loading) {
-    return <Loading loading={t("Loading author books...")} height="min-h-screen" animate={true}/>;
+    return (
+      <Loading
+        loading={t("Loading author books...")}
+        height="min-h-screen"
+        animate={true}
+      />
+    );
   }
 
   return (
@@ -105,13 +127,13 @@ const AuthorProfile = () => {
       />
 
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
+        <div className="w-full max-w-7xl mx-auto px-4 py-8">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
             {t("Go Back")}
           </button>
 
@@ -172,7 +194,13 @@ const AuthorProfile = () => {
                         src={bookImage}
                         alt={book.title}
                         whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 1.05 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
+                        onContextMenu={(e) => {
+                          const isMobile =
+                            window.matchMedia("(max-width: 768px)").matches;
+                          if (isMobile) e.preventDefault();
+                        }}
                       />
                       <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-10 pointer-events-none">
                         ₹{book.price}
