@@ -160,6 +160,93 @@ const BookDetails = () => {
       });
     }
   };
+
+  const handleRating = async (value) => {
+    if (!user) {
+      toast.error(t("Please login to rate books"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
+      return;
+    }
+
+    try {
+      // Update local state immediately for UI feedback
+      setBook({ ...book, userRating: value });
+
+      // Send rating to backend
+      const response = await fetch(
+        `/api/books/${id}/rate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rating: value,
+            userId: user._id || user.id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update book with new rating data from server
+        setBook({
+          ...book,
+          userRating: value,
+          rate: data.rate,
+          ratings: data.ratings,
+        });
+
+        // Mark this book as rated for this user
+        const userId = user?._id || user?.id || "guest";
+        const storageKey = `ratedBooks_${userId}`;
+        const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        if (!ratedBooks.includes(id)) {
+          ratedBooks.push(id);
+          localStorage.setItem(storageKey, JSON.stringify(ratedBooks));
+        }
+
+        toast.success(t("Thank you for your rating!"), {
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+      } else {
+        // Revert state if request failed
+        setBook({ ...book, userRating: book.userRating || 0 });
+        toast.error(data.message || t("Failed to submit rating"), {
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      // Revert state on error
+      setBook({ ...book, userRating: book.userRating || 0 });
+      toast.error(t("Failed to submit rating"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
+    }
+  };
   if (loading) {
     return <SkeletonLoading />;
   }
@@ -341,10 +428,7 @@ const BookDetails = () => {
                           size={20}
                           className={`cursor-pointer transition-all ${
                             value <=
-                            (book.hoverRating ||
-                              book.rate ||
-                              book.userRating ||
-                              book.ratings)
+                            (book.hoverRating || book.ratings || book.rate || 0)
                               ? "text-yellow-400 fill-yellow-400"
                               : "text-gray-300 fill-gray-300"
                           } hover:text-yellow-400 hover:fill-yellow-400`}
@@ -354,15 +438,17 @@ const BookDetails = () => {
                           onMouseLeave={() =>
                             setBook({ ...book, hoverRating: 0 })
                           }
-                          onClick={() =>
-                            setBook({ ...book, userRating: value })
-                          }
+                          onClick={() => handleRating(value)}
                         />
                       );
                     })}
                   </div>
                   <span className="text-gray-600 font-medium dark:text-gray-300">
-                    ({book.userRating || book.ratings || book.rate || 0} / 5)
+                    ({book.ratings || book.rate || 0} / 5)
+                    {book.numReviews > 0 &&
+                      ` • ${book.numReviews} ${
+                        book.numReviews === 1 ? t("review") : t("reviews")
+                      }`}
                   </span>
                 </div>
                 {/* Price Card */}

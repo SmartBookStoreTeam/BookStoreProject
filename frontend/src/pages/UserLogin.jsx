@@ -76,7 +76,7 @@ const UserLogin = () => {
       <img src={randomImage} alt="" className="auth-page-icon" />
 
       <div className="auth-container relative">
-        {/* Mobile XMark Button - Right Side */}
+        {/* Mobile XMark Button*/}
         <button
           onClick={() => navigate("/", { replace: true })}
           className="touch-area group lg:hidden absolute top-3 right-3 sm:top-4 sm:right-4 p-2 text-gray-600 dark:text-white/70 hover:text-gray-800 dark:hover:text-white rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
@@ -85,7 +85,7 @@ const UserLogin = () => {
           <XMarkIcon className="h-6 w-6" />
         </button>
 
-        {/* Large Screen Back Button - Left Side */}
+        {/* Large Screen Back Button*/}
         <button
           onClick={() => navigate("/", { replace: true })}
           className="touch-area group hidden lg:flex items-center gap-2 absolute top-3 left-3 sm:top-4 sm:left-4 p-2 text-gray-600 dark:text-white/70 hover:text-gray-800 dark:hover:text-white rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors cursor-pointer"

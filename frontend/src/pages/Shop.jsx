@@ -230,9 +230,7 @@ const Shop = () => {
         case "price-high":
           return b.price - a.price;
         case "rating":
-          return (
-            (b.rate || 3) - (a.rate || 3) || (b.ratings || 3) - (a.ratings || 3)
-          ); // Default rating for user books
+          return (b.ratings || b.rate || 3) - (a.ratings || a.rate || 3); // Default rating for books without ratings
         case "name":
         default:
           return a.title.localeCompare(b.title);
@@ -548,7 +546,8 @@ const Shop = () => {
                             key={i}
                             size={14}
                             className={`${
-                              i < (book.rate || book.rating || 0)
+                              i <
+                              (book.ratings || book.rate || book.rating || 0)
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"
                             } transition-colors duration-300`}

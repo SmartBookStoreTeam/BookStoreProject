@@ -450,7 +450,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
                           key={i}
                           size={14}
                           className={`${
-                            i < book.rate
+                            i < (book.ratings || book.rate || 0)
                               ? "text-yellow-500 fill-yellow-500"
                               : "text-indigo-200  fill-indigo-200 "
                           } transition-colors duration-300`}
