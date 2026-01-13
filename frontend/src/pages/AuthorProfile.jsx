@@ -127,13 +127,13 @@ const AuthorProfile = () => {
       />
 
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-        <div className="w-full max-w-7xl mx-auto px-4 py-8">
+        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 rounded-full mb-6 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
+            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 group-active:-translate-x-1 transition-all" />
             {t("Go Back")}
           </button>
 
@@ -263,7 +263,7 @@ const AuthorProfile = () => {
                           e.stopPropagation();
                           handleAddToCart(book);
                         }}
-                        className="flex-1 touch-area cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                        className="flex-1 touch-area cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
                       >
                         <FaCartPlus className="w-4 h-4" />
                         <span className="text-xs whitespace-nowrap">

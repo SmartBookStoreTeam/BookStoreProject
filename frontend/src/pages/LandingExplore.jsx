@@ -5,7 +5,7 @@ const LandingExplore = () => {
   const { t } = useTranslation();
   return (
     <div className="bg-[#E9D5FF]">
-      <div className="w-full max-w-7xl mx-auto px-4 py-12">
+      <div className="w-full max-w-[1350px] mx-auto px-4 py-12">
         <div className="flex items-center justify-between md:flex-row flex-col-reverse">
           <div>
             <h1 className="text-2xl text-[#1C2024] font-bold mb-3">

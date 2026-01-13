@@ -4,6 +4,7 @@ import {
   getBookById,
   searchBooks,
   getTopBooks,
+  rateBook,
 } from "../controllers/bookController.js";
 
 const router = express.Router();
@@ -82,5 +83,38 @@ router.get("/search", searchBooks);
  *         description: Book not found
  */
 router.get("/:id", getBookById);
+
+/**
+ * @swagger
+ * /api/books/{id}/rate:
+ *   post:
+ *     summary: Rate a book
+ *     tags: [Books]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
+ *     responses:
+ *       200:
+ *         description: Rating submitted successfully
+ *       400:
+ *         description: Invalid rating
+ *       404:
+ *         description: Book not found
+ */
+router.post("/:id/rate", rateBook);
 
 export default router;

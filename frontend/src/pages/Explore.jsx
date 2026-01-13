@@ -143,9 +143,7 @@ const Explore = () => {
       </nav>
 
       {/* Scroll to Top / Bottom Buttons */}
-      <div
-        className={`fixed bottom-6 z-50 flex flex-col gap-2 right-6`}
-      >
+      <div className={`fixed bottom-6 z-50 flex flex-col gap-2 right-6`}>
         {/* Scroll to Top */}
         <button
           onClick={scrollToTop}

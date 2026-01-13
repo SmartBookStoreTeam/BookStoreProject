@@ -73,7 +73,7 @@ const Landing = () => {
   return (
     <div className="bg-zinc-200 dark:bg-zinc-900 transition-colors duration-300">
       <section className="relative flex items-center dark:bg-zinc-900  justify-center min-h-screen overflow-hidden">
-        <div className="w-full max-w-7xl mx-auto px-4 py-12">
+        <div className="w-full max-w-[1350px] mx-auto px-4 py-12">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
             {/* Text Content */}
             <div className="w-full lg:max-w-xl text-center lg:text-left space-y-6 flex flex-col justify-center order-2 lg:order-1">
@@ -121,7 +121,7 @@ const Landing = () => {
                   type="text"
                   placeholder={`${t("Search for a book")}...`}
                   dir={i18n.dir()}
-                  className="w-full px-10 py-3 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
+                  className="w-full px-10 py-3 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 focus:hover:bg-white dark:focus:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
                 />
                 <MoreHorizontal
                   className="absolute right-4 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors duration-300"

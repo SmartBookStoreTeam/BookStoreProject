@@ -30,6 +30,7 @@ applyTheme();
 
 let activeTouchElement = null;
 let touchStartY = 0;
+let longPressTimer = null;
 
 document.addEventListener("touchstart", (e) => {
   const el = e.target.closest(".touch-area");
@@ -38,6 +39,13 @@ document.addEventListener("touchstart", (e) => {
   activeTouchElement = el;
   touchStartY = e.touches[0].clientY;
   el.classList.add("touch-active");
+
+  // Remove touch-active after 500ms (long press)
+  longPressTimer = setTimeout(() => {
+    if (activeTouchElement) {
+      activeTouchElement.classList.remove("touch-active");
+    }
+  }, 500);
 });
 
 //touch-active
@@ -51,6 +59,11 @@ document.addEventListener(
     const diff = Math.abs(touchMoveY - touchStartY);
 
     if (diff > 10) {
+      // Clear long press timer when scrolling
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
       activeTouchElement.classList.remove("touch-active");
       activeTouchElement = null;
     }
@@ -59,6 +72,12 @@ document.addEventListener(
 );
 
 const handleTouchEnd = () => {
+  // Clear long press timer
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+
   if (!activeTouchElement) return;
 
   const el = activeTouchElement;

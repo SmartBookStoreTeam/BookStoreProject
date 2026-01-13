@@ -450,7 +450,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
                           key={i}
                           size={14}
                           className={`${
-                            i < book.rate
+                            i < (book.ratings || book.rate || 0)
                               ? "text-yellow-500 fill-yellow-500"
                               : "text-indigo-200  fill-indigo-200 "
                           } transition-colors duration-300`}
@@ -484,7 +484,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         e.stopPropagation();
                         handleAddToCart(book);
                       }}
-                      className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                      className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
                     >
                       <FaCartPlus className="w-4 h-4" />
                       <span className="text-xs whitespace-nowrap">
