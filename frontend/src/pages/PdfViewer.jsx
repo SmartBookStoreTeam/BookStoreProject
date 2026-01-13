@@ -27,19 +27,23 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import axios from "axios";
 import Loading from "../components/Loading";
+import RateModal from "../components/RateModal";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
+import { useAuth } from "../context/AuthContext";
 
 const PdfViewer = () => {
   const { bookId } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showHeader, setShowHeader] = useState(false);
   const { addToCart, cartItems } = useCart();
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
+  const [showRateModal, setShowRateModal] = useState(false);
 
   // State for page tracking
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,9 +161,7 @@ const PdfViewer = () => {
       try {
         setLoading(true);
 
-        const response = await axios.get(
-          `http://localhost:5000/api/books/${bookId}`
-        );
+        const response = await axios.get(`/api/books/${bookId}`);
         setBook(response.data);
       } catch (err) {
         console.error("Error fetching book:", err);
@@ -213,6 +215,57 @@ const PdfViewer = () => {
         },
       });
     }
+  };
+
+  const handleCloseClick = () => {
+    // Check if user has already been asked to rate this book (user-specific)
+    const userId = user?._id || user?.id || "guest";
+    const storageKey = `ratedBooks_${userId}`;
+    const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    const hasRated = ratedBooks.includes(bookId);
+
+    if (!hasRated) {
+      setShowRateModal(true);
+    } else {
+      // If already rated/skipped, just navigate back
+      navigate(-1);
+    }
+  };
+
+  const handleRateSubmit = async (rating) => {
+    try {
+      await axios.post(`/api/books/${bookId}/rate`, {
+        rating,
+        userId: user?._id || user?.id,
+      });
+
+      // Mark this book as rated for this user
+      const userId = user?._id || user?.id || "guest";
+      const storageKey = `ratedBooks_${userId}`;
+      const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      if (!ratedBooks.includes(bookId)) {
+        ratedBooks.push(bookId);
+        localStorage.setItem(storageKey, JSON.stringify(ratedBooks));
+      }
+
+      toast.success(t("Thank you for your rating!"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+    } finally {
+      navigate(-1);
+    }
+  };
+
+  const handleRateClose = () => {
+    setShowRateModal(false);
+    navigate(-1);
   };
   if (loading) {
     return (
@@ -272,11 +325,11 @@ const PdfViewer = () => {
         className="fixed top-0 left-0 right-0 z-50 bg-zinc-800 border-b border-gray-700"
       >
         <div className="flex items-center py-1 px-2 md:py-2 md:px-3">
-          {/* Back Button */}
+          {/* Close Button - Shows Rate Modal */}
           <div className="touch-area flex-none flex justify-start">
             <button
-              onClick={() => navigate(-1)}
-              aria-label={t("Go back")}
+              onClick={handleCloseClick}
+              aria-label={t("Close")}
               className="touch-area flex items-center gap-2 px-2 py-2 border border-white/20 rounded-full text-white hover:scale-95 hover:bg-white/20 transition-all duration-300 active:scale-95 cursor-pointer"
             >
               <X size={18} className="md:w-5 md:h-5" />
@@ -396,6 +449,14 @@ const PdfViewer = () => {
           </nav>
         </div>
       </header>
+
+      {/* Rate Modal */}
+      <RateModal
+        isOpen={showRateModal}
+        onClose={handleRateClose}
+        onSubmit={handleRateSubmit}
+        bookTitle={book?.title || ""}
+      />
 
       {/* PDF Content */}
       <div

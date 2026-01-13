@@ -14,18 +14,18 @@ const SkeletonLoading = () => {
         <button
           dir="ltr"
           onClick={() => navigate("/shop")}
-          className="group flex md:hidden items-center active:-translate-x-1 justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-7 transition-colors cursor-pointer"
+          className="group touch-area flex md:hidden items-center justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 rounded-full mb-7 transition-colors cursor-pointer"
         >
-          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
+          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 group-active:-translate-x-1 transition-all" />
           {t("Back to Shop")}
         </button>
 
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden dark:bg-[#1a1a22]">
-          <div className="p-8 lg:p-10">
+          <div className="p-2 lg:p-10">
             <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_340px] gap-6 lg:gap-10">
               {/* Book Image Skeleton */}
-              <div className="flex flex-col items-center lg:items-start">
+              <div className="flex flex-col items-start">
                 <Skeleton
                   width={288}
                   height={384}
@@ -53,8 +53,9 @@ const SkeletonLoading = () => {
                 {/* Title */}
                 <Skeleton
                   width="80%"
-                  height={40}
+                  height={30}
                   className="mb-4"
+                  borderRadius={24}
                   baseColor="#a09daaff"
                   highlightColor="#f3f4f6"
                 />
@@ -64,6 +65,7 @@ const SkeletonLoading = () => {
                   width={200}
                   height={24}
                   className="mb-4"
+                  borderRadius={24}
                   baseColor="#a09daaff"
                   highlightColor="#f3f4f6"
                 />
@@ -128,19 +130,11 @@ const SkeletonLoading = () => {
 
                 {/* Price Card Skeleton - Mobile */}
                 <div dir="ltr" className="block md:hidden mt-6">
-                  <div className="rounded-xl p-6">
+                  <div className="rounded-xl">
                     <Skeleton
                       width={120}
                       height={25}
                       className="mb-4"
-                      baseColor="#a09daaff"
-                      highlightColor="#f3f4f6"
-                    />
-                    <Skeleton
-                      width="100%"
-                      height={48}
-                      borderRadius={8}
-                      className="mb-3"
                       baseColor="#a09daaff"
                       highlightColor="#f3f4f6"
                     />
@@ -210,7 +204,7 @@ const SkeletonLoading = () => {
           </div>
 
           {/* Additional Details - Same position as BookDetails */}
-          <div className="px-8 lg:px-10 pb-8 lg:pb-10">
+          <div className="px-2 mt-4 lg:px-10 pb-8 lg:pb-10">
             {/* Title */}
             <Skeleton
               width={150}

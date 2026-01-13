@@ -160,6 +160,93 @@ const BookDetails = () => {
       });
     }
   };
+
+  const handleRating = async (value) => {
+    if (!user) {
+      toast.error(t("Please login to rate books"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
+      return;
+    }
+
+    try {
+      // Update local state immediately for UI feedback
+      setBook({ ...book, userRating: value });
+
+      // Send rating to backend
+      const response = await fetch(
+        `/api/books/${id}/rate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rating: value,
+            userId: user._id || user.id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update book with new rating data from server
+        setBook({
+          ...book,
+          userRating: value,
+          rate: data.rate,
+          ratings: data.ratings,
+        });
+
+        // Mark this book as rated for this user
+        const userId = user?._id || user?.id || "guest";
+        const storageKey = `ratedBooks_${userId}`;
+        const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        if (!ratedBooks.includes(id)) {
+          ratedBooks.push(id);
+          localStorage.setItem(storageKey, JSON.stringify(ratedBooks));
+        }
+
+        toast.success(t("Thank you for your rating!"), {
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+      } else {
+        // Revert state if request failed
+        setBook({ ...book, userRating: book.userRating || 0 });
+        toast.error(data.message || t("Failed to submit rating"), {
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      // Revert state on error
+      setBook({ ...book, userRating: book.userRating || 0 });
+      toast.error(t("Failed to submit rating"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
+    }
+  };
   if (loading) {
     return <SkeletonLoading />;
   }
@@ -234,14 +321,14 @@ const BookDetails = () => {
           <button
             dir="ltr"
             onClick={() => navigate("/shop")}
-            className="group touch-area flex md:hidden items-center justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-7 transition-colors cursor-pointer"
+            className="group touch-area flex md:hidden items-center justify-start rounded-full mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 mb-7 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
             {t("Back to Shop")}
           </button>
           {/* Book Details */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden dark:bg-[#1a1a22]">
-            <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_340px] gap-6 lg:gap-10 p-8 lg:p-10">
+          <div className="overflow-hidden">
+            <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_340px] gap-6 lg:gap-10 p-2 bg-gray-50 dark:bg-zinc-900 lg:p-10">
               {/* Book Image */}
               <div className="touch-area flex flex-col items-center lg:items-start order-1">
                 <div
@@ -314,7 +401,7 @@ const BookDetails = () => {
                 {/* Title */}
                 <h1
                   dir="auto"
-                  className="touch-area text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200"
+                  className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200"
                 >
                   {book.title}
                 </h1>
@@ -331,7 +418,7 @@ const BookDetails = () => {
                 </Link>
 
                 {/* Rating */}
-                <div className="touch-area flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 mb-6">
                   <div dir="ltr" className="flex">
                     {Array.from({ length: 5 }).map((_, i) => {
                       const value = i + 1;
@@ -339,12 +426,9 @@ const BookDetails = () => {
                         <Star
                           key={i}
                           size={20}
-                          className={`touch-area cursor-pointer transition-all ${
+                          className={`cursor-pointer transition-all ${
                             value <=
-                            (book.hoverRating ||
-                              book.rate ||
-                              book.userRating ||
-                              book.ratings)
+                            (book.hoverRating || book.ratings || book.rate || 0)
                               ? "text-yellow-400 fill-yellow-400"
                               : "text-gray-300 fill-gray-300"
                           } hover:text-yellow-400 hover:fill-yellow-400`}
@@ -354,19 +438,21 @@ const BookDetails = () => {
                           onMouseLeave={() =>
                             setBook({ ...book, hoverRating: 0 })
                           }
-                          onClick={() =>
-                            setBook({ ...book, userRating: value })
-                          }
+                          onClick={() => handleRating(value)}
                         />
                       );
                     })}
                   </div>
-                  <span className="touch-area text-gray-600 font-medium dark:text-gray-300">
-                    ({book.userRating || book.ratings || book.rate || 0} / 5)
+                  <span className="text-gray-600 font-medium dark:text-gray-300">
+                    ({book.ratings || book.rate || 0} / 5)
+                    {book.numReviews > 0 &&
+                      ` • ${book.numReviews} ${
+                        book.numReviews === 1 ? t("review") : t("reviews")
+                      }`}
                   </span>
                 </div>
                 {/* Price Card */}
-                <div className="touch-area my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                <div className="my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
                   <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
                     {book.price} {t("EGP")}
                   </span>
@@ -377,7 +463,7 @@ const BookDetails = () => {
                   )}
                 </div>
                 {/* Category */}
-                <div className="touch-area flex flex-wrap gap-3 mb-6">
+                <div className="flex flex-wrap gap-3 mb-6">
                   <span
                     className={`inline-flex items-center text-sm font-medium px-3 py-1 rounded-full ${
                       book.category === "uncategorized"
@@ -426,7 +512,7 @@ const BookDetails = () => {
 
                 {/* Preview Book Link */}
                 {book.pdf && (
-                  <div className="touch-area text-left">
+                  <div dir={i18n.dir()} className="touch-area">
                     {user ? (
                       <Link
                         to={`/pdf-viewer/${book._id || book.id}`}
@@ -457,7 +543,7 @@ const BookDetails = () => {
                     e.stopPropagation();
                     handleAddToCart(book);
                   }}
-                  className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
+                  className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white active:scale-95 dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
                 >
                   {isBookInCart ? (
                     <>
@@ -496,43 +582,43 @@ const BookDetails = () => {
             </div>
 
             {/* Additional Details*/}
-            <div dir={i18n.dir()} className="px-8 lg:px-10 pb-8 lg:pb-10">
-              <h3 className="touch-area text-lg font-semibold text-gray-900 mb-4 dark:text-gray-300">
+            <div dir={i18n.dir()} className="px-2 mt-4 lg:px-10 pb-8 lg:pb-10">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 dark:text-gray-300">
                 {t("Additional Details")}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-gray-50 rounded-lg dark:bg-gray-800">
                 <div>
-                  <span className="touch-area text-sm text-gray-600 dark:text-gray-200">
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
                     ISBN:
                   </span>
                   <p
-                    className="touch-area font-medium text-gray-900 dark:text-gray-200 text-sm break-words"
+                    className="font-medium text-gray-900 dark:text-gray-200 text-sm break-words"
                     title={book.isbn}
                   >
                     {book.isbn}
                   </p>
                 </div>
                 <div>
-                  <span className="touch-area text-sm text-gray-600 dark:text-gray-200">
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
                     {t("Edition")}:
                   </span>
-                  <p className="touch-area font-medium text-gray-900 dark:text-gray-200">
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
                     {book.edition}
                   </p>
                 </div>
                 <div>
-                  <span className="touch-area text-sm text-gray-600 dark:text-gray-200">
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
                     {t("Year")}:
                   </span>
-                  <p className="touch-area font-medium text-gray-900 dark:text-gray-200">
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
                     {book.publicationYear}
                   </p>
                 </div>
                 <div>
-                  <span className="touch-area text-sm text-gray-600 dark:text-gray-200">
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
                     {t("Pages")}:
                   </span>
-                  <p className="touch-area font-medium text-gray-900 dark:text-gray-200">
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
                     {book.pages}
                   </p>
                 </div>

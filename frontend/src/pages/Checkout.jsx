@@ -7,7 +7,8 @@ import OrderSummary from "../components/OrderSummary";
 import CustomerInfoForm from "../components/CustomerInfoForm";
 import PaymentMethods from "../components/PaymentMethods";
 import TrustSection from "../components/TrustSection";
-import { ArrowLeft, Loader } from "lucide-react";
+import AuthModal from "../components/AuthModal";
+import { ArrowLeft, Loader, ShoppingCart } from "lucide-react";
 import toast from "react-hot-toast";
 
 const Checkout = () => {
@@ -31,6 +32,7 @@ const Checkout = () => {
   const [selectedMethod, setSelectedMethod] = useState("card");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Redirect if no books - run only once
   useEffect(() => {
@@ -63,6 +65,12 @@ const Checkout = () => {
 
   // Handle checkout
   const handleCheckout = async () => {
+    // Check if user is logged in
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     // Validate email
     if (!customerInfo.email) {
       setErrors({ email: t("Email is required") });
@@ -136,13 +144,15 @@ const Checkout = () => {
   }
 
   const isFormValid = customerInfo.email && isEmailValid(customerInfo.email);
+  // Button is enabled for non-logged-in users (to show auth modal) or when form is valid for logged-in users
+  const isButtonDisabled = loading || (user && !isFormValid);
 
   return (
     <div
       dir={i18n.dir()}
       className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/40 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 py-8 overflow-x-hidden"
     >
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div dir="ltr" className="mb-6">
           <button
@@ -195,9 +205,9 @@ const Checkout = () => {
               {/* Checkout Button */}
               <button
                 onClick={handleCheckout}
-                disabled={!isFormValid || loading}
+                disabled={isButtonDisabled}
                 className={`touch-area cursor-pointer w-full mt-6 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all duration-200 focus-visible:ring-4 focus-visible:ring-indigo-300 dark:focus-visible:ring-indigo-700 ${
-                  !isFormValid || loading
+                  isButtonDisabled
                     ? "bg-gray-300 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                     : "bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 dark:from-indigo-500 dark:to-blue-500 dark:hover:from-indigo-600 dark:hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 }`}
@@ -221,6 +231,16 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Please login or create an account to complete your purchase"
+        icon={
+          <ShoppingCart className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400" />
+        }
+      />
     </div>
   );
 };

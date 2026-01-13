@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 const GoogleLoginButton = ({ onSuccess, onError }) => {
   const { googleLogin } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -42,9 +42,10 @@ const GoogleLoginButton = ({ onSuccess, onError }) => {
 
   return (
     <button
+    dir={i18n.dir()}
       onClick={handleGoogleLogin}
       type="button"
-      className="touch-area w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 dark:border-zinc-700 rounded-lg font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition cursor-pointer"
+      className="touch-area w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-300 dark:border-zinc-700 rounded-lg font-medium text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition cursor-pointer"
     >
       <svg className="h-5 w-5" viewBox="0 0 24 24">
         <path

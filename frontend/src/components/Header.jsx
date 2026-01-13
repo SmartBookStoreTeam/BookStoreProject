@@ -150,7 +150,7 @@ const Header = () => {
   }, []);
   return (
     <header className="fixed top-0 left-0 w-full bg-zinc-200 dark:bg-zinc-900 shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700">
-      <div className="w-full max-w-7xl mx-auto px-4">
+      <div className="w-full max-w-[1470px] mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
           <Link
@@ -685,7 +685,7 @@ const Header = () => {
       {/* Loading Bar */}
       <div
         className={`absolute bottom-0 h-[2px] transition-all duration-300 overflow-hidden ${
-          isLoading ? "w-full opacity-100" : "w-0 opacity-0"
+          isLoading ? "w-[95%] lg:w-[99%] opacity-100" : "w-0 opacity-0"
         } left-0`}
         style={{
           background: "linear-gradient(to left, #6366f1, #6366f1, #6366f1)",
@@ -699,7 +699,7 @@ const Header = () => {
         {/* Moving wave effect */}
         {isPulsing && (
           <div
-            className={"animate-wave-ltr"}
+            className={"animate-wave"}
             style={{
               position: "absolute",
               top: 0,
@@ -707,7 +707,7 @@ const Header = () => {
               right: 0,
               bottom: 0,
               background:
-                "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)",
+                "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
               backgroundSize: "50% 100%",
             }}
           />
