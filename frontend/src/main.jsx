@@ -6,7 +6,9 @@ import App from "./App.jsx";
 import { BrowserRouter as Router } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 372268312688-uk28crvkaufe2el15vupc0e5m6tsf1op.apps.googleusercontent.com;
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID || 
+  "372268312688-uk28crvkaufe2el15vupc0e5m6tsf1op.apps.googleusercontent.com";
 
 const applyTheme = () => {
   const theme = localStorage.getItem("theme") || "system";
