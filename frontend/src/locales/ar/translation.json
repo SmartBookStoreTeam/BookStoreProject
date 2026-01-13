@@ -274,7 +274,7 @@
   "Failed to load suggestions": "فشل في جلب الاقتراحات",
   "Failed to load popular books": "فشل في جلب اكثر الكتب شهرة",
   "Failed to load Releases books": "فشل في جلب الكتب الجديدة",
-
+  "Please login or create an account to complete your purchase": "يرجى تسجيل الدخول أو إنشاء حساب لاتمام الشراء",
   "Top Rated Books": "الأعلى تقييمًا",
   "No top rated books available": "لا توجد إصدارات جديدة متاحة",
   "Failed to load top rated books": "فشل في جلب الكتب الاعلى تقييمًا",
@@ -377,6 +377,16 @@
   "Book not found": "لم يتم العثور على الكتاب",
 
   "Download link will be sent to this email": "سيتم إرسال رابط التحميل إلى هذا البريد الإلكتروني",
+  "Continue with Google": "المتابعة باستخدام Google",
+  "Or register with email": "أو التسجيل باستخدام البريد الإلكتروني",
+  "Or continue with email": "أو المتابعة باستخدام البريد الإلكتروني",
+  "Missing credentials for \"PLAIN\"": "بيانات الاعتماد مفقودة لآلية \"PLAIN\"",
+  "Email already exists": "البريد الإلكتروني موجود بالفعل",
+  "Please verify your email first": "الرجاء التحقق من بريدك الإلكتروني أولا",
+  "User validation failed: email: Please enter a valid email": "يرجى إدخال بريد إلكتروني صالح",
+  "All fields are required": "جميع الحقول مطلوبة",
+  "User registered successfully": "تم التسجيل بنجاح",
+  "Login successful": "تم تسجيل الدخول بنجاح",
   "optional": "اختياري",
   "No refunds after download. Please make sure before purchasing.": "لا يوجد استرجاع بعد التحميل. يرجى التأكد قبل الشراء.",
   "Support": "الدعم",
@@ -385,6 +395,5 @@
   "24/7 Available": "متاح على مدار الساعة",
   "100% Protected": "حماية 100%",
   "We will contact you to complete payment": "سنتواصل معك لإكمال الدفع",
-
   "En": "Ar"
 }

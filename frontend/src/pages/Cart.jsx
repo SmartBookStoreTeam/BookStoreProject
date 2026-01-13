@@ -25,7 +25,7 @@ const Cart = () => {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors">
-        <div className="w-full max-w-7xl mx-auto px-4 text-center">
+        <div className="w-full max-w-[1350px] mx-auto px-4 text-center">
           <ShoppingBag size={64} className="mx-auto text-gray-400 mb-6" />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200 mb-4">
             {t("emptyCart", "Your Cart is Empty")}
@@ -35,7 +35,7 @@ const Cart = () => {
           </p>
           <Link
             to="/shop"
-            className="touch-area inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
+            className="touch-area inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 active:scale-95 transition"
           >
             <ArrowLeft size={20} className="mr-2" />
             {t("Continue Shopping")}

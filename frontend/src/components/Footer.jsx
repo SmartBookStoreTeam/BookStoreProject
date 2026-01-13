@@ -5,7 +5,7 @@ const Footer = () => {
   const { t, i18n } = useTranslation();
   return (
     <div dir={i18n.dir()} className="bg-black text-white py-12">
-      <div className="w-full max-w-7xl mx-auto px-4">
+      <div className="w-full max-w-[1350px] mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">

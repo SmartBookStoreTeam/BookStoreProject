@@ -166,15 +166,15 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-5 transition-colors duration-300">
-      <div className="w-full max-w-7xl mx-auto px-4">
-           {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
-            {t("Go Back")}
-          </button>
+      <div className="w-full max-w-[1350px] mx-auto px-4">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
+          {t("Go Back")}
+        </button>
         <h1 className="text-3xl text-center font-bold text-gray-900 dark:text-gray-100 mb-8">
           {t("Profile")}
         </h1>

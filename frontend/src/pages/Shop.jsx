@@ -270,8 +270,8 @@ const Shop = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
-      <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-20">
-        <div className="w-full max-w-7xl mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-2">
+        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-300">
@@ -294,7 +294,7 @@ const Shop = () => {
                   placeholder={`${t("Search books or authors")}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 focus:hover:bg-transparent dark:focus:hover:bg-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
                 />
               </div>
 
@@ -584,7 +584,7 @@ const Shop = () => {
                           e.stopPropagation();
                           handleAddToCart(book);
                         }}
-                        className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
+                        className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
                       >
                         <FaCartPlus size={14} />
                         <span className="text-xs">{t("Add to Cart")}</span>

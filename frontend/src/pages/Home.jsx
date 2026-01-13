@@ -79,7 +79,6 @@ const Home = () => {
     }
   };
 
-
   return (
     <>
       {/* Scroll to Top Button - Visible when scrolling down */}

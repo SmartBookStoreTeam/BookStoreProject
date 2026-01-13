@@ -46,7 +46,7 @@ const CheckoutSuccess = () => {
       dir={i18n.dir()}
       className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 pt-10 pb-12 overflow-x-hidden"
     >
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Success Icon*/}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full mb-6">

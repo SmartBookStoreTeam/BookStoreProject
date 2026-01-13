@@ -809,7 +809,7 @@ const Publish = () => {
         dir={i18n.dir()}
         className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-20"
       >
-        <div className="w-full max-w-7xl mx-auto px-4 py-8">
+        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
