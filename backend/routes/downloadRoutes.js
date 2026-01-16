@@ -1,9 +1,9 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
-import { requestPurchase } from "../controllers/orderController.js";
+import { downloadBook } from "../controllers/downloadController.js";
 
 const router = express.Router();
 
-router.post("/request", protect, requestPurchase);
+router.get("/books/:id/download", protect, downloadBook);
 
 export default router;
