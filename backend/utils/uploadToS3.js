@@ -1,36 +1,17 @@
 import s3 from "../config/awss3.js";
 
-export const uploadToS3 = (
-  buffer,
-  filename,
-  mimeType,
-  options = { folder: "books", isPublic: false }
-) =>
+export const uploadToS3 = (buffer, filename, mimeType) =>
   new Promise((resolve, reject) => {
-    const safeName = (filename || "file")
-      .replace(/\s+/g, "_")
-      .replace(/[^\w.\-]/g, "");
-
-    const key = `${options.folder}/${Date.now()}_${safeName}`;
-
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: key,
+      Key: `books/${Date.now()}_${filename}`,
       Body: buffer,
-      ContentType: mimeType,
+      ContentType: "application/pdf",
+      ACL: "public-read",
     };
 
-    if (options.isPublic) {
-      params.ACL = "public-read";
-    }
-
     s3.upload(params, (err, data) => {
-      if (err) return reject(err);
-
-      resolve({
-        key: data.Key,
-        url: data.Location,
-        bucket: data.Bucket,
-      });
+      if (err) reject(err);
+      else resolve(data.Location);
     });
   });

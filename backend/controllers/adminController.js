@@ -20,17 +20,16 @@ export const createBook = async (req, res, next) => {
       throw new Error("Image and PDF are required");
     }
 
-    // Upload image to Cloudinary (public is OK for cover images)
+    // رفع الصورة على Cloudinary
     const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
       folder: "book-store/images",
     });
 
-    // Upload PDF to S3 and store only the object key in the database
-    const pdfUpload = await uploadToS3(
+    // رفع PDF على S3
+    const pdfUrl = await uploadToS3(
       req.files.pdf[0].buffer,
       req.files.pdf[0].originalname,
-      req.files.pdf[0].mimetype,
-      { folder: "books", isPublic: false }
+      req.files.pdf[0].mimetype
     );
 
     const book = await Book.create({
@@ -39,19 +38,11 @@ export const createBook = async (req, res, next) => {
       description,
       category,
       price,
-      image: imageUpload.secure_url,
-      pdf: pdfUpload.key, // Store the S3 key, not the URL
-      fileMeta: {
-        size: req.files.pdf[0].size,
-        mime: req.files.pdf[0].mimetype,
-      },
+      image: imageUpload.secure_url, // رابط Cloudinary
+      pdf: pdfUrl, // رابط S3
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Book created successfully",
-      data: book,
-    });
+    res.status(201).json(book);
   } catch (err) {
     next(err);
   }
@@ -74,30 +65,17 @@ export const updateBook = async (req, res, next) => {
     ];
 
     fields.forEach((field) => {
-      if (req.body[field] !== undefined) updateData[field] = req.body[field];
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
     });
 
-    if (req.files?.image?.[0]) {
-      const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
-        folder: "book-store/images",
-      });
-      updateData.image = imageUpload.secure_url;
+    if (req.files?.image) {
+      updateData.image = req.files.image[0].path;
     }
 
-    if (req.files?.pdf?.[0]) {
-      // Upload PDF to S3 and store only the key in the database
-      const pdfUpload = await uploadToS3(
-        req.files.pdf[0].buffer,
-        req.files.pdf[0].originalname,
-        req.files.pdf[0].mimetype,
-        { folder: "books", isPublic: false }
-      );
-
-      updateData.pdf = pdfUpload.key;
-      updateData.fileMeta = {
-        size: req.files.pdf[0].size,
-        mime: req.files.pdf[0].mimetype,
-      };
+    if (req.files?.pdf) {
+      updateData.pdf = req.files.pdf[0].path;
     }
 
     const updatedBook = await Book.findByIdAndUpdate(
@@ -105,7 +83,7 @@ export const updateBook = async (req, res, next) => {
       updateData,
       {
         new: true,
-        runValidators: true,
+        runValidators: true, // ✔ يشغّل validators على الحقول اللي اتغيرت
       }
     );
 
@@ -113,8 +91,10 @@ export const updateBook = async (req, res, next) => {
       return res.status(404).json({ message: "Book not found" });
     }
 
+    console.log("FILES:", req.files);
+    console.log("UPDATE DATA:", updateData);
+
     res.json({
-      success: true,
       message: "Book updated successfully",
       updatedBook,
     });
@@ -135,16 +115,20 @@ export const deleteBook = async (req, res, next) => {
     );
 
     if (!book) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Book not found" });
+      return res.status(404).json({ message: "Book not found" });
     }
 
-    return res.json({
-      success: true,
-      message: "Book disabled successfully",
-      data: book,
-    });
+    res.json({ message: "Book disabled successfully" });
+
+    if (!book) {
+      res.status(404);
+      throw new Error("Book not found");
+    }
+
+    book.isActive = false;
+    await book.save();
+
+    res.json({ message: "Book disabled successfully" });
   } catch (error) {
     next(error);
   }
@@ -159,35 +143,8 @@ export const deleteBook = async (req, res, next) => {
 // @access  Admin
 export const getAllUsers = async (req, res, next) => {
   try {
-    const pageSize = Number(req.query.pageSize) || 10;
-    const page = Number(req.query.page) || 1;
-    const q = req.query.q?.trim();
-
-    const filter = {};
-    if (q) {
-      filter.$or = [
-        { name: { $regex: q, $options: "i" } },
-        { email: { $regex: q, $options: "i" } },
-      ];
-    }
-
-    const total = await User.countDocuments(filter);
-    const users = await User.find(filter)
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
-
-    res.json({
-      success: true,
-      data: users,
-      meta: {
-        page,
-        pageSize,
-        total,
-        pages: Math.ceil(total / pageSize),
-      },
-    });
+    const users = await User.find({}).select("-password");
+    res.json(users);
   } catch (error) {
     next(error);
   }
@@ -208,68 +165,6 @@ export const deleteUser = async (req, res, next) => {
     res.json({ message: "User removed successfully" });
   } catch (error) {
     next(error);
-  }
-};
-
-export const getAllBooksAdmin = async (req, res, next) => {
-  try {
-    const pageSize = Number(req.query.pageSize) || 10;
-    const page = Number(req.query.page) || 1;
-
-    const q = req.query.q?.trim();
-    const isActive = req.query.isActive; // "true" | "false"
-    const category = req.query.category;
-    const sort = req.query.sort || "-createdAt"; // example: "price" or "-price"
-
-    const filter = {};
-
-    if (q) {
-      filter.$or = [
-        { title: { $regex: q, $options: "i" } },
-        { author: { $regex: q, $options: "i" } },
-        { description: { $regex: q, $options: "i" } },
-      ];
-    }
-
-    if (isActive === "true") filter.isActive = true;
-    if (isActive === "false") filter.isActive = false;
-
-    if (category) filter.category = category;
-
-    const total = await Book.countDocuments(filter);
-
-    const books = await Book.find(filter)
-      .select("-pdf -reviews -__v")
-      .sort(sort)
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
-
-    res.json({
-      success: true,
-      data: books,
-      meta: {
-        page,
-        pageSize,
-        total,
-        pages: Math.ceil(total / pageSize),
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const getBookAdminById = async (req, res, next) => {
-  try {
-    const book = await Book.findById(req.params.id).select("-pdf -__v");
-    if (!book)
-      return res
-        .status(404)
-        .json({ success: false, message: "Book not found" });
-
-    res.json({ success: true, data: book });
-  } catch (err) {
-    next(err);
   }
 };
 

@@ -12,11 +12,6 @@ import swaggerSpec from "./swagger.js";
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
-import adminOrderRoutes from "./routes/adminOrderRoutes.js";
-import downloadRoutes from "./routes/downloadRoutes.js";
-import categoryRoutes from "./routes/categoryRoutes.js";
-import adminCategoryRoutes from "./routes/adminCategoryRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -32,7 +27,7 @@ const allowedOrigins = [
   "http://localhost:5174", // ممكن تستخدمه كمان
   "http://192.168.1.19:5173", // dev frontend
   // ضع هنا دومين الـ production بعد الرفع
-  "https://d1r1pvso22xiyd.cloudfront.net",
+  "https://d1r1pvso22xiyd.cloudfront.net"
 ];
 
 app.use(
@@ -63,11 +58,6 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/admin/orders", adminOrderRoutes);
-app.use("/api", downloadRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/admin/categories", adminCategoryRoutes);
 
 const PORT = process.env.PORT || 5000;
 

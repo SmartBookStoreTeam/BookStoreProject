@@ -6,7 +6,6 @@ import {
   getTopBooks,
   rateBook,
 } from "../controllers/bookController.js";
-import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -116,6 +115,6 @@ router.get("/:id", getBookById);
  *       404:
  *         description: Book not found
  */
-router.post("/:id/rate", protect, rateBook);
+router.post("/:id/rate", rateBook);
 
 export default router;
