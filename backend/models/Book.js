@@ -37,11 +37,20 @@ const bookSchema = new mongoose.Schema(
       required: [true, "Book image is required"],
     },
 
-    // 📄 ملف الـ PDF (مش رابط مباشر للعميل)
     pdf: {
       type: String,
       required: [true, "Book PDF file is required"],
-      // select: false, // مهم للأمان
+      select: false,
+    },
+    previewPdf: {
+      type: String, // S3 key for preview file
+      select: false,
+    },
+
+    fileMeta: {
+      size: { type: Number }, // bytes
+      pages: { type: Number },
+      mime: { type: String }, // application/pdf
     },
 
     // ⭐ التقييمات

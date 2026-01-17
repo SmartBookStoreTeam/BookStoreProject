@@ -29,8 +29,22 @@ export const createBook = async (req, res, next) => {
     const pdfUrl = await uploadToS3(
       req.files.pdf[0].buffer,
       req.files.pdf[0].originalname,
-      req.files.pdf[0].mimetype
+      req.files.pdf[0].mimetype,
+      { folder: "books", isPublic: false }
     );
+
+    let previewKey = null;
+    // Upload preview PDF to S3 (optional)
+    if (req.files?.previewPdf?.[0]) {
+      const previewUpload = await uploadToS3(
+        req.files.previewPdf[0].buffer,
+        req.files.previewPdf[0].originalname,
+        req.files.previewPdf[0].mimetype,
+        { folder: "previews", isPublic: false }
+      );
+
+      previewKey = previewUpload.key;
+    }
 
     const book = await Book.create({
       title,
@@ -38,8 +52,13 @@ export const createBook = async (req, res, next) => {
       description,
       category,
       price,
-      image: imageUpload.secure_url, // رابط Cloudinary
-      pdf: pdfUrl, // رابط S3
+      image: imageUpload.secure_url,
+      pdf: pdfUpload.key, // Store the S3 key, not the URL
+      previewPdf: previewKey,
+      fileMeta: {
+        size: req.files.pdf[0].size,
+        mime: req.files.pdf[0].mimetype,
+      },
     });
 
     res.status(201).json(book);
@@ -74,8 +93,31 @@ export const updateBook = async (req, res, next) => {
       updateData.image = req.files.image[0].path;
     }
 
-    if (req.files?.pdf) {
-      updateData.pdf = req.files.pdf[0].path;
+    if (req.files?.pdf?.[0]) {
+      // Upload PDF to S3 and store only the key in the database
+      const pdfUpload = await uploadToS3(
+        req.files.pdf[0].buffer,
+        req.files.pdf[0].originalname,
+        req.files.pdf[0].mimetype,
+        { folder: "books", isPublic: false }
+      );
+
+      if (req.files?.previewPdf?.[0]) {
+        const previewUpload = await uploadToS3(
+          req.files.previewPdf[0].buffer,
+          req.files.previewPdf[0].originalname,
+          req.files.previewPdf[0].mimetype,
+          { folder: "previews", isPublic: false }
+        );
+
+        updateData.previewPdf = previewUpload.key;
+      }
+
+      updateData.pdf = pdfUpload.key;
+      updateData.fileMeta = {
+        size: req.files.pdf[0].size,
+        mime: req.files.pdf[0].mimetype,
+      };
     }
 
     const updatedBook = await Book.findByIdAndUpdate(
