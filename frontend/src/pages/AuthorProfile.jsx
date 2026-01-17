@@ -58,7 +58,20 @@ const AuthorProfile = () => {
         );
 
         // Combine both sources
-        setAuthorBooks([...filteredApiBooks, ...filteredUserBooks]);
+        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];
+
+        // Debug: Log rating values
+        console.log(
+          "📚 Author Books:",
+          combinedBooks.map((b) => ({
+            title: b.title,
+            ratings: b.ratings,
+            rate: b.rate,
+            rating: b.rating,
+          }))
+        );
+
+        setAuthorBooks(combinedBooks);
       } catch (error) {
         console.error("Error fetching author books:", error);
         setAuthorBooks([]);
@@ -127,11 +140,11 @@ const AuthorProfile = () => {
       />
 
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
+        <div className="w-full max-w-[1350px] mx-auto px-4 py-4">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 rounded-full mb-6 transition-colors cursor-pointer"
+            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-100/10 p-2 rounded-full mb-6 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 group-active:-translate-x-1 transition-all" />
             {t("Go Back")}
@@ -232,7 +245,10 @@ const AuthorProfile = () => {
                             key={i}
                             size={14}
                             className={`${
-                              i < (book.rate || book.rating || 0)
+                              i <
+                              Math.round(
+                                book.ratings || book.rate || book.rating || 0
+                              )
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"
                             } transition-colors duration-300`}

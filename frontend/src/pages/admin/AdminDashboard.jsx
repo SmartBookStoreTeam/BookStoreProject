@@ -4,7 +4,6 @@ import QuickStats from "../../components/admin/QuickStats";
 import RecentOrders from "../../components/admin/RecentOrders";
 import TopBooks from "../../components/admin/TopBooks";
 import SalesChart from "../../components/admin/SalesChart";
-import InventoryAlert from "../../components/admin/InventoryAlert";
 
 const AdminDashboard = () => {
   return (
@@ -26,10 +25,9 @@ const AdminDashboard = () => {
         <TopBooks />
       </div>
 
-      {/* Recent Orders and Inventory Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Recent Orders */}
+      <div className="grid grid-cols-1 gap-6">
         <RecentOrders />
-        <InventoryAlert />
       </div>
 
       {/* Additional Info Section */}

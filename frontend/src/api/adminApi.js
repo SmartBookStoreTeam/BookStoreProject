@@ -23,3 +23,9 @@ export const getUsers = async () => {
   const res = await api.get("/admin/users");
   return res.data;
 };
+
+// Get all orders
+export const getOrders = async () => {
+  const res = await api.get("/admin/orders");
+  return res.data;
+};

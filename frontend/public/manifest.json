@@ -1,9 +1,10 @@
 {
-  "name": "Book Store",
-  "short_name": "Book Store",
+  "name": "Bookfly Store",
+  "short_name": "Bookfly Store",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "theme_color": "#e4e4e7",
+  "background_color": "#e4e4e7",
   "icons": [
     {
       "src": "/icon-192.png",

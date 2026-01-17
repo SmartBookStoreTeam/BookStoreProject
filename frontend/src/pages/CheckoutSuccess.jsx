@@ -17,7 +17,7 @@ const CheckoutSuccess = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { clearCart } = useCart();
+  const { clearCart, addPurchasedBooks } = useCart();
 
   const { books, customerInfo } = location.state || {};
 
@@ -29,10 +29,12 @@ const CheckoutSuccess = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
-  // Clear cart on success - run once
+  // Clear cart and save purchased books on success - run once
   useEffect(() => {
     if (books && books.length > 0) {
       clearCart();
+      // Save purchased books
+      addPurchasedBooks(books);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
@@ -162,7 +164,7 @@ const CheckoutSuccess = () => {
         </div>
 
         {/* Action Buttons - Mobile Only (appears after books) */}
-        <div className="order-3 lg:hidden mb-6">
+        <div className="order-3 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Link
               to="/shop"
@@ -188,10 +190,10 @@ const CheckoutSuccess = () => {
           <p>
             {t("Need help? Contact us at")}{" "}
             <a
-              href="mailto:bookstore@gmail.com"
+              href="mailto:bookfly@gmail.com"
               className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
             >
-              bookstore@gmail.com
+              bookfly@gmail.com
             </a>
           </p>
         </div>

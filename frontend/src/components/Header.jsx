@@ -156,10 +156,10 @@ const Header = () => {
           <Link
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/")}
-            className="touch-area flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-2xl font-bold tracking-tight"
+            className="touch-area flex items-center gap-3 text-gray-900 dark:text-indigo-200 text-2xl font-bold tracking-tight"
             onContextMenu={handleContextMenu}
           >
-            <span>{t("Books")}</span>
+            <span>Bookfly</span>
           </Link>
 
           {/* Desktop Links */}
@@ -464,10 +464,10 @@ const Header = () => {
           <Link
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
-            className="touch-area flex items-center gap-3 text-indigo-950 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
+            className="touch-area flex items-center gap-3 text-indigo-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
             onContextMenu={handleContextMenu}
           >
-            <span>{t("Books")}</span>
+            <span>Bookfly</span>
           </Link>
 
           <ul className="flex flex-col gap-4 text-indigo-950 dark:text-zinc-200 font-medium">
