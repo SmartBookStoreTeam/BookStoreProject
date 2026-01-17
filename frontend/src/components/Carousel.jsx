@@ -196,10 +196,14 @@ const Carousel = ({ books, carouselId = "default" }) => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        width: "fit-content",
         maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
+        minWidth: "200px",
+        padding: "12px 16px",
         textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     });
   };
@@ -404,7 +408,13 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         alt={book.desc || book.description || book.title}
                         draggable="false"
                         whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 1.1 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
+                        onContextMenu={(e) => {
+                          const isMobile =
+                            window.matchMedia("(max-width: 768px)").matches;
+                          if (isMobile) e.preventDefault();
+                        }}
                       />
                     </div>
                     <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
@@ -440,7 +450,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
                           key={i}
                           size={14}
                           className={`${
-                            i < book.rate
+                            i < (book.ratings || book.rate || 0)
                               ? "text-yellow-500 fill-yellow-500"
                               : "text-indigo-200  fill-indigo-200 "
                           } transition-colors duration-300`}
@@ -474,7 +484,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         e.stopPropagation();
                         handleAddToCart(book);
                       }}
-                      className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                      className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
                     >
                       <FaCartPlus className="w-4 h-4" />
                       <span className="text-xs whitespace-nowrap">

@@ -6,6 +6,8 @@ import Explore from "./pages/Explore";
 import Shop from "./pages/Shop";
 import Publish from "./pages/Publish";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import NotFound from "./pages/NotFound";
 import UserBooks from "./pages/UserBooks";
 import BookDetailsPage from "./pages/BookDetails";
@@ -24,6 +26,7 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
 import { AuthProvider } from "./context/AuthContext";
 import { NavigationProvider } from "./context/NavigationContext";
+import { LoadingProvider } from "./context/LoadingContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import Register from "./pages/Register";
@@ -48,56 +51,60 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <NavigationProvider>
-          <Toaster position="top-center" />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="explore" element={<Explore />} />
-              <Route path="shop" element={<Shop />} />
-              <Route path="book/:id" element={<BookDetailsPage />} />
-              <Route path="publish" element={<Publish />} />
-              <Route path="cart" element={<Cart />} />
-              <Route path="user-books" element={<UserBooks />} />
-              <Route path="author/:name" element={<AuthorProfile />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
+          <LoadingProvider>
+            <Toaster position="top-center" />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="explore" element={<Explore />} />
+                <Route path="shop" element={<Shop />} />
+                <Route path="book/:id" element={<BookDetailsPage />} />
+                <Route path="publish" element={<Publish />} />
+                <Route path="cart" element={<Cart />} />
+                <Route path="checkout" element={<Checkout />} />
+                <Route path="checkout/success" element={<CheckoutSuccess />} />
+                <Route path="user-books" element={<UserBooks />} />
+                <Route path="author/:name" element={<AuthorProfile />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
 
-            {/* PDF Viewer - Full Screen (Outside Layout) */}
-            <Route
-              path="book/pdf/:bookId"
-              element={
-                <UserProtectedRoute>
-                  <PdfViewer />
-                </UserProtectedRoute>
-              }
-            />
+              {/* PDF Viewer - Full Screen (Outside Layout) */}
+              <Route
+                path="pdf-viewer/:bookId"
+                element={
+                  <UserProtectedRoute>
+                    <PdfViewer />
+                  </UserProtectedRoute>
+                }
+              />
 
-            {/* Auth Routes */}
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<AdminLogin />} />
-            <Route path="/user-login" element={<UserLogin />} />
+              {/* Auth Routes */}
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<AdminLogin />} />
+              <Route path="/user-login" element={<UserLogin />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
 
-            {/* Admin Routes - Protected */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="books" element={<AdminBooks />} />
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="customers" element={<AdminCustomers />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="/admin/books/:id" element={<AdminBookDetails />} />
-            </Route>
-          </Routes>
+              {/* Admin Routes - Protected */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="books" element={<AdminBooks />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="customers" element={<AdminCustomers />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="/admin/books/:id" element={<AdminBookDetails />} />
+              </Route>
+            </Routes>
+          </LoadingProvider>
         </NavigationProvider>
       </CartProvider>
     </AuthProvider>

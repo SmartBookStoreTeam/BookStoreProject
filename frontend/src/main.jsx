@@ -6,7 +6,9 @@ import App from "./App.jsx";
 import { BrowserRouter as Router } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID || 
+  "372268312688-uk28crvkaufe2el15vupc0e5m6tsf1op.apps.googleusercontent.com";
 
 const applyTheme = () => {
   const theme = localStorage.getItem("theme") || "system";
@@ -30,6 +32,7 @@ applyTheme();
 
 let activeTouchElement = null;
 let touchStartY = 0;
+let longPressTimer = null;
 
 document.addEventListener("touchstart", (e) => {
   const el = e.target.closest(".touch-area");
@@ -38,19 +41,31 @@ document.addEventListener("touchstart", (e) => {
   activeTouchElement = el;
   touchStartY = e.touches[0].clientY;
   el.classList.add("touch-active");
+
+  // Remove touch-active after 500ms (long press)
+  longPressTimer = setTimeout(() => {
+    if (activeTouchElement) {
+      activeTouchElement.classList.remove("touch-active");
+    }
+  }, 500);
 });
 
-// إزالة touch-active لما يحصل scroll
+//touch-active
 document.addEventListener(
   "touchmove",
   (e) => {
     if (!activeTouchElement) return;
 
-    // لو المستخدم حرك إصبعه أكتر من 10 بكسل، يبقى بيعمل scroll
+    //scroll
     const touchMoveY = e.touches[0].clientY;
     const diff = Math.abs(touchMoveY - touchStartY);
 
     if (diff > 10) {
+      // Clear long press timer when scrolling
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
       activeTouchElement.classList.remove("touch-active");
       activeTouchElement = null;
     }
@@ -59,6 +74,12 @@ document.addEventListener(
 );
 
 const handleTouchEnd = () => {
+  // Clear long press timer
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+
   if (!activeTouchElement) return;
 
   const el = activeTouchElement;

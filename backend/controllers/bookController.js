@@ -177,3 +177,59 @@ export const rateBook = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Rate a book
+// @route   POST /api/books/:id/rate
+// @access  Public
+export const rateBook = async (req, res, next) => {
+  try {
+    const { rating, userId } = req.body;
+    const book = await Book.findById(req.params.id);
+
+    if (!book) {
+      res.status(404);
+      throw new Error("Book not found");
+    }
+
+    // Validate rating
+    if (!rating || rating < 1 || rating > 5) {
+      res.status(400);
+      throw new Error("Rating must be between 1 and 5");
+    }
+
+    // Check if user has already rated this book
+    const existingReviewIndex = book.reviews.findIndex(
+      (review) => review.user && review.user.toString() === userId
+    );
+
+    if (existingReviewIndex !== -1) {
+      // Update existing rating
+      book.reviews[existingReviewIndex].rating = rating;
+    } else {
+      // Add new rating
+      book.reviews.push({
+        user: userId || null,
+        rating: rating,
+      });
+    }
+
+    // Recalculate average rating from all reviews
+    const totalRating = book.reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / book.reviews.length;
+
+    book.ratings = averageRating;
+    book.numReviews = book.reviews.length;
+
+    await book.save();
+
+    res.json({
+      success: true,
+      message: "Rating submitted successfully",
+      rate: book.ratings,
+      ratings: book.ratings,
+      numReviews: book.numReviews,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

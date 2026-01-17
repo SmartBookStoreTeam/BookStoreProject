@@ -4,12 +4,24 @@ import { useTranslation } from "react-i18next";
 import Carousel from "./Carousel";
 import { getBooks } from "../api/booksApi";
 import Loading from "./Loading";
+import { useGlobalLoading } from "../context/LoadingContext";
 
 const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
   const { userBooks } = useCart();
   const { t, i18n } = useTranslation();
   const [authorBooks, setAuthorBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { setIsLoading } = useGlobalLoading();
+
+  // Sync local loading with global loading bar
+  useEffect(() => {
+    setIsLoading(loading);
+
+    // Cleanup: reset loading when component unmounts
+    return () => {
+      setIsLoading(false);
+    };
+  }, [loading, setIsLoading]);
 
   // Helper function to normalize image format
   const normalizeBookImage = (book) => {
@@ -96,7 +108,13 @@ const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
   }, [authorName, userBooks, excludeBookId]);
 
   if (loading) {
-    return <Loading loading={t("Loading author books...")} height="h-96" animate={true} />;
+    return (
+      <Loading
+        loading={t("Loading author books...")}
+        height="h-96"
+        animate={true}
+      />
+    );
   }
 
   // Don't render if no books found

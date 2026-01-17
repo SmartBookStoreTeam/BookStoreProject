@@ -32,7 +32,7 @@ const LandingExplore = () => {
 
   return (
     <div className="bg-[#E9D5FF] dark:bg-gray-900 transition-colors duration-300">
-      <div className="container mx-auto px-6 md:px-20 py-12">
+      <div className="w-full max-w-[1350px] mx-auto px-4 py-12">
         <div className="flex items-center dark:bg-gray-900 justify-between md:flex-row flex-col-reverse gap-8 md:gap-0">
           <div className="w-full md:w-1/2">
             <h1
@@ -51,7 +51,7 @@ const LandingExplore = () => {
                 type="text"
                 placeholder={`${t("Search for a book")}...`}
                 dir={i18n.dir()}
-                className="w-full px-10 py-3 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
+                className="w-full px-10 py-3 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 focus:hover:bg-white dark:focus:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
               />
               <MoreHorizontal
                 className="absolute right-4 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors duration-300"

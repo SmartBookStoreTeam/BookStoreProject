@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 
 const Layout = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen w-full overflow-x-clip flex flex-col">
       {/* Fixed header */}
       <Header />
 

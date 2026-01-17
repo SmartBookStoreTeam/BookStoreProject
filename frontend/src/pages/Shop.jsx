@@ -10,6 +10,7 @@ import Loading from "../components/Loading";
 import { useTranslation } from "react-i18next";
 import AuthModal from "../components/AuthModal";
 import { FaCartPlus } from "react-icons/fa";
+import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 // Mock data for fallback
@@ -110,6 +111,17 @@ const Shop = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const { setIsLoading } = useGlobalLoading();
+
+  // Sync local loading with global loading bar
+  useEffect(() => {
+    setIsLoading(loading);
+
+    // Cleanup: reset loading when component unmounts
+    return () => {
+      setIsLoading(false);
+    };
+  }, [loading, setIsLoading]);
 
   const getImageSrc = (image) => {
     if (!image) return null;
@@ -218,9 +230,7 @@ const Shop = () => {
         case "price-high":
           return b.price - a.price;
         case "rating":
-          return (
-            (b.rate || 3) - (a.rate || 3) || (b.ratings || 3) - (a.ratings || 3)
-          ); // Default rating for user books
+          return (b.ratings || b.rate || 3) - (a.ratings || a.rate || 3); // Default rating for books without ratings
         case "name":
         default:
           return a.title.localeCompare(b.title);
@@ -239,10 +249,14 @@ const Shop = () => {
         background: "#333",
         color: "#fff",
         direction: i18n.dir(),
+        width: "fit-content",
         maxWidth: "90vw",
-        minWidth: "320px",
-        padding: "12px",
+        minWidth: "200px",
+        padding: "12px 16px",
         textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     });
   };
@@ -254,8 +268,8 @@ const Shop = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
-      <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-20 py-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-2">
+        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-300">
@@ -278,7 +292,7 @@ const Shop = () => {
                   placeholder={`${t("Search books or authors")}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 focus:hover:bg-transparent dark:focus:hover:bg-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-300"
                 />
               </div>
 
@@ -479,7 +493,16 @@ const Shop = () => {
                           scale: 1.05,
                           filter: "brightness(1.1)",
                         }}
+                        whileTap={{
+                          scale: 1.05,
+                          filter: "brightness(1.1)",
+                        }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
+                        onContextMenu={(e) => {
+                          const isMobile =
+                            window.matchMedia("(max-width: 768px)").matches;
+                          if (isMobile) e.preventDefault();
+                        }}
                       />
 
                       {/* Price Badge */}
@@ -523,7 +546,8 @@ const Shop = () => {
                             key={i}
                             size={14}
                             className={`${
-                              i < (book.rate || book.rating || 0)
+                              i <
+                              (book.ratings || book.rate || book.rating || 0)
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"
                             } transition-colors duration-300`}
@@ -559,7 +583,7 @@ const Shop = () => {
                           e.stopPropagation();
                           handleAddToCart(book);
                         }}
-                        className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
+                        className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
                       >
                         <FaCartPlus size={14} />
                         <span className="text-xs">{t("Add to Cart")}</span>

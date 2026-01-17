@@ -1,5 +1,4 @@
-import logo from "./logo.png";
-
+import logo from "./logo2.png";
 import landingBook1 from "./landingBook1.png";
 import landingBook2 from "./landingBook2.png";
 import landingBook3 from "./landingBook3.png";
@@ -22,6 +21,7 @@ import visa from "./visa.png";
 import mastercard from "./mastercard.png";
 import amercanExpress from "./amercan express.png";
 import meeza from "./meeza.png";
+import cash from "./cash.png";
 import eg from "./eg.svg";
 
 import landingBooks from "./books-landing.png";
@@ -45,6 +45,7 @@ export const assets = {
  mastercard,
  amercanExpress,
  meeza,
+ cash,
 eg,
  landingBooks,
 };

@@ -4,6 +4,7 @@ import {
   getBookById,
   searchBooks,
   getTopBooks,
+  rateBook,
 } from "../controllers/bookController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
