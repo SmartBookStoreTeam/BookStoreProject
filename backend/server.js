@@ -17,6 +17,7 @@ import adminOrderRoutes from "./routes/adminOrderRoutes.js";
 import downloadRoutes from "./routes/downloadRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import adminCategoryRoutes from "./routes/adminCategoryRoutes.js";
+import previewRoutes from "./routes/previewRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -68,6 +69,7 @@ app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api", downloadRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
+app.use("/api", previewRoutes);
 
 const PORT = process.env.PORT || 5000;
 

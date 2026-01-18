@@ -33,6 +33,19 @@ export const createBook = async (req, res, next) => {
       { folder: "books", isPublic: false }
     );
 
+    let previewKey = null;
+    // Upload preview PDF to S3 (optional)
+    if (req.files?.previewPdf?.[0]) {
+      const previewUpload = await uploadToS3(
+        req.files.previewPdf[0].buffer,
+        req.files.previewPdf[0].originalname,
+        req.files.previewPdf[0].mimetype,
+        { folder: "previews", isPublic: false }
+      );
+
+      previewKey = previewUpload.key;
+    }
+
     const book = await Book.create({
       title,
       author,
@@ -41,6 +54,7 @@ export const createBook = async (req, res, next) => {
       price,
       image: imageUpload.secure_url,
       pdf: pdfUpload.key, // Store the S3 key, not the URL
+      previewPdf: previewKey,
       fileMeta: {
         size: req.files.pdf[0].size,
         mime: req.files.pdf[0].mimetype,
@@ -92,6 +106,17 @@ export const updateBook = async (req, res, next) => {
         req.files.pdf[0].mimetype,
         { folder: "books", isPublic: false }
       );
+
+      if (req.files?.previewPdf?.[0]) {
+        const previewUpload = await uploadToS3(
+          req.files.previewPdf[0].buffer,
+          req.files.previewPdf[0].originalname,
+          req.files.previewPdf[0].mimetype,
+          { folder: "previews", isPublic: false }
+        );
+
+        updateData.previewPdf = previewUpload.key;
+      }
 
       updateData.pdf = pdfUpload.key;
       updateData.fileMeta = {

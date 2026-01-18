@@ -106,7 +106,10 @@ const Cart = () => {
                         key={i}
                         size={14}
                         className={
-                          i < (item.rate || item.rating || item.ratings || 0)
+                          i <
+                          Math.round(
+                            item.ratings || item.rate || item.rating || 0
+                          )
                             ? "text-yellow-500 fill-yellow-500"
                             : "text-gray-300"
                         }

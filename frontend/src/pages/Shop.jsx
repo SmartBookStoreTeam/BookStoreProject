@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Search, Filter, Star, ShoppingCart, Grid, List } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { getBooks } from "../api/booksApi";
@@ -98,7 +98,8 @@ const mockBooks = [
 ];
 
 const Shop = () => {
-  const { addToCart, userBooks } = useCart();
+  const { addToCart, userBooks, isBookPurchased } = useCart();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
@@ -112,6 +113,15 @@ const Shop = () => {
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { setIsLoading } = useGlobalLoading();
+
+  // Read search query from URL on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchQuery = params.get("search");
+    if (searchQuery) {
+      setSearchTerm(decodeURIComponent(searchQuery));
+    }
+  }, [location.search]);
 
   // Sync local loading with global loading bar
   useEffect(() => {
@@ -147,7 +157,7 @@ const Shop = () => {
           const prices = booksData.map((b) => b.price);
           const userBookPrices = userBooks.map((b) => b.price || 0);
           const maxPrice = Math.ceil(
-            Math.max(...prices, ...userBookPrices, 50)
+            Math.max(...prices, ...userBookPrices, 50),
           );
           setMaxPriceLimit(maxPrice);
           setPriceRange([0, maxPrice]);
@@ -421,7 +431,7 @@ const Shop = () => {
             )}
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
               <Filter size={16} />
-              <span>{t("Filtered")}</span>
+              <span>{t("Filter")}</span>
             </div>
           </div>
 
@@ -547,7 +557,9 @@ const Shop = () => {
                             size={14}
                             className={`${
                               i <
-                              (book.ratings || book.rate || book.rating || 0)
+                              Math.round(
+                                book.ratings || book.rate || book.rating || 0,
+                              )
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"
                             } transition-colors duration-300`}
@@ -578,16 +590,19 @@ const Shop = () => {
                       >
                         {t("Details")}
                       </Link>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(book);
-                        }}
-                        className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
-                      >
-                        <FaCartPlus size={14} />
-                        <span className="text-xs">{t("Add to Cart")}</span>
-                      </button>
+                      {/* Hide Add to Cart for purchased books */}
+                      {!isBookPurchased(book._id || book.id) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(book);
+                          }}
+                          className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
+                        >
+                          <FaCartPlus size={14} />
+                          <span className="text-xs">{t("Add to Cart")}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

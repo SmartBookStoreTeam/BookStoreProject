@@ -15,8 +15,8 @@ import {
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState({
-    storeName: "Book Haven",
-    storeEmail: "support@bookhaven.com",
+    storeName: "Bookfly Store",
+    storeEmail: "bookfly2026@gmail.com",
     storePhone: "+1 234 567 8900",
     storeAddress: "123 Book Street, New York, NY 10001",
     currency: "USD",
@@ -26,8 +26,6 @@ const AdminSettings = () => {
     smsNotifications: false,
     twoFactorAuth: true,
     taxRate: 8.5,
-    shippingCost: 5.99,
-    freeShippingThreshold: 50,
   });
 
   const handleChange = (key, value) => {
@@ -144,12 +142,12 @@ const AdminSettings = () => {
                 Business Settings
               </h3>
               <p className="text-gray-600">
-                Pricing, taxes, and shipping configurations
+                Pricing and tax configurations for digital downloads
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Currency
@@ -179,43 +177,6 @@ const AdminSettings = () => {
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Shipping Cost ($)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={settings.shippingCost}
-                onChange={(e) =>
-                  handleChange("shippingCost", parseFloat(e.target.value))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div className="md:col-span-3">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Free Shipping Threshold ($)
-              </label>
-              <input
-                type="number"
-                value={settings.freeShippingThreshold}
-                onChange={(e) =>
-                  handleChange(
-                    "freeShippingThreshold",
-                    parseFloat(e.target.value)
-                  )
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter amount for free shipping"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Free shipping will be applied when order total exceeds this
-                amount
-              </p>
             </div>
           </div>
         </div>

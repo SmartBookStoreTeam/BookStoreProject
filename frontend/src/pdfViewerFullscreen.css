@@ -1,0 +1,24 @@
+/* PDF Viewer Fullscreen - Remove all spacing */
+:fullscreen,
+::backdrop {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Remove PDF viewer internal padding in fullscreen */
+:fullscreen .rpv-core__viewer,
+:fullscreen .rpv-default-layout__container,
+:fullscreen .rpv-default-layout__body,
+:fullscreen .rpv-default-layout__main {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Ensure toolbar is visible in fullscreen if needed */
+:fullscreen .rpv-default-layout__toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+}

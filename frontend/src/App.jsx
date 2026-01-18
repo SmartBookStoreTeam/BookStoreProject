@@ -40,12 +40,13 @@ import VerifyEmail from "./pages/VerifyEmail";
 function App() {
   useScrollToTop();
   useTheme();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Update HTML lang attribute based on current language
   useEffect(() => {
     document.documentElement.lang = i18n.language;
-  }, [i18n.language]);
+    document.title = t("Bookfly Store - Buy your favorite books online");
+  }, [i18n.language, t]);
 
   return (
     <AuthProvider>
@@ -84,7 +85,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<AdminLogin />} />
               <Route path="/user-login" element={<UserLogin />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
 
               {/* Admin Routes - Protected */}
               <Route
