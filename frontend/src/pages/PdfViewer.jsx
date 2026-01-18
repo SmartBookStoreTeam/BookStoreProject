@@ -25,8 +25,7 @@ import toast from "react-hot-toast";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import api from "../api/api";
-import { getBookById } from "../api/booksApi";
+import axios from "axios";
 import Loading from "../components/Loading";
 import RateModal from "../components/RateModal";
 import { useTranslation } from "react-i18next";
@@ -171,28 +170,10 @@ const PdfViewer = () => {
       try {
         setLoading(true);
 
-        const bookData = await getBookById(bookId);
-        let currentBook = bookData;
-
-        // If PDF is a key (not a URL) and user owns the book, try to get signed URL
-        const isBought = isBookPurchased(bookId);
-        if (
-          currentBook.pdf &&
-          !currentBook.pdf.startsWith("http") &&
-          isBought
-        ) {
-          try {
-            // Use api instance which handles base URL and auth tokens
-            const downloadRes = await api.get(`/books/${bookId}/download`);
-            if (downloadRes.data.success && downloadRes.data.data.url) {
-              currentBook = { ...currentBook, pdf: downloadRes.data.data.url };
-            }
-          } catch (err) {
-            console.error("Failed to get signed URL", err);
-          }
-        }
-
-        setBook(currentBook);
+        const response = await axios.get(
+          `/api/books/${bookId}`,
+        );
+        setBook(response.data);
       } catch (err) {
         console.error("Error fetching book:", err);
         setError(t("Failed to load book data"));
@@ -204,7 +185,7 @@ const PdfViewer = () => {
     if (bookId) {
       fetchBook();
     }
-  }, [bookId, t, isBookPurchased]);
+  }, [bookId, t]);
 
   // Check if book is already in cart
   const isBookInCart =
@@ -264,7 +245,7 @@ const PdfViewer = () => {
 
   const handleRateSubmit = async (rating) => {
     try {
-      await api.post(`/books/${bookId}/rate`, {
+      await axios.post(`/api/books/${bookId}/rate`, {
         rating,
         userId: user?._id || user?.id,
       });
