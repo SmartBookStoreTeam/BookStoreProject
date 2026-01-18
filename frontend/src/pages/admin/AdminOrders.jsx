@@ -24,19 +24,8 @@ const AdminOrders = () => {
       try {
         setLoading(true);
         const response = await getOrders();
-        const ordersData = response || [];
-
-        const mappedOrders = ordersData.map((order) => ({
-          ...order,
-          id: order._id,
-          customer: order.user?.name || "Unknown User",
-          date: order.createdAt, // Backend uses createdAt
-          items: order.items?.length || 0,
-          total: order.total,
-          status: order.status, // Backend: requested, approved, rejected
-        }));
-
-        setOrders(mappedOrders);
+        const ordersData = response.orders || response || [];
+        setOrders(ordersData);
       } catch (error) {
         console.error("Error fetching orders:", error);
         // If API fails, orders will remain empty array
@@ -48,7 +37,13 @@ const AdminOrders = () => {
     fetchOrders();
   }, []);
 
-  const statusOptions = ["all", "requested", "approved", "rejected"];
+  const statusOptions = [
+    "all",
+    "Pending",
+    "Processing",
+    "Downloaded",
+    "Cancelled",
+  ];
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -61,11 +56,11 @@ const AdminOrders = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "approved":
+      case "Downloaded":
         return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-      case "requested":
+      case "Processing":
         return <ClockIcon className="h-5 w-5 text-yellow-500" />;
-      case "rejected":
+      case "Cancelled":
         return <XCircleIcon className="h-5 w-5 text-red-500" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-500" />;
@@ -74,11 +69,11 @@ const AdminOrders = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "approved":
+      case "Downloaded":
         return "bg-green-100 text-green-800";
-      case "requested":
+      case "Processing":
         return "bg-yellow-100 text-yellow-800";
-      case "rejected":
+      case "Cancelled":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -88,8 +83,8 @@ const AdminOrders = () => {
   const updateOrderStatus = (orderId, newStatus) => {
     setOrders(
       orders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order,
-      ),
+        order.id === orderId ? { ...order, status: newStatus } : order
+      )
     );
   };
 
@@ -111,7 +106,7 @@ const AdminOrders = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {["requested", "approved", "rejected"].map((status) => (
+        {["Pending", "Processing", "Downloaded", "Cancelled"].map((status) => (
           <div key={status} className="bg-white rounded-xl shadow-sm p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -239,7 +234,7 @@ const AdminOrders = () => {
                         <div className="flex items-center space-x-2">
                           <span
                             className={`px-2 sm:px-3 py-1 text-xs rounded-full ${getStatusColor(
-                              order.status,
+                              order.status
                             )}`}
                           >
                             {order.status}
@@ -273,7 +268,7 @@ const AdminOrders = () => {
                             className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
                             title="Mark as Downloaded"
                             onClick={() =>
-                              updateOrderStatus(order.id, "approved")
+                              updateOrderStatus(order.id, "Downloaded")
                             }
                           >
                             <ArrowDownTrayIcon className="h-5 w-5" />
@@ -282,7 +277,7 @@ const AdminOrders = () => {
                             className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
                             title="Cancel Order"
                             onClick={() =>
-                              updateOrderStatus(order.id, "rejected")
+                              updateOrderStatus(order.id, "Cancelled")
                             }
                           >
                             <XCircleIcon className="h-5 w-5" />
