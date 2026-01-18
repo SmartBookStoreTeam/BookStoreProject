@@ -114,7 +114,7 @@ const mockBooks = [
 export const getBooks = async () => {
   try {
     const res = await api.get("/books");
-    return res.data.data;
+    return res.data;
   } catch (error) {
     console.error("API Error, using mock data:", error);
     // Return mock data as fallback
@@ -126,7 +126,7 @@ export const getBooks = async () => {
 export const getBookById = async (id) => {
   try {
     const res = await api.get(`/books/${id}`);
-    return res.data.data;
+    return res.data;
   } catch (error) {
     console.error("API Error, using mock data:", error);
     // Return mock book as fallback
