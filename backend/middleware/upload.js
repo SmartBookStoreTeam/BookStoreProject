@@ -18,4 +18,5 @@ const upload = multer({
 export const uploadBookFiles = upload.fields([
   { name: "image", maxCount: 1 },
   { name: "pdf", maxCount: 1 },
+  { name: "previewPdf", maxCount: 1 },
 ]);
