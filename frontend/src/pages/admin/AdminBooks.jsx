@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { addBook, updateBook, deleteBook } from "../../api/adminApi";
 import { getBooks } from "../../api/booksApi";
+import { getCategories } from "../../api/categoriesApi";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -14,6 +15,7 @@ import {
 
 const AdminBooks = () => {
   const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -22,26 +24,15 @@ const AdminBooks = () => {
 
   const navigate = useNavigate();
 
-  const categories = [
-    "all",
-    "Fiction",
-    "Technology",
-    "Romance",
-    "Programming",
-    "Fantasy",
-    "Education",
-    "Cooking",
-    "Self-Help",
-  ];
-
   /* ================= FILTER ================= */
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
       book?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       book?.author?.toLowerCase().includes(searchTerm.toLowerCase());
 
+    const bookCategoryName = book.category?.name || book.category;
     const matchesCategory =
-      selectedCategory === "all" || book.category === selectedCategory;
+      selectedCategory === "all" || bookCategoryName === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -63,7 +54,7 @@ const AdminBooks = () => {
     try {
       const updated = await updateBook(id, bookData);
       setBooks((prev) =>
-        prev.map((b) => (b._id === updated._id ? updated : b))
+        prev.map((b) => (b._id === updated._id ? updated : b)),
       );
       setEditingBook(null);
     } catch (err) {
@@ -85,16 +76,27 @@ const AdminBooks = () => {
 
   /* ================= FETCH ================= */
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getBooks();
-        setBooks(Array.isArray(data) ? data : []);
+        const [booksData, categoriesData] = await Promise.all([
+          getBooks(),
+          getCategories(),
+        ]);
+
+        const mappedBooks = (Array.isArray(booksData) ? booksData : []).map(
+          (book) => ({
+            ...book,
+            status: book.isActive ? "available" : "unavailable",
+          }),
+        );
+        setBooks(mappedBooks);
+        setCategories(categoriesData || []);
       } catch (err) {
         console.error(err);
-        setBooks([]);
+        // setBooks([]); // Don't clear if partial fail
       }
     };
-    fetchBooks();
+    fetchData();
   }, []);
 
   return (
@@ -161,9 +163,10 @@ const AdminBooks = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="border rounded-lg px-3 py-2"
           >
+            <option value="all">All Categories</option>
             {categories.map((c) => (
-              <option key={c} value={c}>
-                {c === "all" ? "All Categories" : c}
+              <option key={c._id} value={c.name}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -212,7 +215,7 @@ const AdminBooks = () => {
                   </td>
 
                   <td className="hidden md:table-cell px-6 py-4">
-                    {book.category}
+                    {book.category?.name || book.category}
                   </td>
                   <td className="hidden sm:table-cell px-4 md:px-6 py-4 font-semibold text-sm sm:text-base">
                     ${Number(book.price || 0).toFixed(2)}
@@ -270,13 +273,15 @@ const AdminBooks = () => {
                   const data = new FormData(e.target);
                   const bookData = new FormData();
 
-                  [
-                    "title",
-                    "author",
-                    "category",
-                    "description",
-                    "status",
-                  ].forEach((f) => bookData.append(f, data.get(f)));
+                  ["title", "author", "category", "description"].forEach((f) =>
+                    bookData.append(f, data.get(f)),
+                  );
+
+                  // Map status to isActive
+                  bookData.append(
+                    "isActive",
+                    data.get("status") === "available",
+                  );
 
                   bookData.append("price", parseFloat(data.get("price") || 0));
 
@@ -323,14 +328,20 @@ const AdminBooks = () => {
 
               <select
                 name="category"
-                defaultValue={editingBook?.category}
+                defaultValue={
+                  editingBook?.category?._id || editingBook?.category || ""
+                }
                 className="w-full border px-3 py-2 rounded"
+                required
               >
-                {categories
-                  .filter((c) => c !== "all")
-                  .map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
+                <option value="" disabled>
+                  Select Category
+                </option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
 
               <select
@@ -374,8 +385,8 @@ const AdminBooks = () => {
                   {isUploading
                     ? "Uploading..."
                     : editingBook
-                    ? "Update"
-                    : "Add"}
+                      ? "Update"
+                      : "Add"}
                 </button>
               </div>
             </form>
