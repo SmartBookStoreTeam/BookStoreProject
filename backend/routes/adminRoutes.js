@@ -3,6 +3,8 @@ import {
   createBook,
   updateBook,
   deleteBook,
+  getAllBooksAdmin,
+  getBookAdminById,
   getAllUsers,
   deleteUser,
 } from "../controllers/adminController.js";
@@ -26,6 +28,122 @@ const router = express.Router();
 /**
  * @swagger
  * /api/admin/books:
+ *   get:
+ *     summary: Get all books (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search keyword (title, author, description)
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *         description: Filter by active status
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by category (string or categoryId depending on your schema)
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           default: -createdAt
+ *         description: "Sort field (e.g., price, -price, -createdAt)"
+ *     responses:
+ *       200:
+ *         description: Books retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Book'
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     pageSize:
+ *                       type: integer
+ *                       example: 10
+ *                     total:
+ *                       type: integer
+ *                       example: 120
+ *                     pages:
+ *                       type: integer
+ *                       example: 12
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Admin access only
+ */
+router.get("/books", protect, admin, getAllBooksAdmin);
+
+/**
+ * @swagger
+ * /api/admin/books/{id}:
+ *   get:
+ *     summary: Get a single book by ID (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Book ID
+ *     responses:
+ *       200:
+ *         description: Book retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Book'
+ *       401:
+ *         description: Not authorized
+ *       403:
+ *         description: Admin access only
+ *       404:
+ *         description: Book not found
+ */
+router.get("/books/:id", protect, admin, getBookAdminById);
+
+/**
+ * @swagger
+ * /api/admin/books:
  *   post:
  *     summary: Create a new book (Admin only)
  *     tags: [Admin]
@@ -34,13 +152,17 @@ const router = express.Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - title
  *               - author
+ *               - description
+ *               - category
  *               - price
+ *               - image
+ *               - pdf
  *             properties:
  *               title:
  *                 type: string
@@ -48,15 +170,37 @@ const router = express.Router();
  *               author:
  *                 type: string
  *                 example: Robert C. Martin
+ *               description:
+ *                 type: string
+ *                 example: A handbook of agile software craftsmanship
+ *               category:
+ *                 type: string
+ *                 example: Programming
  *               price:
  *                 type: number
- *                 example: 25
- *               rating:
- *                 type: number
- *                 example: 4.5
+ *                 example: 150
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               pdf:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Book created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Book created successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/Book'
  *       401:
  *         description: Not authorized
  *       403:
@@ -78,10 +222,11 @@ router.post("/books", protect, admin, uploadBookFiles, createBook);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Book ID
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -89,10 +234,20 @@ router.post("/books", protect, admin, uploadBookFiles, createBook);
  *                 type: string
  *               author:
  *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
  *               price:
  *                 type: number
- *               rating:
- *                 type: number
+ *               isActive:
+ *                 type: boolean
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               pdf:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Book updated successfully
@@ -109,7 +264,7 @@ router.put("/books/:id", protect, admin, uploadBookFiles, updateBook);
  * @swagger
  * /api/admin/books/{id}:
  *   delete:
- *     summary: Delete a book (Admin only)
+ *     summary: Disable a book (soft delete) (Admin only)
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
@@ -119,9 +274,10 @@ router.put("/books/:id", protect, admin, uploadBookFiles, updateBook);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Book ID
  *     responses:
  *       200:
- *         description: Book deleted successfully
+ *         description: Book disabled successfully
  *       401:
  *         description: Not authorized
  *       403:
@@ -143,6 +299,24 @@ router.delete("/books/:id", protect, admin, deleteBook);
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search keyword (name or email)
  *     responses:
  *       200:
  *         description: Users retrieved successfully
@@ -167,6 +341,7 @@ router.get("/users", protect, admin, getAllUsers);
  *         required: true
  *         schema:
  *           type: string
+ *         description: User ID
  *     responses:
  *       200:
  *         description: User deleted successfully

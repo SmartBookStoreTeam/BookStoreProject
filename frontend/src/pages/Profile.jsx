@@ -14,6 +14,7 @@ import {
   Eye,
   X,
   ArrowLeft,
+  Download,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -21,7 +22,7 @@ import UserAvatar from "../components/UserAvatar";
 
 const Profile = () => {
   const { user, logout } = useAuth();
-  const { userBooks, removeUserBook, cartItems } = useCart();
+  const { userBooks, removeUserBook, cartItems, purchasedBooks } = useCart();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [showEditModal, setShowEditModal] = useState(false);
@@ -80,8 +81,8 @@ const Profile = () => {
     },
     {
       icon: BookOpen,
-      label: "Books Listed",
-      value: userBooks.length,
+      label: "Purchased Books",
+      value: purchasedBooks?.length || 0,
       color: "text-green-600 dark:text-green-400",
       bg: "bg-green-100 dark:bg-green-900/30",
     },
@@ -119,8 +120,8 @@ const Profile = () => {
     if (
       window.confirm(
         t(
-          "Are you sure you want to delete your account? This action cannot be undone."
-        )
+          "Are you sure you want to delete your account? This action cannot be undone.",
+        ),
       )
     ) {
       // Implement account deletion
@@ -152,7 +153,7 @@ const Profile = () => {
   const saveCategoryPreferences = () => {
     localStorage.setItem(
       "categoryPreferences",
-      JSON.stringify(selectedCategories)
+      JSON.stringify(selectedCategories),
     );
     toast.success(t("Preferences saved successfully!"), {
       duration: 1500,
@@ -238,6 +239,99 @@ const Profile = () => {
           ))}
         </div>
 
+        {/* My Purchased Books */}
+        <h1 className="text-3xl text-center font-bold text-gray-900 dark:text-gray-100 mb-8">
+          {t("My Purchased Books")}
+        </h1>
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
+          {!purchasedBooks || purchasedBooks.length === 0 ? (
+            <div className="text-center py-12">
+              <ShoppingBag className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+              <p
+                dir={i18n.dir()}
+                className="text-gray-600 dark:text-gray-400 mb-4"
+              >
+                {t("You haven't purchased any books yet")}
+              </p>
+              <Link
+                dir={i18n.dir()}
+                to="/shop"
+                className="touch-area text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                {t("Browse Books")}
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {purchasedBooks.map((book, index) => {
+                const imageSrc =
+                  book.img ||
+                  book.image ||
+                  (book.images && book.images[0]) ||
+                  "/placeholder-book.jpg";
+
+                return (
+                  <div
+                    key={book.id || book._id || index}
+                    className="group relative bg-white dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-zinc-700"
+                  >
+                    {/* Book Image with Overlay */}
+                    <div className="relative overflow-hidden">
+                      <div className="touch-area relative aspect-[3/4] overflow-hidden">
+                        <img
+                          src={imageSrc}
+                          alt={book.title}
+                          className="w-full h-full object-cover"
+                        />
+
+                        {/* Hover Overlay with Title and Author */}
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer">
+                          <h3
+                            dir="auto"
+                            className="font-bold text-lg text-white line-clamp-2 mb-1"
+                          >
+                            {book.title}
+                          </h3>
+                          <p dir="auto" className="text-sm text-gray-300">
+                            {book.author}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Purchased Badge */}
+                      <div className="absolute top-3 right-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm">
+                        ✓ {t("Purchased Books")}
+                      </div>
+                    </div>
+
+                    <div className="p-5 relative z-20">
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <Link
+                          to={`/pdf-viewer/${book._id || book.id}`}
+                          state={{ pdfUrl: book.pdf, bookTitle: book.title }}
+                          className="touch-area flex-1 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                        >
+                          <Eye size={16} />
+                          {t("View")}
+                        </Link>
+                        <a
+                          dir={i18n.dir()}
+                          href={book.pdf || "#"}
+                          download
+                          className="touch-area bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 hover:from-indigo-700 hover:to-purple-700 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                          title={t("Download PDF")}
+                        >
+                          <Download size={16} />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         {/* Category Preferences Section */}
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
@@ -376,7 +470,7 @@ const Profile = () => {
                           onClick={() => {
                             if (
                               window.confirm(
-                                t("Are you sure you want to remove this book?")
+                                t("Are you sure you want to remove this book?"),
                               )
                             ) {
                               removeUserBook(book.id);
@@ -402,6 +496,7 @@ const Profile = () => {
             </div>
           )}
         </div>
+
 
         {/* Account Actions */}
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 transition-colors duration-300">

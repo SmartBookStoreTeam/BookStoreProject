@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { getBookById } from "../api/booksApi";
+import api from "../api/api";
 import toast from "react-hot-toast";
 import { t } from "i18next";
 import { useGlobalLoading } from "../context/LoadingContext";
@@ -45,14 +46,14 @@ const fillMissingBookData = (book) => {
     edition: book.edition || t("First Edition"),
     publicationYear: book.publicationYear || new Date().getFullYear(),
     pages: book.pages || 200,
-    ratings: book.ratings || book.rate || book.userRating || 4,
+    ratings: book.ratings || book.rate || book.userRating,
   };
 };
 
 const BookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks, cartItems } = useCart();
+  const { addToCart, userBooks, cartItems, isBookPurchased } = useCart();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -92,7 +93,7 @@ const BookDetails = () => {
 
         // Fallback: Check in userBooks (local data)
         const localBook = userBooks.find(
-          (b) => b.id === id || b._id === id || b.id === parseInt(id)
+          (b) => b.id === id || b._id === id || b.id === parseInt(id),
         );
 
         if (localBook) {
@@ -102,7 +103,7 @@ const BookDetails = () => {
         }
       } catch (error) {
         setError(
-          error.response?.data?.message || t("Failed to fetch book details")
+          error.response?.data?.message || t("Failed to fetch book details"),
         );
       } finally {
         setLoading(false);
@@ -112,6 +113,18 @@ const BookDetails = () => {
       fetchBook();
     }
   }, [id, t, userBooks]);
+
+  // Update page title when book is loaded
+  useEffect(() => {
+    if (book && book.title) {
+      document.title = `${book.title} : ${t("Bookfly Store")}`;
+    }
+
+    //reset to default title when component unmounts
+    return () => {
+      document.title = t("Bookfly Store - Buy your favorite books online");
+    };
+  }, [book, t]);
 
   // Check if book is already in cart
   const isBookInCart =
@@ -178,66 +191,47 @@ const BookDetails = () => {
       // Update local state immediately for UI feedback
       setBook({ ...book, userRating: value });
 
-      // Send rating to backend
-      const response = await fetch(
-        `/api/books/${id}/rate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            rating: value,
-            userId: user._id || user.id,
-          }),
-        }
-      );
+      // Send rating to backend using api instance (includes auth token)
+      const response = await api.post(`/books/${id}/rate`, {
+        rating: value,
+        userId: user._id || user.id,
+      });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        // Update book with new rating data from server
-        setBook({
-          ...book,
-          userRating: value,
-          rate: data.rate,
-          ratings: data.ratings,
-        });
+      // Update book with new rating data from server
+      setBook({
+        ...book,
+        userRating: value,
+        rate: data.rate,
+        ratings: data.ratings,
+      });
 
-        // Mark this book as rated for this user
-        const userId = user?._id || user?.id || "guest";
-        const storageKey = `ratedBooks_${userId}`;
-        const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
-        if (!ratedBooks.includes(id)) {
-          ratedBooks.push(id);
-          localStorage.setItem(storageKey, JSON.stringify(ratedBooks));
-        }
-
-        toast.success(t("Thank you for your rating!"), {
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-            direction: i18n.dir(),
-          },
-        });
-      } else {
-        // Revert state if request failed
-        setBook({ ...book, userRating: book.userRating || 0 });
-        toast.error(data.message || t("Failed to submit rating"), {
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-            direction: i18n.dir(),
-          },
-        });
+      // Mark this book as rated for this user
+      const userId = user?._id || user?.id || "guest";
+      const storageKey = `ratedBooks_${userId}`;
+      const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      if (!ratedBooks.includes(id)) {
+        ratedBooks.push(id);
+        localStorage.setItem(storageKey, JSON.stringify(ratedBooks));
       }
+
+      toast.success(t("Thank you for your rating!"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
     } catch (error) {
       console.error("Error submitting rating:", error);
       // Revert state on error
       setBook({ ...book, userRating: book.userRating || 0 });
-      toast.error(t("Failed to submit rating"), {
+
+      const errorMessage =
+        error.response?.data?.message || t("Failed to submit rating");
+      toast.error(errorMessage, {
         duration: 2000,
         style: {
           background: "#333",
@@ -321,7 +315,7 @@ const BookDetails = () => {
           <button
             dir="ltr"
             onClick={() => navigate("/shop")}
-            className="group touch-area flex md:hidden items-center justify-start rounded-full mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 mb-7 transition-colors cursor-pointer"
+            className="group touch-area flex md:hidden items-center justify-start rounded-full mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-100/10 p-2 mb-7 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
             {t("Back to Shop")}
@@ -355,7 +349,9 @@ const BookDetails = () => {
                           className="touch-area px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
                         >
                           <BookOpen className="w-5 h-5" />
-                          {t("Preview Book")}
+                          {isBookPurchased(book._id || book.id)
+                            ? t("View Book")
+                            : t("Preview Book")}
                         </Link>
                       ) : (
                         <button
@@ -366,7 +362,9 @@ const BookDetails = () => {
                           className="touch-area px-6 py-3 bg-white dark:bg-indigo-600 text-gray-900 dark:text-white rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-transform shadow-xl cursor-pointer"
                         >
                           <BookOpen className="w-5 h-5" />
-                          {t("Preview Book")}
+                          {isBookPurchased(book._id || book.id)
+                            ? t("View Book")
+                            : t("Preview Book")}
                         </button>
                       )}
                     </div>
@@ -474,7 +472,7 @@ const BookDetails = () => {
                     <Tag className="w-4 h-4 mr-1" />
                     {t(
                       book.category?.charAt(0).toUpperCase() +
-                        book.category?.slice(1)
+                        book.category?.slice(1),
                     )}
                   </span>
                 </div>
@@ -519,7 +517,9 @@ const BookDetails = () => {
                         className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
                       >
                         <BookOpen className="w-5 h-5" />
-                        {t("Preview Book")}
+                        {isBookPurchased(book._id || book.id)
+                          ? t("View Book")
+                          : t("Preview Book")}
                       </Link>
                     ) : (
                       <button
@@ -530,33 +530,37 @@ const BookDetails = () => {
                         className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
                       >
                         <BookOpen className="w-5 h-5" />
-                        {t("Preview Book")}
+                        {isBookPurchased(book._id || book.id)
+                          ? t("View Book")
+                          : t("Preview Book")}
                       </button>
                     )}
                   </div>
                 )}
 
-                {/* Add to Cart / Go to Checkout Button */}
-                <button
-                  dir="ltr"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddToCart(book);
-                  }}
-                  className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white active:scale-95 dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
-                >
-                  {isBookInCart ? (
-                    <>
-                      <FaShoppingCart className="w-6 h-6" />
-                      {t("Go to Checkout")}
-                    </>
-                  ) : (
-                    <>
-                      <FaCartPlus className="w-6 h-6" />
-                      {t("Add to Cart")}
-                    </>
-                  )}
-                </button>
+                {/* Add to Cart / Go to Checkout Button - Hide for purchased books */}
+                {!isBookPurchased(book._id || book.id) && (
+                  <button
+                    dir="ltr"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(book);
+                    }}
+                    className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white active:scale-95 dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
+                  >
+                    {isBookInCart ? (
+                      <>
+                        <FaShoppingCart className="w-6 h-6" />
+                        {t("Go to Checkout")}
+                      </>
+                    ) : (
+                      <>
+                        <FaCartPlus className="w-6 h-6" />
+                        {t("Add to Cart")}
+                      </>
+                    )}
+                  </button>
+                )}
 
                 {/* Secondary Actions */}
                 <div
@@ -569,14 +573,17 @@ const BookDetails = () => {
                   >
                     {t("Continue Shopping")}
                   </Link>
-                  <Link
-                    dir="ltr"
-                    to="/cart"
-                    className="touch-area flex items-center justify-center gap-2 w-full text-center px-6 py-4 border-2 border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all text-indigo-600 dark:text-indigo-300 font-medium block"
-                  >
-                    <ShoppingCart className="w-6 h-6" />
-                    {t("View Cart")}
-                  </Link>
+                  {/* Hide View Cart for purchased books */}
+                  {!isBookPurchased(book._id || book.id) && (
+                    <Link
+                      dir="ltr"
+                      to="/cart"
+                      className="touch-area flex items-center justify-center gap-2 w-full text-center px-6 py-4 border-2 border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all text-indigo-600 dark:text-indigo-300 font-medium block"
+                    >
+                      <ShoppingCart className="w-6 h-6" />
+                      {t("View Cart")}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

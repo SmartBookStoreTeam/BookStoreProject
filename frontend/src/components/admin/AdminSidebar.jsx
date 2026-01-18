@@ -37,9 +37,11 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transition-all duration-300 ease-in-out`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gradient-to-b from-gray-900 to-indigo-800 text-white transform ${
+          sidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full md:-translate-x-full"
+        } transition-all duration-300 ease-in-out`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -47,7 +49,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <div className="flex items-center space-x-3">
               <ShoppingBagIcon className="h-8 w-8 text-blue-400" />
               <div>
-                <h1 className="text-xl font-bold">BookStore Admin</h1>
+                <h1 className="text-xl font-bold">Bookfly Admin</h1>
                 <p className="text-xs text-gray-400">Dashboard v1.0</p>
               </div>
             </div>
@@ -81,12 +83,12 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </nav>
 
           {/* Return to Store */}
-          <div className="p-4 border-t border-gray-700">
+          <div className="group p-4 border-t border-gray-700">
             <NavLink
               to="/"
-              className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors"
+              className="touch-area flex items-center space-x-3 px-4 py-3 rounded-full text-gray-300 hover:bg-indigo-600/20 transition-colors"
             >
-              <ArrowLeftIcon className="h-5 w-5" />
+              <ArrowLeftIcon className="h-5 w-5 group-hover:-translate-x-2 transition-transform" />
               <span>Return to Store</span>
             </NavLink>
           </div>
