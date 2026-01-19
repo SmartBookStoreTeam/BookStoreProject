@@ -1,4 +1,5 @@
 import Book from "../models/Book.js";
+import Category from "../models/Category.js";
 
 // @desc    Get all books
 // @route   GET /api/books
@@ -11,6 +12,9 @@ export const getBooks = async (req, res, next) => {
     const filter = { isActive: true };
 
     if (req.query.category) filter.category = req.query.category;
+    if (req.query.author) {
+      filter.author = { $regex: req.query.author, $options: "i" };
+    }
     if (req.query.minPrice)
       filter.price = { ...filter.price, $gte: Number(req.query.minPrice) };
     if (req.query.maxPrice)
@@ -20,6 +24,7 @@ export const getBooks = async (req, res, next) => {
 
     const total = await Book.countDocuments(filter);
     const books = await Book.find(filter)
+      .select("+pdf") // ✅ Include PDF field
       .populate("category", "name slug")
       .sort(sort)
       .limit(pageSize)
@@ -48,7 +53,9 @@ export const getBookById = async (req, res, next) => {
     const book = await Book.findOne({
       _id: req.params.id,
       isActive: true,
-    }).populate("category", "name slug");
+    })
+      .select("+pdf") // ✅ Include PDF field
+      .populate("category", "name slug");
 
     if (!book) {
       return res
@@ -83,24 +90,33 @@ export const searchBooks = async (req, res, next) => {
     if (req.query.maxPrice)
       filter.price = { ...filter.price, $lte: Number(req.query.maxPrice) };
 
-    // ✅ Text search
+    // ✅ Regex search for partial matching (Better for autocomplete)
     if (q) {
-      filter.$text = { $search: q };
+      const regex = new RegExp(q, "i");
+
+      // Find categories matching the search term
+      const matchedCategories = await Category.find({
+        name: { $regex: regex },
+      }).select("_id");
+
+      const categoryIds = matchedCategories.map((c) => c._id);
+
+      filter.$or = [
+        { title: { $regex: regex } },
+        { author: { $regex: regex } },
+        { category: { $in: categoryIds } }, // Also search by category name
+      ];
     }
 
     const total = await Book.countDocuments(filter);
 
     let query = Book.find(filter).populate("category", "name slug");
 
-    if (q) {
-      query = query
-        .select({ score: { $meta: "textScore" } })
-        .sort({ score: { $meta: "textScore" }, ...parseSort(sort) });
-    } else {
-      query = query.sort(sort);
-    }
+    // Standard sort
+    query = query.sort(sort);
 
     const books = await query
+      .select("+pdf") // ✅ Include PDF field
       .populate("category", "name slug")
       .limit(pageSize)
       .skip(pageSize * (page - 1));
@@ -154,6 +170,7 @@ export const getTopBooks = async (req, res, next) => {
     const limit = Number(req.query.limit) || 5;
 
     const books = await Book.find({ isActive: true })
+      .select("+pdf") // ✅ Include PDF field
       .populate("category", "name slug")
       .sort({ ratings: -1, numReviews: -1 })
       .limit(limit);
@@ -202,9 +219,8 @@ export const rateBook = async (req, res, next) => {
       });
     }
 
-    book.numReviews = book.reviews.length;
-    book.ratings =
-      book.reviews.reduce((sum, rev) => sum + rev.rating, 0) / book.numReviews;
+    // Use the schema method to recalculate
+    book.recalculateRating();
 
     await book.save();
 
@@ -212,8 +228,8 @@ export const rateBook = async (req, res, next) => {
       success: true,
       message: "Rating submitted successfully",
       data: {
-        ratings: book.ratings,
-        numReviews: book.numReviews,
+        ratings: book.ratingAvg,
+        numReviews: book.ratingCount,
       },
     });
   } catch (error) {
