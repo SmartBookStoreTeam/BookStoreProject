@@ -54,17 +54,20 @@ const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
         setLoading(true);
 
         // Fetch books from API
-        const response = await getBooks();
-        const apiBooks = response.books || response || [];
+        const response = await getBooks({
+          author: authorName,
+          pageSize: 20,
+        });
+        const apiBooks = Array.isArray(response.data) ? response.data : [];
 
         // Filter API books by author name
         const filteredApiBooks = apiBooks.filter(
-          (book) => book.author?.toLowerCase() === authorName?.toLowerCase()
+          (book) => book.author?.toLowerCase() === authorName?.toLowerCase(),
         );
 
         // Filter userBooks by author name
         const filteredUserBooks = userBooks.filter(
-          (book) => book.author?.toLowerCase() === authorName?.toLowerCase()
+          (book) => book.author?.toLowerCase() === authorName?.toLowerCase(),
         );
 
         // Combine both sources
@@ -75,8 +78,9 @@ const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
           (book, index, self) =>
             index ===
             self.findIndex(
-              (b) => (b._id && b._id === book._id) || (b.id && b.id === book.id)
-            )
+              (b) =>
+                (b._id && b._id === book._id) || (b.id && b.id === book.id),
+            ),
         );
 
         // Exclude specific book if provided
@@ -86,7 +90,7 @@ const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
             (book) =>
               book._id !== excludeBookId &&
               book.id !== excludeBookId &&
-              book.id !== parseInt(excludeBookId)
+              book.id !== parseInt(excludeBookId),
           );
         }
 

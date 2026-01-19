@@ -1367,8 +1367,8 @@ const Publish = () => {
                             <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Price")}:
                             </span>
-                            <p className="text-gray-900 dark:text-gray-200 text-right">
-                              ₹{formData.price}
+                            <p dir={i18n.dir()} className="text-gray-900 dark:text-gray-200 text-right">
+                              {formData.price} {t("EGP")}
                             </p>
                           </div>
                           <div className="flex justify-between">

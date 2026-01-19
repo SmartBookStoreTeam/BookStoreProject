@@ -417,9 +417,11 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         }}
                       />
                     </div>
-                    <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
-                      ₹{book.price}
-                    </span>
+                    {!isBookPurchased(book._id || book.id) && (
+                      <span dir={i18n.dir()} className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
+                        {book.price} {t("EGP")}
+                      </span>
+                    )}
                   </Link>
                   {/* Book Info */}
                   <Link

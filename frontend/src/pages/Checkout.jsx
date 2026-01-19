@@ -11,6 +11,8 @@ import AuthModal from "../components/AuthModal";
 import { ArrowLeft, Loader, ShoppingCart } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { createOrder } from "../api/ordersApi";
+
 const Checkout = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -88,52 +90,84 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Simulate payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Calculate totals
+      const subtotal = currentBooks.reduce((sum, book) => {
+        const price =
+          typeof book.price === "number"
+            ? book.price
+            : parseFloat(book.price || 0);
+        return sum + price; // Quantity is always 1 for digital products
+      }, 0);
 
-      // Navigate to success page with books and customer info
-      navigate("/checkout/success", {
-        state: {
-          books: currentBooks,
-          customerInfo,
-          paymentMethod: selectedMethod,
-        },
-      });
+      // Prepare order data
+      const orderData = {
+        items: currentBooks.map((book) => ({
+          book: book._id || book.id, // Ensure real ID
+          titleSnapshot: book.title,
+          priceSnapshot:
+            typeof book.price === "number"
+              ? book.price
+              : parseFloat(book.price || 0),
+          quantity: 1,
+        })),
+        subtotal: subtotal,
+        total: subtotal, // Add tax logic here if needed
+        currency: "egp", // or dynamic currency
+        paymentMethod: selectedMethod,
+      };
 
-      toast.success(t("Payment successful!"), {
-        duration: 5000,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: i18n.dir(),
-          width: "fit-content",
-          maxWidth: "90vw",
-          minWidth: "200px",
-          padding: "12px 16px",
-          textAlign: "center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        },
-      });
+      // Call API
+      const response = await createOrder(orderData);
+
+      if (response.success) {
+        // Navigate to success page with books and customer info
+        navigate("/checkout/success", {
+          state: {
+            books: currentBooks,
+            customerInfo,
+            paymentMethod: selectedMethod,
+            orderId: response.data._id,
+          },
+        });
+
+        toast.success(t("Payment successful!"), {
+          duration: 5000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+            width: "fit-content",
+            maxWidth: "90vw",
+            minWidth: "200px",
+            padding: "12px 16px",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        });
+      }
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error(t("Payment failed. Please try again."), {
-        duration: 5000,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: i18n.dir(),
-          width: "fit-content",
-          maxWidth: "90vw",
-          minWidth: "200px",
-          padding: "12px 16px",
-          textAlign: "center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+      toast.error(
+        error.response?.data?.message || t("Payment failed. Please try again."),
+        {
+          duration: 5000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+            width: "fit-content",
+            maxWidth: "90vw",
+            minWidth: "200px",
+            padding: "12px 16px",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          },
         },
-      });
+      );
     } finally {
       setLoading(false);
     }
@@ -171,7 +205,7 @@ const Checkout = () => {
           </h1>
           <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 text-balance max-w-2xl mx-auto">
             {t(
-              "Download link will be sent to your email immediately after payment"
+              "Download link will be sent to your email immediately after payment",
             )}
           </p>
         </div>

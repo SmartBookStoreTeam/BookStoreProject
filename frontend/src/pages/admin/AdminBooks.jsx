@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
-import { addBook, updateBook, deleteBook } from "../../api/adminApi";
-import { getBooks } from "../../api/booksApi";
+import {
+  addBook,
+  updateBook,
+  deleteBook,
+  getAdminBooks,
+} from "../../api/adminApi";
+import { getCategories } from "../../api/categoriesApi";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -22,17 +27,25 @@ const AdminBooks = () => {
 
   const navigate = useNavigate();
 
-  const categories = [
-    "all",
-    "Fiction",
-    "Technology",
-    "Romance",
-    "Programming",
-    "Fantasy",
-    "Education",
-    "Cooking",
-    "Self-Help",
-  ];
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [booksData, categoriesData] = await Promise.all([
+          getAdminBooks({ isActive: "true" }),
+          getCategories(),
+        ]);
+        setBooks(Array.isArray(booksData.data) ? booksData.data : []);
+        setCategories(
+          Array.isArray(categoriesData.data) ? categoriesData.data : [],
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchData();
+  }, []);
 
   /* ================= FILTER ================= */
   const filteredBooks = books.filter((book) => {
@@ -41,7 +54,9 @@ const AdminBooks = () => {
       book?.author?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === "all" || book.category === selectedCategory;
+      selectedCategory === "all" ||
+      book.category?._id === selectedCategory ||
+      book.category?.name === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -63,7 +78,7 @@ const AdminBooks = () => {
     try {
       const updated = await updateBook(id, bookData);
       setBooks((prev) =>
-        prev.map((b) => (b._id === updated._id ? updated : b))
+        prev.map((b) => (b._id === updated._id ? updated : b)),
       );
       setEditingBook(null);
     } catch (err) {
@@ -84,18 +99,7 @@ const AdminBooks = () => {
   };
 
   /* ================= FETCH ================= */
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const data = await getBooks();
-        setBooks(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-        setBooks([]);
-      }
-    };
-    fetchBooks();
-  }, []);
+  // Fetched in initial useEffect above
 
   return (
     <div className="space-y-6 relative">
@@ -161,9 +165,10 @@ const AdminBooks = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="border rounded-lg px-3 py-2"
           >
+            <option value="all">All Categories</option>
             {categories.map((c) => (
-              <option key={c} value={c}>
-                {c === "all" ? "All Categories" : c}
+              <option key={c._id} value={c._id}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -212,7 +217,7 @@ const AdminBooks = () => {
                   </td>
 
                   <td className="hidden md:table-cell px-6 py-4">
-                    {book.category}
+                    {book.category?.name || "Uncategorized"}
                   </td>
                   <td className="hidden sm:table-cell px-4 md:px-6 py-4 font-semibold text-sm sm:text-base">
                     ${Number(book.price || 0).toFixed(2)}
@@ -323,14 +328,17 @@ const AdminBooks = () => {
 
               <select
                 name="category"
-                defaultValue={editingBook?.category}
+                defaultValue={
+                  editingBook?.category?._id || editingBook?.category
+                }
                 className="w-full border px-3 py-2 rounded"
               >
-                {categories
-                  .filter((c) => c !== "all")
-                  .map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
+                <option value="">Select Category</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
 
               <select
@@ -374,8 +382,8 @@ const AdminBooks = () => {
                   {isUploading
                     ? "Uploading..."
                     : editingBook
-                    ? "Update"
-                    : "Add"}
+                      ? "Update"
+                      : "Add"}
                 </button>
               </div>
             </form>

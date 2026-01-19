@@ -35,7 +35,7 @@ const Chatbot = () => {
     const fetchBooks = async () => {
       try {
         const response = await getBooks();
-        const booksData = response.books || response;
+        const booksData = Array.isArray(response.data) ? response.data : [];
 
         // Map books to chatbot format
         const formattedBooks = booksData.map((book) => ({
@@ -149,42 +149,81 @@ const Chatbot = () => {
     const hasArabic = /[\u0600-\u06FF]/.test(userInput);
     const lng = hasArabic ? "ar" : "en";
 
+    // 1. Check for specific greetings/thanks first
     if (input.includes("thank")) return "You're welcome!";
     if (input.includes("شكرا")) return "على الرحب والسعه";
-    for (let i = 0; i < books.length; i++) {
-      const bookTitle = books[i].title.toLowerCase();
+
+    // 2. Collect all matching books
+    const matches = [];
+    const isPriceQuery =
+      input.includes("price") ||
+      input.includes("سعر") ||
+      input.includes("اسعار");
+
+    for (const book of books) {
+      const bookTitle = book.title.toLowerCase();
       const titleWords = bookTitle.split(" ");
       const isMatch =
         input.includes(bookTitle) ||
         bookTitle.includes(input) ||
         titleWords.some((word) => input.includes(word) && word.length > 2);
-      const isPriceMatch =
-        input.includes("price") ||
-        input.includes("سعر") ||
-        input.includes("اسعار");
-
-      if (isMatch && isPriceMatch) {
-        return hasArabic
-          ? `سعر كتاب ${books[i].title} هو ${books[i].price} جنيه`
-          : `The price of the book ${books[i].title} is ${books[i].price} EGP`;
-      }
 
       if (isMatch) {
-        return hasArabic
-          ? `اسم الكتاب: ${books[i].title}
-المؤلف: ${books[i].author}
-السعر: ${books[i].price} جنيه
-التصنيف: ${t(books[i].category, { lng })}
-الوصف: ${books[i].desc}
-التقييم: ${books[i].rate}`
-          : `Book: ${books[i].title}
-Author: ${books[i].author}
-Price: ${books[i].price} EGP
-Category: ${books[i].category}
-Description: ${books[i].desc}
-Rate: ${books[i].rate}`;
+        matches.push(book);
       }
     }
+
+    // Deduplicate matches based on ID
+    const uniqueMatches = Array.from(
+      new Map(matches.map((item) => [item.id, item])).values(),
+    );
+
+    // 3. Handle matches
+    if (uniqueMatches.length === 1) {
+      const book = uniqueMatches[0];
+      if (isPriceQuery) {
+        return hasArabic
+          ? `سعر كتاب ${book.title} هو ${book.price} جنيه`
+          : `The price of the book ${book.title} is ${book.price} EGP`;
+      }
+      const categoryName =
+        typeof book.category === "object" ? book.category?.name : book.category;
+
+      return hasArabic
+        ? `اسم الكتاب: ${book.title}
+المؤلف: ${book.author}
+السعر: ${book.price} جنيه
+التصنيف: ${t(categoryName, { lng })}
+الوصف: ${book.desc}
+التقييم: ${book.rate}`
+        : `Book: ${book.title}
+Author: ${book.author}
+Price: ${book.price} EGP
+Category: ${categoryName}
+Description: ${book.desc}
+Rate: ${book.rate}`;
+    }
+
+    if (uniqueMatches.length > 1) {
+      // Limit to 5 matches to avoid huge messages
+      const limitedMatches = uniqueMatches.slice(0, 5);
+      const titles = limitedMatches.map((b) => `• ${b.title}`).join("\n");
+      const moreCount = uniqueMatches.length - 5;
+
+      if (hasArabic) {
+        let msg = `وجدت ${uniqueMatches.length} كتب تطابق بحثك:\n${titles}`;
+        if (moreCount > 0) msg += `\n...و ${moreCount} كتب أخرى.`;
+        msg += "\n\nهل يمكنك توضيح سؤالك أكثر؟";
+        return msg;
+      } else {
+        let msg = `I found ${uniqueMatches.length} books matching your search:\n${titles}`;
+        if (moreCount > 0) msg += `\n...and ${moreCount} more.`;
+        msg += "\n\nCould you please be more specific?";
+        return msg;
+      }
+    }
+
+    // 4. No matches found, check generic queries
     if (input.includes("سعر") || input.includes("اسعار"))
       return "يمكنك العثور على أسعار الكتب في صفحات التفاصيل. هل تريد مساعدتي في إيجاد كتاب معين؟";
     if (input.includes("price"))
@@ -201,8 +240,7 @@ Rate: ${books[i].rate}`;
     if (input.includes("مساعدة") || input.includes("مساعده"))
       return "انا هنا للمساعدة اسألني على اي شئ";
 
-    // Check if input contains Arabic
-
+    // 5. Default response
     if (hasArabic) {
       return `أفهم أنك تسأل عن "${userInput}"، كيف يمكنني مساعدتك بشكل أفضل؟`;
     }
@@ -323,8 +361,8 @@ Rate: ${books[i].rate}`;
           isOpen
             ? "scale-0 opacity-0"
             : showLabel
-            ? "scale-100 opacity-100"
-            : "scale-0 opacity-0"
+              ? "scale-100 opacity-100"
+              : "scale-0 opacity-0"
         }`}
       >
         {/* Label Text */}

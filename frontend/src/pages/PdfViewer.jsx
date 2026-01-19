@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
@@ -25,13 +24,14 @@ import toast from "react-hot-toast";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import axios from "axios";
+import api from "../api/api";
 import Loading from "../components/Loading";
 import RateModal from "../components/RateModal";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { useAuth } from "../context/AuthContext";
 import "../pdfViewerFullscreen.css";
+import { getImageSrc } from "../utils/imageUtils";
 
 const PdfViewer = () => {
   const { bookId } = useParams();
@@ -48,6 +48,7 @@ const PdfViewer = () => {
 
   // State for page tracking
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
 
   // Initialize page navigation plugin
@@ -56,70 +57,75 @@ const PdfViewer = () => {
 
   // Initialize the plugin instance
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
-    renderToolbar: (Toolbar) => (
-      <Toolbar>
-        {(slots) => {
-          const {
-            CurrentPageInput,
-            Download,
-            EnterFullScreen,
-            GoToNextPage,
-            GoToPreviousPage,
-            NumberOfPages,
-            Print,
-            Zoom,
-            ZoomIn,
-            ZoomOut,
-          } = slots;
-          return (
-            <div className="flex items-center touch-area justify-center w-full">
-              <div className="hidden sm:flex ml-5 px-1">
-                <ZoomOut />
+    // eslint-disable-next-line no-unused-vars
+    renderToolbar: (ToolbarSlot) => {
+      return (
+        <ToolbarSlot>
+          {(slots) => {
+            const {
+              CurrentPageInput,
+              Download,
+              EnterFullScreen,
+              GoToNextPage,
+              GoToPreviousPage,
+              NumberOfPages,
+              Print,
+              Zoom,
+              ZoomIn,
+              ZoomOut,
+            } = slots;
+            return (
+              <div
+                className={`flex items-center touch-area justify-center w-full ${isFullScreen ? "hidden" : ""}`}
+              >
+                <div className="hidden sm:flex ml-5 px-1">
+                  <ZoomOut />
+                </div>
+                <div className="hidden sm:flex px-1">
+                  <Zoom />
+                </div>
+                <div className="hidden sm:flex px-1">
+                  <ZoomIn />
+                </div>
+                <div className="px-1 ml-auto">
+                  <GoToPreviousPage />
+                </div>
+                <div className="px-1 w-16">
+                  <CurrentPageInput />
+                </div>
+                <div className="px-1 text-white">
+                  / <NumberOfPages />
+                </div>
+                <div className="px-1">
+                  <GoToNextPage />
+                </div>
+                <div className="px-1 ml-auto">
+                  <EnterFullScreen />
+                </div>
+                <div className="px-1">
+                  <button
+                    onClick={() => setShowAddToCartModal(true)}
+                    className="rpv-core__minimal-button"
+                    aria-label="Download"
+                  >
+                    <DownloadIcon size={20} />
+                  </button>
+                </div>
+                <div className="px-1">
+                  <button
+                    onClick={() => setShowAddToCartModal(true)}
+                    className="p-2 rounded-md text-white hover:bg-white/10 cursor-pointer"
+                    aria-label="Print"
+                  >
+                    <PrintIcon size={20} />
+                  </button>
+                </div>
               </div>
-              <div className="hidden sm:flex px-1">
-                <Zoom />
-              </div>
-              <div className="hidden sm:flex px-1">
-                <ZoomIn />
-              </div>
-              <div className="px-1 ml-auto">
-                <GoToPreviousPage />
-              </div>
-              <div className="px-1 w-16">
-                <CurrentPageInput />
-              </div>
-              <div className="px-1 text-white">
-                / <NumberOfPages />
-              </div>
-              <div className="px-1">
-                <GoToNextPage />
-              </div>
-              <div className="px-1 ml-auto">
-                <EnterFullScreen />
-              </div>
-              <div className="px-1">
-                <button
-                  onClick={() => setShowAddToCartModal(true)}
-                  className="rpv-core__minimal-button"
-                  aria-label="Download"
-                >
-                  <DownloadIcon size={20} />
-                </button>
-              </div>
-              <div className="px-1">
-                <button
-                  onClick={() => setShowAddToCartModal(true)}
-                  className="p-2 rounded-md text-white hover:bg-white/10 cursor-pointer"
-                  aria-label="Print"
-                >
-                  <PrintIcon size={20} />
-                </button>
-              </div>
-            </div>
-          );
-        }}
-      </Toolbar>
-    ),
+            );
+          }}
+        </ToolbarSlot>
+      );
+    },
   });
 
   // Appends header to the third page and jump back to page 2
@@ -135,7 +141,6 @@ const PdfViewer = () => {
     }
   }, [currentPage, jumpToPage, book, isBookPurchased]);
 
-  const [isFullScreen, setIsFullScreen] = useState(false);
   const viewerRef = useRef(null);
 
   const toggleFullScreen = () => {
@@ -170,10 +175,23 @@ const PdfViewer = () => {
       try {
         setLoading(true);
 
-        const response = await axios.get(
-          `/api/books/${bookId}`,
-        );
-        setBook(response.data);
+        const response = await api.get(`/books/${bookId}`);
+        // API returns { success, data: book }
+        const bookData = response.data?.data || response.data;
+
+        // Get signed URL for the PDF from S3
+        if (bookData?.pdf) {
+          try {
+            const pdfResponse = await api.get(`/books/${bookId}/preview`);
+            if (pdfResponse.data?.success && pdfResponse.data?.data?.url) {
+              bookData.pdfUrl = pdfResponse.data.data.url;
+            }
+          } catch (pdfErr) {
+            console.error("Error fetching PDF URL:", pdfErr);
+          }
+        }
+
+        setBook(bookData);
       } catch (err) {
         console.error("Error fetching book:", err);
         setError(t("Failed to load book data"));
@@ -245,7 +263,7 @@ const PdfViewer = () => {
 
   const handleRateSubmit = async (rating) => {
     try {
-      await axios.post(`/api/books/${bookId}/rate`, {
+      await api.post(`/books/${bookId}/rate`, {
         rating,
         userId: user?._id || user?.id,
       });
@@ -468,14 +486,6 @@ const PdfViewer = () => {
         </header>
       )}
 
-      {/* Rate Modal */}
-      <RateModal
-        isOpen={showRateModal}
-        onClose={handleRateClose}
-        onSubmit={handleRateSubmit}
-        bookTitle={book?.title || ""}
-      />
-
       {/* PDF Content */}
       <div
         className={`flex-1 w-full overflow-hidden bg-zinc-900 relative ${
@@ -483,6 +493,13 @@ const PdfViewer = () => {
         }`}
         ref={viewerRef}
       >
+        {/* Rate Modal - Moved inside for Fullscreen visibility */}
+        <RateModal
+          isOpen={showRateModal}
+          onClose={handleRateClose}
+          onSubmit={handleRateSubmit}
+          bookTitle={book?.title || ""}
+        />
         {/* Add to Cart Modal */}
         {showAddToCartModal && (
           <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -538,10 +555,17 @@ const PdfViewer = () => {
               {isFullScreen && (
                 <button
                   onClick={toggleFullScreen}
-                  className="touch-area fixed top-12 left-15 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-300 cursor-pointer"
+                  className="touch-area fixed top-12 left-10 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-300 cursor-pointer"
                 >
                   <X size={24} />
                 </button>
+              )}
+
+              {/* Floating Page Counter in Fullscreen */}
+              {isFullScreen && totalPages > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/60 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-medium border border-white/10 select-none pointer-events-none">
+                  {currentPage} / {totalPages}
+                </div>
               )}
               {/* Add blur effect when modal is shown on page 3 */}
               <div
@@ -550,7 +574,7 @@ const PdfViewer = () => {
                 }`}
               >
                 <Viewer
-                  fileUrl={book.pdf || "error"}
+                  fileUrl={book.pdfUrl || getImageSrc(book.pdf)}
                   plugins={[
                     defaultLayoutPluginInstance,
                     pageNavigationPluginInstance,
