@@ -12,6 +12,7 @@ import { FaCartPlus } from "react-icons/fa";
 import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { getImageSrc } from "../utils/imageUtils";
 
 const AuthorProfile = () => {
   const { name } = useParams();
@@ -40,36 +41,28 @@ const AuthorProfile = () => {
         setLoading(true);
 
         // Fetch books from API
-        const response = await getBooks();
-        const apiBooks = response.books || response || [];
+        const response = await getBooks({
+          author: decodeURIComponent(name),
+          pageSize: 100,
+        });
+        const apiBooks = response.data || response.books || response || [];
 
-        // Filter API books by author name
+        // Filter API books by author name (client-side)
         const filteredApiBooks = apiBooks.filter(
           (book) =>
             book.author?.toLowerCase() ===
-            decodeURIComponent(name).toLowerCase()
+            decodeURIComponent(name).toLowerCase(),
         );
 
         // Filter userBooks by author name
         const filteredUserBooks = userBooks.filter(
           (book) =>
             book.author?.toLowerCase() ===
-            decodeURIComponent(name).toLowerCase()
+            decodeURIComponent(name).toLowerCase(),
         );
 
         // Combine both sources
-        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];
-
-        // Debug: Log rating values
-        console.log(
-          "📚 Author Books:",
-          combinedBooks.map((b) => ({
-            title: b.title,
-            ratings: b.ratings,
-            rate: b.rate,
-            rating: b.rating,
-          }))
-        );
+        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];    
 
         setAuthorBooks(combinedBooks);
       } catch (error) {
@@ -107,18 +100,6 @@ const AuthorProfile = () => {
         justifyContent: "center",
       },
     });
-  };
-
-  // Helper function to get image source
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (typeof image === "string") return image;
-    if (typeof image === "object") {
-      if (image.base64) return image.base64;
-      if (image.preview) return image.preview;
-      if (image.url) return image.url;
-    }
-    return null;
   };
 
   if (loading) {
@@ -215,8 +196,11 @@ const AuthorProfile = () => {
                           if (isMobile) e.preventDefault();
                         }}
                       />
-                      <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-10 pointer-events-none">
-                        ₹{book.price}
+                      <span
+                        dir={i18n.dir()}
+                        className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-10 pointer-events-none"
+                      >
+                        {book.price} {t("EGP")}
                       </span>
                     </Link>
 
@@ -247,7 +231,7 @@ const AuthorProfile = () => {
                             className={`${
                               i <
                               Math.round(
-                                book.ratings || book.rate || book.rating || 0
+                                book.ratings || book.rate || book.rating || 0,
                               )
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"

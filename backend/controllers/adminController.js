@@ -188,20 +188,47 @@ export const getAllUsers = async (req, res, next) => {
     const page = Number(req.query.page) || 1;
     const q = req.query.q?.trim();
 
-    const filter = {};
+    const matchStage = { role: "user" }; // Only fetch regular users
     if (q) {
-      filter.$or = [
+      matchStage.$or = [
         { name: { $regex: q, $options: "i" } },
         { email: { $regex: q, $options: "i" } },
       ];
     }
 
-    const total = await User.countDocuments(filter);
-    const users = await User.find(filter)
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+    // 1. Get Total Count for Pagination (approximate matches)
+    const total = await User.countDocuments(matchStage);
+
+    // 2. Aggregation Pipeline
+    const users = await User.aggregate([
+      { $match: matchStage },
+      // Lookup orders for this user
+      {
+        $lookup: {
+          from: "orders",
+          localField: "_id",
+          foreignField: "user",
+          as: "userOrders",
+        },
+      },
+      // Calculate stats
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          role: 1,
+          phone: 1,
+          status: 1,
+          createdAt: 1,
+          ordersCount: { $size: "$userOrders" },
+          totalSpent: { $sum: "$userOrders.total" }, // Sum total of all orders
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: pageSize * (page - 1) },
+      { $limit: pageSize },
+    ]);
 
     res.json({
       success: true,
@@ -256,7 +283,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
       ];
     }
 
-    if (isActive === "true") filter.isActive = true;
+    if (isActive === "true") filter.isActive = { $ne: false };
     if (isActive === "false") filter.isActive = false;
 
     if (category) filter.category = category;
@@ -265,6 +292,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
     const books = await Book.find(filter)
       .select("-pdf -reviews -__v")
+      .populate("category", "name")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));

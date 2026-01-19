@@ -6,6 +6,7 @@ import { getBooks } from "../api/booksApi";
 import { useCart } from "../hooks/useCart";
 import Loading from "./Loading";
 import { useGlobalLoading } from "../context/LoadingContext";
+import { getImageSrc } from "../utils/imageUtils";
 
 // Mock books as fallback
 const mockBooks = [
@@ -138,19 +139,6 @@ const Releases = () => {
   const [loading, setLoading] = useState(true);
   const { setIsLoading } = useGlobalLoading();
 
-  // Helper function to get image source for UserBooks
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (image.base64) {
-      return image.base64;
-    } else if (image.preview) {
-      return image.preview;
-    } else if (image.url) {
-      return image.url;
-    }
-    return null;
-  };
-
   // Sync local loading with global loading bar
   useEffect(() => {
     setIsLoading(loading);
@@ -167,8 +155,8 @@ const Releases = () => {
       try {
         setLoading(true);
         const books = await getBooks();
-        if (books && (books.books || books.length > 0)) {
-          const booksData = books.books || books;
+        if (books && (books.data || books.length > 0)) {
+          const booksData = books.data || books;
           setApiBooks(booksData);
         } else {
           setApiBooks(mockBooks);
@@ -216,7 +204,7 @@ const Releases = () => {
         </h1>
         {loading ? (
           <Loading
-            loading={t("Loading books...")}
+            loading={t("Loading New Releases...")}
             height="h-96"
             animate={true}
           />

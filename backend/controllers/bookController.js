@@ -1,4 +1,5 @@
 import Book from "../models/Book.js";
+import Category from "../models/Category.js";
 
 // @desc    Get all books
 // @route   GET /api/books
@@ -11,6 +12,9 @@ export const getBooks = async (req, res, next) => {
     const filter = { isActive: true };
 
     if (req.query.category) filter.category = req.query.category;
+    if (req.query.author) {
+      filter.author = { $regex: req.query.author, $options: "i" };
+    }
     if (req.query.minPrice)
       filter.price = { ...filter.price, $gte: Number(req.query.minPrice) };
     if (req.query.maxPrice)
@@ -20,6 +24,8 @@ export const getBooks = async (req, res, next) => {
 
     const total = await Book.countDocuments(filter);
     const books = await Book.find(filter)
+      .select("+pdf") // ✅ Include PDF field
+      .populate("category", "name slug")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
@@ -44,7 +50,12 @@ export const getBooks = async (req, res, next) => {
 // @access  Public -> all users
 export const getBookById = async (req, res, next) => {
   try {
-    const book = await Book.findOne({ _id: req.params.id, isActive: true });
+    const book = await Book.findOne({
+      _id: req.params.id,
+      isActive: true,
+    })
+      .select("+pdf") // ✅ Include PDF field
+      .populate("category", "name slug");
 
     if (!book) {
       return res
@@ -59,7 +70,7 @@ export const getBookById = async (req, res, next) => {
 };
 
 // @desc    Search books by title or author
-// @route   GET /api/books/search?query=xyz
+// @route   GET /api/books/search?q=xyz
 // @access  Public -> all users
 export const searchBooks = async (req, res, next) => {
   try {
@@ -68,26 +79,47 @@ export const searchBooks = async (req, res, next) => {
 
     const q = req.query.q?.trim();
     const category = req.query.category;
-    const sort = req.query.sort || "-createdAt";
+    const sort = req.query.sort || "-createdAt"; // title, -price, ...etc
 
     const filter = { isActive: true };
 
     if (category) filter.category = category;
 
-    // ✅ لو عامل text index
+    if (req.query.minPrice)
+      filter.price = { ...filter.price, $gte: Number(req.query.minPrice) };
+    if (req.query.maxPrice)
+      filter.price = { ...filter.price, $lte: Number(req.query.maxPrice) };
+
+    // ✅ Regex search for partial matching (Better for autocomplete)
     if (q) {
-      filter.$text = { $search: q };
+      const regex = new RegExp(q, "i");
+
+      // Find categories matching the search term
+      const matchedCategories = await Category.find({
+        name: { $regex: regex },
+      }).select("_id");
+
+      const categoryIds = matchedCategories.map((c) => c._id);
+
+      filter.$or = [
+        { title: { $regex: regex } },
+        { author: { $regex: regex } },
+        { category: { $in: categoryIds } }, // Also search by category name
+      ];
     }
 
     const total = await Book.countDocuments(filter);
 
-    // ✅ لو $text موجود ممكن نستخدم textScore
-    let query = Book.find(filter);
+    let query = Book.find(filter).populate("category", "name slug");
 
-    if (q) query = query.sort({ score: { $meta: "textScore" } });
-    else query = query.sort(sort);
+    // Standard sort
+    query = query.sort(sort);
 
-    const books = await query.limit(pageSize).skip(pageSize * (page - 1));
+    const books = await query
+      .select("+pdf") // ✅ Include PDF field
+      .populate("category", "name slug")
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
 
     res.json({
       success: true,
@@ -104,6 +136,32 @@ export const searchBooks = async (req, res, next) => {
   }
 };
 
+// ✅ helper: يحوّل sort string زي "-price" أو "title" لـ object
+function parseSort(sortStr) {
+  // لو جالك object من أي مكان سيبه
+  if (!sortStr || typeof sortStr !== "string") return {};
+
+  // مثال: "-price" => { price: -1 } | "title" => { title: 1 }
+  const field = sortStr.startsWith("-") ? sortStr.slice(1) : sortStr;
+  const dir = sortStr.startsWith("-") ? -1 : 1;
+
+  // لو sortStr فيها كذا field (اختياري): "price,-createdAt"
+  if (sortStr.includes(",")) {
+    const parts = sortStr
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const obj = {};
+    for (const p of parts) {
+      const f = p.startsWith("-") ? p.slice(1) : p;
+      obj[f] = p.startsWith("-") ? -1 : 1;
+    }
+    return obj;
+  }
+
+  return { [field]: dir };
+}
+
 // @desc    Get top rated books
 // @route   GET /api/books/top
 // @access  Public -> all users
@@ -112,6 +170,8 @@ export const getTopBooks = async (req, res, next) => {
     const limit = Number(req.query.limit) || 5;
 
     const books = await Book.find({ isActive: true })
+      .select("+pdf") // ✅ Include PDF field
+      .populate("category", "name slug")
       .sort({ ratings: -1, numReviews: -1 })
       .limit(limit);
 
@@ -145,7 +205,7 @@ export const rateBook = async (req, res, next) => {
     }
 
     const existingReview = book.reviews.find(
-      (review) => review.user && review.user.toString() === userId
+      (review) => review.user && review.user.toString() === userId,
     );
 
     if (existingReview) {
@@ -159,9 +219,8 @@ export const rateBook = async (req, res, next) => {
       });
     }
 
-    book.numReviews = book.reviews.length;
-    book.ratings =
-      book.reviews.reduce((sum, rev) => sum + rev.rating, 0) / book.numReviews;
+    // Use the schema method to recalculate
+    book.recalculateRating();
 
     await book.save();
 
@@ -169,8 +228,8 @@ export const rateBook = async (req, res, next) => {
       success: true,
       message: "Rating submitted successfully",
       data: {
-        ratings: book.ratings,
-        numReviews: book.numReviews,
+        ratings: book.ratingAvg,
+        numReviews: book.ratingCount,
       },
     });
   } catch (error) {

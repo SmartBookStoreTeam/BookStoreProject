@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, Filter, Star, ShoppingCart, Grid, List } from "lucide-react";
+import { Search, Filter, Star, Grid, List } from "lucide-react";
 import { useCart } from "../hooks/useCart";
-import { getBooks } from "../api/booksApi";
+import { getBooks, searchBooks } from "../api/booksApi";
 import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -13,7 +13,9 @@ import { FaCartPlus } from "react-icons/fa";
 import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-// Mock data for fallback
+import { getImageSrc } from "../utils/imageUtils";
+
+// Mock data fallback
 const mockBooks = [
   {
     _id: "1",
@@ -96,156 +98,191 @@ const mockBooks = [
     img: assets.book1,
   },
 ];
+//fixed sortMap
+const sortMap = {
+  name: "title",
+  "price-low": "price",
+  "price-high": "-price",
+  rating: "-ratings",
+};
 
 const Shop = () => {
   const { addToCart, userBooks, isBookPurchased } = useCart();
   const location = useLocation();
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedType, setSelectedType] = useState("all");
+  const [selectedType, setSelectedType] = useState("all"); // all | regular | user
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState("grid");
-  const [priceRange, setPriceRange] = useState([0, 50]);
-  const [maxPriceLimit, setMaxPriceLimit] = useState(50);
+
+  // Increased default price range limit
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [maxPriceLimit] = useState(1000);
+
   const [apiBooks, setApiBooks] = useState([]);
+  const [meta, setMeta] = useState(null);
+  const [page, setPage] = useState(1);
+
   const [loading, setLoading] = useState(true);
+
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { setIsLoading } = useGlobalLoading();
 
-  // Read search query from URL on component mount
+  // read search from URL once
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const searchQuery = params.get("search");
-    if (searchQuery) {
-      setSearchTerm(decodeURIComponent(searchQuery));
-    }
+    if (searchQuery) setSearchTerm(decodeURIComponent(searchQuery));
   }, [location.search]);
 
-  // Sync local loading with global loading bar
+  // debounce search
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 400);
+    return () => clearTimeout(id);
+  }, [searchTerm]);
+
+  // sync global loading
   useEffect(() => {
     setIsLoading(loading);
-
-    // Cleanup: reset loading when component unmounts
-    return () => {
-      setIsLoading(false);
-    };
+    return () => setIsLoading(false);
   }, [loading, setIsLoading]);
 
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (image.base64) {
-      return image.base64; // Base64 string
-    } else if (image.preview) {
-      return image.preview; // Blob URL (temporary)
-    } else if (image.url) {
-      return image.url; // External URL
-    }
-    return null;
-  };
-  // Fetch books from API
+  const getCategoryId = (book) =>
+    typeof book.category === "string" ? book.category : book.category?._id;
+
+  const getCategoryName = (book) =>
+    typeof book.category === "string"
+      ? book.category
+      : book.category?.name || "Unknown";
+
+  // reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedCategory, selectedType, sortBy, priceRange]);
+
+  // fetch from backend with filters (including price)
   useEffect(() => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        const books = await getBooks();
-        if (books && (books.books || books.length > 0)) {
-          const booksData = books.books || books;
-          setApiBooks(booksData);
-          // Update price range based on actual book prices
-          const prices = booksData.map((b) => b.price);
-          const userBookPrices = userBooks.map((b) => b.price || 0);
-          const maxPrice = Math.ceil(
-            Math.max(...prices, ...userBookPrices, 50),
-          );
-          setMaxPriceLimit(maxPrice);
-          setPriceRange([0, maxPrice]);
-        } else {
-          // Use mock data if API returns empty
-          setApiBooks(mockBooks);
-          const prices = mockBooks.map((b) => b.price);
-          const maxPrice = Math.ceil(Math.max(...prices, 50));
-          setMaxPriceLimit(maxPrice);
-          setPriceRange([0, maxPrice]);
+
+        // لو user فقط => ما تضربش API
+        if (selectedType === "user") {
+          setApiBooks([]);
+          setMeta({
+            page: 1,
+            pages: 1,
+            total: userBooks.length,
+            pageSize: userBooks.length,
+          });
+          return;
         }
-      } catch (error) {
-        console.error(t("Error fetching books:"), error);
-        // Use mock data as fallback
+
+        const PAGE_SIZE = 12;
+
+        const params = {
+          page,
+          pageSize: PAGE_SIZE,
+          sort: sortMap[sortBy] || "-createdAt",
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+        };
+
+        if (selectedCategory !== "all") params.category = selectedCategory;
+
+        const res = debouncedSearch
+          ? await searchBooks({ ...params, q: debouncedSearch })
+          : await getBooks(params);
+
+        setApiBooks(Array.isArray(res?.data) ? res.data : []);
+        setMeta(res?.meta || null);
+      } catch (e) {
+        console.error(e);
         setApiBooks(mockBooks);
-        const prices = mockBooks.map((b) => b.price);
-        const maxPrice = Math.ceil(Math.max(...prices, 50));
-        setMaxPriceLimit(maxPrice);
-        setPriceRange([0, maxPrice]);
-        console.log("Using mock data as fallback for shop page");
+        setMeta({
+          page: 1,
+          pages: 1,
+          total: mockBooks.length,
+          pageSize: mockBooks.length,
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchBooks();
-  }, [userBooks, t]);
+  }, [
+    page,
+    debouncedSearch,
+    selectedCategory,
+    selectedType,
+    sortBy,
+    priceRange,
+    userBooks.length,
+  ]);
 
-  // Use API books or mock books as fallback
-  const storeBooks = apiBooks.length > 0 ? apiBooks : mockBooks;
-  const allBooks = [
-    ...storeBooks.map((book) => ({ ...book, type: "regular" })),
-    ...userBooks.map((book) => ({ ...book, type: "user" })),
-  ];
+  // shown list
+  const storeBooks = apiBooks.length ? apiBooks : mockBooks;
 
-  // Get unique categories from all books
-  const allCategories = [
-    ...new Set([
-      ...storeBooks.map((b) => b.category?.toLowerCase()),
-      ...userBooks.map((b) => b.category?.toLowerCase()),
-    ]),
-  ].filter(Boolean);
+  const shownBooks = useMemo(() => {
+    if (selectedType === "user") {
+      return userBooks.map((b) => ({ ...b, type: "user" }));
+    }
+    if (selectedType === "regular") {
+      return storeBooks.map((b) => ({ ...b, type: "regular" }));
+    }
+    // all: store + user
+    return [
+      ...storeBooks.map((b) => ({ ...b, type: "regular" })),
+      ...userBooks.map((b) => ({ ...b, type: "user" })),
+    ];
+  }, [selectedType, storeBooks, userBooks]);
 
-  const categories = [
-    { value: "all", label: t("All Categories"), count: allBooks.length },
-    ...allCategories.map((cat) => ({
-      value: cat,
-      label: cat.charAt(0).toUpperCase() + cat.slice(1),
-      count: allBooks.filter((book) => book.category?.toLowerCase() === cat)
-        .length,
-    })),
-  ];
+  // categories + counts
+  const categorySource = useMemo(() => {
+    if (selectedType === "user") return userBooks;
+    if (selectedType === "regular") return storeBooks;
+    return [...storeBooks, ...userBooks];
+  }, [selectedType, storeBooks, userBooks]);
 
-  // Book types for filtering
+  const allCategories = useMemo(() => {
+    return [...new Set(categorySource.map((b) => getCategoryId(b)))].filter(
+      Boolean,
+    );
+  }, [categorySource]);
+
+  const categories = useMemo(() => {
+    return [
+      {
+        value: "all",
+        label: t("All Categories"),
+        count:
+          selectedType === "regular" && meta?.total != null
+            ? meta.total
+            : categorySource.length,
+      },
+      ...allCategories.map((catId) => {
+        const first = categorySource.find((b) => getCategoryId(b) === catId);
+        const name = first ? getCategoryName(first) : "Category";
+        const count = categorySource.filter(
+          (b) => getCategoryId(b) === catId,
+        ).length;
+
+        return { value: catId, label: name, count };
+      }),
+    ];
+  }, [t, selectedType, meta?.total, categorySource, allCategories]);
+
   const bookTypes = [
     { value: "all", label: "All Books" },
     { value: "regular", label: "Store Books" },
     { value: "user", label: "Community Books" },
   ];
-
-  // Filter and sort books
-  const filteredBooks = allBooks
-    .filter((book) => {
-      const matchesSearch =
-        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "all" ||
-        book.category?.toLowerCase() === selectedCategory;
-      const matchesType = selectedType === "all" || book.type === selectedType;
-      const matchesPrice =
-        book.price >= priceRange[0] && book.price <= priceRange[1];
-
-      return matchesSearch && matchesCategory && matchesType && matchesPrice;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return a.price - b.price;
-        case "price-high":
-          return b.price - a.price;
-        case "rating":
-          return (b.ratings || b.rate || 3) - (a.ratings || a.rate || 3); // Default rating for books without ratings
-        case "name":
-        default:
-          return a.title.localeCompare(b.title);
-      }
-    });
 
   const handleAddToCart = (book) => {
     if (!user) {
@@ -278,8 +315,9 @@ const Shop = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
+
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300 pt-2">
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
+        <div className="w-full max-w-337.5 mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 transition-colors duration-300">
@@ -308,7 +346,7 @@ const Shop = () => {
 
               {/* Filters */}
               <div className="flex gap-4 flex-wrap">
-                {/* Book Type Filter */}
+                {/* Book Type */}
                 <div className="touch-area relative rounded-lg">
                   <select
                     value={selectedType}
@@ -323,7 +361,7 @@ const Shop = () => {
                   </select>
                 </div>
 
-                {/* Category Filter with counts */}
+                {/* Category */}
                 <div className="touch-area relative rounded-lg">
                   <select
                     value={selectedCategory}
@@ -338,7 +376,7 @@ const Shop = () => {
                   </select>
                 </div>
 
-                {/* Sort By */}
+                {/* Sort */}
                 <div className="touch-area relative rounded-lg">
                   <select
                     value={sortBy}
@@ -356,7 +394,7 @@ const Shop = () => {
                   </select>
                 </div>
 
-                {/* View Mode Toggle */}
+                {/* View */}
                 <div className="flex border border-gray-300 dark:border-zinc-600 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode("grid")}
@@ -382,10 +420,11 @@ const Shop = () => {
               </div>
             </div>
 
-            {/* Price Range Filter */}
+            {/* Price Range */}
             <div dir={i18n.dir()} className="mt-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
-                {t("Price Range") + " "}: ₹{priceRange[0]} - ₹{priceRange[1]}
+                {t("Price Range") + " "}: {priceRange[0]} - {priceRange[1]}{" "}
+                {t("EGP")}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -425,20 +464,21 @@ const Shop = () => {
               </p>
             ) : (
               <p className="text-gray-600">
-                {t("Showing")} {filteredBooks.length} {t("of")}{" "}
-                {allBooks.length} {t("books")}
+                {t("Showing")} {shownBooks.length} {t("of")}{" "}
+                {meta?.total ?? shownBooks.length} {t("books")}
               </p>
             )}
+
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
               <Filter size={16} />
               <span>{t("Filter")}</span>
             </div>
           </div>
 
-          {/* Books Grid/List */}
+          {/* Books */}
           {loading ? (
             <Loading height="min-h-[60vh]" animate={true} />
-          ) : filteredBooks.length === 0 ? (
+          ) : shownBooks.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 dark:text-gray-600 mb-4 transition-colors duration-300">
                 <Search size={48} className="mx-auto" />
@@ -458,7 +498,7 @@ const Shop = () => {
                   : "space-y-6"
               }
             >
-              {filteredBooks.map((book) => (
+              {shownBooks.map((book) => (
                 <div
                   key={book._id || book.id}
                   className={
@@ -467,12 +507,12 @@ const Shop = () => {
                       : "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex"
                   }
                 >
-                  {/* Book Image*/}
+                  {/* Image */}
                   <Link
                     to={`/book/${book._id || book.id}`}
                     className={
                       viewMode === "grid"
-                        ? "relative w-full block cursor-pointer p-4 group"
+                        ? "relative w-full block cursor-pointer group"
                         : "relative w-40 shrink-0 block cursor-pointer p-4 group"
                     }
                   >
@@ -499,14 +539,8 @@ const Shop = () => {
                         alt={book.title}
                         className="w-full h-full object-cover rounded-2xl select-none"
                         draggable="false"
-                        whileHover={{
-                          scale: 1.05,
-                          filter: "brightness(1.1)",
-                        }}
-                        whileTap={{
-                          scale: 1.05,
-                          filter: "brightness(1.1)",
-                        }}
+                        whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
+                        whileTap={{ scale: 1.05, filter: "brightness(1.1)" }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
                         onContextMenu={(e) => {
                           const isMobile =
@@ -515,14 +549,19 @@ const Shop = () => {
                         }}
                       />
 
-                      {/* Price Badge */}
-                      <span className="absolute left-2 bottom-2 text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
-                        ₹{book.price}
-                      </span>
+                      {/* Price */}
+                      {!isBookPurchased(book._id || book.id) && (
+                        <span
+                          dir={i18n.dir()}
+                          className="absolute left-2 bottom-2 text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none"
+                        >
+                          {book.price} {t("EGP")}
+                        </span>
+                      )}
                     </div>
                   </Link>
 
-                  {/* Book Info */}
+                  {/* Info */}
                   <div
                     className={
                       viewMode === "grid"
@@ -530,7 +569,6 @@ const Shop = () => {
                         : "p-4 flex-1 flex flex-col min-w-0 overflow-hidden"
                     }
                   >
-                    {/* Title */}
                     <Link
                       dir="auto"
                       to={`/book/${book._id || book.id}`}
@@ -539,7 +577,6 @@ const Shop = () => {
                       {book.title}
                     </Link>
 
-                    {/* Author and Rating in one line */}
                     <div className="flex justify-center items-center mb-2 space-x-1">
                       <Link
                         to={`/author/${encodeURIComponent(book.author)}`}
@@ -556,10 +593,7 @@ const Shop = () => {
                             key={i}
                             size={14}
                             className={`${
-                              i <
-                              Math.round(
-                                book.ratings || book.rate || book.rating || 0,
-                              )
+                              i < Math.round(book.ratings || book.rate || 0)
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"
                             } transition-colors duration-300`}
@@ -568,7 +602,6 @@ const Shop = () => {
                       </div>
                     </div>
 
-                    {/* Description */}
                     <p
                       dir="auto"
                       className="touch-area text-xs text-center truncate max-w-112.5 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3"
@@ -578,7 +611,6 @@ const Shop = () => {
                         "No description available"}
                     </p>
 
-                    {/* Add to Cart and View Details */}
                     <div
                       className={`mt-auto w-full flex gap-2 ${
                         viewMode === "grid" ? "flex-row" : "flex-col"
@@ -590,7 +622,7 @@ const Shop = () => {
                       >
                         {t("Details")}
                       </Link>
-                      {/* Hide Add to Cart for purchased books */}
+
                       {!isBookPurchased(book._id || book.id) && (
                         <button
                           onClick={(e) => {
@@ -607,6 +639,62 @@ const Shop = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {selectedType !== "user" && meta?.pages > 1 && (
+            <div className="flex flex-col items-center gap-3 mt-10">
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-600
+                   bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200
+                   disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-700"
+                >
+                  {t("Prev")}
+                </button>
+
+                <div className="flex items-center gap-1 flex-wrap justify-center">
+                  {Array.from({ length: meta.pages }).map((_, i) => {
+                    const p = i + 1;
+                    const active = p === page;
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p)}
+                        className={`px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors
+                          ${
+                            active
+                              ? "border-indigo-500 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200"
+                              : "border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700"
+                          }`}
+                      >
+                        {p}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  disabled={page >= meta.pages}
+                  onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
+                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-600
+                   bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200
+                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-700"
+                >
+                  {t("Next")}
+                </button>
+              </div>
+
+              <p
+                dir={i18n.dir()}
+                className="text-sm text-gray-500 dark:text-gray-400"
+              >
+                {t("Page")} {meta.page} {t("of")} {meta.pages} • {t("Total")}{" "}
+                {meta.total}
+              </p>
             </div>
           )}
         </div>
