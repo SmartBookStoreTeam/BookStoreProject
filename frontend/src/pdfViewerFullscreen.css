@@ -12,13 +12,24 @@
 :fullscreen .rpv-default-layout__main {
   padding: 0 !important;
   margin: 0 !important;
+  height: 100vh !important;
+  border: none !important;
 }
 
-/* Ensure toolbar is visible in fullscreen if needed */
-:fullscreen .rpv-default-layout__toolbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
+/* Hide toolbar and sidebar in fullscreen */
+:fullscreen .rpv-default-layout__toolbar,
+:fullscreen .rpv-default-layout__toolbar-container,
+:fullscreen .rpv-default-layout__sidebar {
+  display: none !important;
+}
+
+/* Ensure the main content takes full width/height */
+:fullscreen .rpv-default-layout__body {
+  display: flex;
+  flex-direction: column;
+}
+
+:fullscreen .rpv-default-layout__main {
+  flex: 1;
+  width: 100% !important;
 }

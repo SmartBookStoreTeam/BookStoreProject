@@ -11,7 +11,9 @@ import { useTranslation } from "react-i18next";
 import AuthModal from "../components/AuthModal";
 import { FaCartPlus } from "react-icons/fa";
 import { useGlobalLoading } from "../context/LoadingContext";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { getImageSrc } from "../utils/imageUtils";
 
 // Mock data fallback
 const mockBooks = [
@@ -96,8 +98,7 @@ const mockBooks = [
     img: assets.book1,
   },
 ];
-
-// ✅ ثابتة خارج الكومبوننت (مهم عشان deps)
+//fixed sortMap
 const sortMap = {
   name: "title",
   "price-low": "price",
@@ -117,8 +118,9 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState("grid");
 
-  const [priceRange, setPriceRange] = useState([0, 50]);
-  const [maxPriceLimit] = useState(50);
+  // Increased default price range limit
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [maxPriceLimit] = useState(1000);
 
   const [apiBooks, setApiBooks] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -131,33 +133,24 @@ const Shop = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { setIsLoading } = useGlobalLoading();
 
-  // ✅ read search from URL once
+  // read search from URL once
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const searchQuery = params.get("search");
     if (searchQuery) setSearchTerm(decodeURIComponent(searchQuery));
   }, [location.search]);
 
-  // ✅ debounce search
+  // debounce search
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 400);
     return () => clearTimeout(id);
   }, [searchTerm]);
 
-  // ✅ sync global loading
+  // sync global loading
   useEffect(() => {
     setIsLoading(loading);
     return () => setIsLoading(false);
   }, [loading, setIsLoading]);
-
-  // helper for user book images
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (image.base64) return image.base64;
-    if (image.preview) return image.preview;
-    if (image.url) return image.url;
-    return null;
-  };
 
   const getCategoryId = (book) =>
     typeof book.category === "string" ? book.category : book.category?._id;
@@ -167,12 +160,12 @@ const Shop = () => {
       ? book.category
       : book.category?.name || "Unknown";
 
-  // ✅ reset page when filters change
+  // reset page when filters change
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, selectedCategory, selectedType, sortBy, priceRange]);
 
-  // ✅ fetch from backend with filters (including price)
+  // fetch from backend with filters (including price)
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -233,7 +226,7 @@ const Shop = () => {
     userBooks.length,
   ]);
 
-  // ✅ shown list (بدون خلط pagination)
+  // shown list
   const storeBooks = apiBooks.length ? apiBooks : mockBooks;
 
   const shownBooks = useMemo(() => {
@@ -243,14 +236,14 @@ const Shop = () => {
     if (selectedType === "regular") {
       return storeBooks.map((b) => ({ ...b, type: "regular" }));
     }
-    // all: عرض store + user (بس هنا meta بتاعة الباك تخص store فقط)
+    // all: store + user
     return [
       ...storeBooks.map((b) => ({ ...b, type: "regular" })),
       ...userBooks.map((b) => ({ ...b, type: "user" })),
     ];
   }, [selectedType, storeBooks, userBooks]);
 
-  // ✅ categories + counts (counts للـ current shown dataset عشان ما تعملش “5 وانت شايف 3”)
+  // categories + counts
   const categorySource = useMemo(() => {
     if (selectedType === "user") return userBooks;
     if (selectedType === "regular") return storeBooks;
@@ -430,7 +423,8 @@ const Shop = () => {
             {/* Price Range */}
             <div dir={i18n.dir()} className="mt-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
-                {t("Price Range") + " "}: ₹{priceRange[0]} - ₹{priceRange[1]}
+                {t("Price Range") + " "}: {priceRange[0]} - {priceRange[1]}{" "}
+                {t("EGP")}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -518,7 +512,7 @@ const Shop = () => {
                     to={`/book/${book._id || book.id}`}
                     className={
                       viewMode === "grid"
-                        ? "relative w-full block cursor-pointer p-4 group"
+                        ? "relative w-full block cursor-pointer group"
                         : "relative w-40 shrink-0 block cursor-pointer p-4 group"
                     }
                   >
@@ -556,9 +550,14 @@ const Shop = () => {
                       />
 
                       {/* Price */}
-                      <span className="absolute left-2 bottom-2 text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
-                        ₹{book.price}
-                      </span>
+                      {!isBookPurchased(book._id || book.id) && (
+                        <span
+                          dir={i18n.dir()}
+                          className="absolute left-2 bottom-2 text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none"
+                        >
+                          {book.price} {t("EGP")}
+                        </span>
+                      )}
                     </div>
                   </Link>
 
@@ -643,7 +642,7 @@ const Shop = () => {
             </div>
           )}
 
-          {/* Pagination (فقط للـ regular/all اللي بيستخدموا meta من الباك) */}
+          {/* Pagination */}
           {selectedType !== "user" && meta?.pages > 1 && (
             <div className="flex flex-col items-center gap-3 mt-10">
               <div className="flex items-center gap-2">
@@ -652,9 +651,9 @@ const Shop = () => {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-600
                    bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200
-                   disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-700"
+                   disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-700"
                 >
-                  Prev
+                  {t("Prev")}
                 </button>
 
                 <div className="flex items-center gap-1 flex-wrap justify-center">
@@ -665,7 +664,7 @@ const Shop = () => {
                       <button
                         key={p}
                         onClick={() => setPage(p)}
-                        className={`px-3 py-2 rounded-lg border text-sm transition-colors
+                        className={`px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors
                           ${
                             active
                               ? "border-indigo-500 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200"
@@ -683,14 +682,18 @@ const Shop = () => {
                   onClick={() => setPage((p) => Math.min(meta.pages, p + 1))}
                   className="px-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-600
                    bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-200
-                   disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-700"
+                   cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-700"
                 >
-                  Next
+                  {t("Next")}
                 </button>
               </div>
 
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Page {meta.page} of {meta.pages} • Total {meta.total}
+              <p
+                dir={i18n.dir()}
+                className="text-sm text-gray-500 dark:text-gray-400"
+              >
+                {t("Page")} {meta.page} {t("of")} {meta.pages} • {t("Total")}{" "}
+                {meta.total}
               </p>
             </div>
           )}

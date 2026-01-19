@@ -214,3 +214,25 @@ export const getBookById = async (id) => {
     };
   }
 };
+
+// Get top rated books
+export const getTopBooks = async (limit = 10) => {
+  try {
+    const res = await api.get("/books/top", { params: { limit } });
+    const payload = res.data;
+    const list = Array.isArray(payload?.data) ? payload.data : [];
+    return {
+      success: true,
+      data: list.map(normalizeBook),
+    };
+  } catch (error) {
+    console.error("API Error in getTopBooks:", error);
+    // Fallback to mock data sorted by rating
+    const sortedMock = [...mockBooks].sort((a, b) => b.ratings - a.ratings).slice(0, limit);
+    return {
+      success: true,
+      data: sortedMock.map(normalizeBook),
+      fallback: true,
+    };
+  }
+};

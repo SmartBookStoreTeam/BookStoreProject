@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { ShoppingBag, X } from "lucide-react";
+import { getImageSrc } from "../utils/imageUtils";
 
 const OrderSummary = ({ books, onRemoveBook }) => {
   const { t, i18n } = useTranslation();
@@ -7,18 +8,6 @@ const OrderSummary = ({ books, onRemoveBook }) => {
   if (!books || books.length === 0) {
     return null;
   }
-
-  // Helper function to get image source
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (typeof image === "string") return image;
-    if (typeof image === "object") {
-      if (image.base64) return image.base64;
-      if (image.preview) return image.preview;
-      if (image.url) return image.url;
-    }
-    return null;
-  };
 
   // Calculate total
   const total = books.reduce((sum, book) => sum + (book.price || 0), 0);

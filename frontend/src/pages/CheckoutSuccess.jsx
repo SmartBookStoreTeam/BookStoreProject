@@ -147,15 +147,7 @@ const CheckoutSuccess = () => {
                       <Eye className="w-4 h-4" />
                       <span>{t("View")}</span>
                     </Link>
-                    <a
-                      href={book.pdf || "#"}
-                      download
-                      className="touch-area flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all text-sm font-medium shadow-sm hover:shadow-md sm:min-w-[130px]"
-                      title={t("Download PDF")}
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>{t("Download")}</span>
-                    </a>
+           
                   </div>
                 </div>
               ))}

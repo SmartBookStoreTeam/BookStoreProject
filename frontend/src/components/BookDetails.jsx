@@ -24,6 +24,7 @@ import { getBookById } from "../api/booksApi";
 import api from "../api/api";
 import toast from "react-hot-toast";
 import { useGlobalLoading } from "../context/LoadingContext";
+import { getImageSrc } from "../utils/imageUtils";
 
 // helpers
 const getCategoryName = (category, t) => {
@@ -49,10 +50,11 @@ const fillMissingBookData = (book, t) => {
       book.desc ||
       t("No description available for this book. Sorry for the inconvenience."),
 
-    price: typeof book.price === "number" ? book.price : Number(book.price || 0),
+    price:
+      typeof book.price === "number" ? book.price : Number(book.price || 0),
 
-    category: book.category, // خليها زي ما هي (object أو string)
-    categoryName: catName, // ✅ اسم جاهز للعرض
+    category: book.category, 
+    categoryName: catName, 
 
     isbn:
       book.isbn ||
@@ -103,10 +105,10 @@ const BookDetails = () => {
         setLoading(true);
         setError(null);
 
-        // ✅ API first
+        // API first
         try {
           const res = await getBookById(id);
-          // getBookById بيرجع { success, data: book }
+          // getBookById  { success, data: book }
           const apiBook = res?.data;
           if (apiBook) {
             setBook(fillMissingBookData(apiBook, t));
@@ -116,7 +118,7 @@ const BookDetails = () => {
           // ignore
         }
 
-        // ✅ fallback: local community books
+        //fallback: local community books
         const localBook = userBooks.find(
           (b) => String(b.id || b._id) === String(id),
         );
@@ -127,7 +129,9 @@ const BookDetails = () => {
           setError(t("Book not found"));
         }
       } catch (err) {
-        setError(err?.response?.data?.message || t("Failed to fetch book details"));
+        setError(
+          err?.response?.data?.message || t("Failed to fetch book details"),
+        );
       } finally {
         setLoading(false);
       }
@@ -147,7 +151,7 @@ const BookDetails = () => {
   const isBookInCart =
     book &&
     cartItems?.some(
-      (item) => String(item.id || item._id) === String(book.id || book._id),
+      (item) => String(item._id || item.id) === String(book._id || book.id),
     );
 
   const handleAddToCart = (bookToAdd) => {
@@ -226,10 +230,13 @@ const BookDetails = () => {
       // revert UI
       setBook((prev) => ({ ...prev, userRating: prev?.userRating || 0 }));
 
-      toast.error(err?.response?.data?.message || t("Failed to submit rating"), {
-        duration: 2000,
-        style: { background: "#333", color: "#fff", direction: i18n.dir() },
-      });
+      toast.error(
+        err?.response?.data?.message || t("Failed to submit rating"),
+        {
+          duration: 2000,
+          style: { background: "#333", color: "#fff", direction: i18n.dir() },
+        },
+      );
     }
   };
 
@@ -255,21 +262,12 @@ const BookDetails = () => {
     );
   }
 
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (typeof image === "string") return image;
-    if (typeof image === "object") {
-      if (image.base64) return image.base64;
-      if (image.preview) return image.preview;
-      if (image.url) return image.url;
-    }
-    return null;
-  };
-
   const bookImage =
     book.img ||
     book.image ||
-    (book.images?.length > 0 ? getImageSrc(book.images[0]) || book.images[0] : null) ||
+    (book.images?.length > 0
+      ? getImageSrc(book.images[0]) || book.images[0]
+      : null) ||
     assets.placeholderBook;
 
   const bookId = book._id || book.id;
@@ -296,7 +294,10 @@ const BookDetails = () => {
         onClose={() => setShowAuthModal(false)}
       />
 
-      <div dir={i18n.dir()} className="bg-gray-50 dark:bg-zinc-900 overflow-x-hidden">
+      <div
+        dir={i18n.dir()}
+        className="bg-gray-50 dark:bg-zinc-900 overflow-x-hidden"
+      >
         <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <button
             dir="ltr"
@@ -316,7 +317,11 @@ const BookDetails = () => {
                   onMouseEnter={() => setIsImageHovered(true)}
                   onMouseLeave={() => setIsImageHovered(false)}
                 >
-                  <img src={bookImage} alt={book.title} className="w-full h-full object-cover" />
+                  <img
+                    src={bookImage}
+                    alt={book.title}
+                    className="w-full h-full object-cover"
+                  />
 
                   {book.pdf && (
                     <div
@@ -330,7 +335,9 @@ const BookDetails = () => {
                           className="touch-area px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
                         >
                           <BookOpen className="w-5 h-5" />
-                          {isBookPurchased(bookId) ? t("View Book") : t("Preview Book")}
+                          {isBookPurchased(bookId)
+                            ? t("View Book")
+                            : t("Preview Book")}
                         </Link>
                       ) : (
                         <button
@@ -341,7 +348,9 @@ const BookDetails = () => {
                           className="touch-area px-6 py-3 bg-white dark:bg-indigo-600 text-gray-900 dark:text-white rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-transform shadow-xl cursor-pointer"
                         >
                           <BookOpen className="w-5 h-5" />
-                          {isBookPurchased(bookId) ? t("View Book") : t("Preview Book")}
+                          {isBookPurchased(bookId)
+                            ? t("View Book")
+                            : t("Preview Book")}
                         </button>
                       )}
                     </div>
@@ -351,7 +360,8 @@ const BookDetails = () => {
                 {book.images?.length > 1 && (
                   <div className="grid grid-cols-4 gap-2 mt-4 w-full max-w-xs lg:w-72">
                     {book.images.slice(1, 5).map((img, index) => {
-                      const imgSrc = getImageSrc(img) || img || assets.placeholderBook;
+                      const imgSrc =
+                        getImageSrc(img) || img || assets.placeholderBook;
                       return (
                         <div
                           key={index}
@@ -371,7 +381,10 @@ const BookDetails = () => {
 
               {/* Info */}
               <div className="flex flex-col order-2">
-                <h1 dir="auto" className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200">
+                <h1
+                  dir="auto"
+                  className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200"
+                >
                   {book.title}
                 </h1>
 
@@ -390,7 +403,11 @@ const BookDetails = () => {
                   <div dir="ltr" className="flex">
                     {Array.from({ length: 5 }).map((_, i) => {
                       const value = i + 1;
-                      const activeValue = book.hoverRating || book.userRating || book.ratings || 0;
+                      const activeValue =
+                        book.hoverRating ||
+                        book.userRating ||
+                        book.ratings ||
+                        0;
                       return (
                         <Star
                           key={i}
@@ -400,8 +417,12 @@ const BookDetails = () => {
                               ? "text-yellow-400 fill-yellow-400"
                               : "text-gray-300 fill-gray-300"
                           } hover:text-yellow-400 hover:fill-yellow-400`}
-                          onMouseEnter={() => setBook((prev) => ({ ...prev, hoverRating: value }))}
-                          onMouseLeave={() => setBook((prev) => ({ ...prev, hoverRating: 0 }))}
+                          onMouseEnter={() =>
+                            setBook((prev) => ({ ...prev, hoverRating: value }))
+                          }
+                          onMouseLeave={() =>
+                            setBook((prev) => ({ ...prev, hoverRating: 0 }))
+                          }
                           onClick={() => handleRating(value)}
                         />
                       );
@@ -416,11 +437,13 @@ const BookDetails = () => {
                 </div>
 
                 {/* Price card small */}
-                <div className="my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
-                  <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                    {book.price} {t("EGP")}
-                  </span>
-                </div>
+                {!isBookPurchased(bookId) && (
+                  <div className="my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                    <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                      {book.price} {t("EGP")}
+                    </span>
+                  </div>
+                )}
 
                 {/* Category */}
                 <div className="flex flex-wrap gap-3 mb-6">
@@ -431,8 +454,8 @@ const BookDetails = () => {
                         : "bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200"
                     }`}
                   >
-                    <Tag className="w-4 h-4 mr-1" />
-                    {book.categoryName}
+                    <Tag className="w-4 h-4 mr-1 ml-1" />
+                    {t(book.categoryName)}
                   </span>
                 </div>
 
@@ -443,7 +466,10 @@ const BookDetails = () => {
                     {t("Description")}
                   </h3>
                   <div className="pr-2">
-                    <p dir="auto" className="text-gray-700 leading-relaxed dark:text-gray-300">
+                    <p
+                      dir="auto"
+                      className="text-gray-700 leading-relaxed dark:text-gray-300"
+                    >
                       {book.description || book.desc}
                     </p>
                   </div>
@@ -452,13 +478,15 @@ const BookDetails = () => {
 
               {/* Price & Actions */}
               <div className="flex flex-col space-y-4 order-3 lg:w-full">
-                <div className="hidden md:block p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
-                  <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                    {book.price} {t("EGP")}
-                  </span>
-                </div>
+                {!isBookPurchased(bookId) && (
+                  <div className="hidden md:block p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                    <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                      {book.price} {t("EGP")}
+                    </span>
+                  </div>
+                )}
 
-                {book.pdf && (
+                {book.pdf && !isBookPurchased(bookId) && (
                   <div dir={i18n.dir()} className="touch-area">
                     {user ? (
                       <Link
@@ -466,7 +494,9 @@ const BookDetails = () => {
                         className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
                       >
                         <BookOpen className="w-5 h-5" />
-                        {isBookPurchased(bookId) ? t("View Book") : t("Preview Book")}
+                        {isBookPurchased(bookId)
+                          ? t("View Book")
+                          : t("Preview Book")}
                       </Link>
                     ) : (
                       <button
@@ -477,13 +507,25 @@ const BookDetails = () => {
                         className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
                       >
                         <BookOpen className="w-5 h-5" />
-                        {isBookPurchased(bookId) ? t("View Book") : t("Preview Book")}
+                        {isBookPurchased(bookId)
+                          ? t("View Book")
+                          : t("Preview Book")}
                       </button>
                     )}
                   </div>
                 )}
 
-                {!isBookPurchased(bookId) && (
+                {isBookPurchased(bookId) ? (
+                  book.pdf && (
+                    <Link
+                      to={`/pdf-viewer/${bookId}`}
+                      className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-green-600 hover:bg-green-700 text-white active:scale-95 cursor-pointer shadow-lg hover:shadow-xl"
+                    >
+                      <BookOpen className="w-6 h-6" />
+                      {t("View Book")}
+                    </Link>
+                  )
+                ) : (
                   <button
                     dir="ltr"
                     onClick={(e) => {
@@ -506,7 +548,10 @@ const BookDetails = () => {
                   </button>
                 )}
 
-                <div dir={i18n.dir()} className="grid grid-cols-1 lg:grid-cols-1 gap-3">
+                <div
+                  dir={i18n.dir()}
+                  className="grid grid-cols-1 lg:grid-cols-1 gap-3"
+                >
                   <Link
                     to="/shop"
                     className="touch-area hidden md:block w-full text-center px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-gray-200 font-medium"
@@ -536,8 +581,13 @@ const BookDetails = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-gray-50 rounded-lg dark:bg-gray-800">
                 <div>
-                  <span className="text-sm text-gray-600 dark:text-gray-200">ISBN:</span>
-                  <p className="font-medium text-gray-900 dark:text-gray-200 text-sm wrap-break-word" title={book.isbn}>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    ISBN:
+                  </span>
+                  <p
+                    className="font-medium text-gray-900 dark:text-gray-200 text-sm wrap-break-word"
+                    title={book.isbn}
+                  >
                     {book.isbn}
                   </p>
                 </div>
@@ -545,15 +595,25 @@ const BookDetails = () => {
                   <span className="text-sm text-gray-600 dark:text-gray-200">
                     {t("Edition")}:
                   </span>
-                  <p className="font-medium text-gray-900 dark:text-gray-200">{book.edition}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
+                    {book.edition}
+                  </p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600 dark:text-gray-200">{t("Year")}:</span>
-                  <p className="font-medium text-gray-900 dark:text-gray-200">{book.publicationYear}</p>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    {t("Year")}:
+                  </span>
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
+                    {book.publicationYear}
+                  </p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600 dark:text-gray-200">{t("Pages")}:</span>
-                  <p className="font-medium text-gray-900 dark:text-gray-200">{book.pages}</p>
+                  <span className="text-sm text-gray-600 dark:text-gray-200">
+                    {t("Pages")}:
+                  </span>
+                  <p className="font-medium text-gray-900 dark:text-gray-200">
+                    {book.pages}
+                  </p>
                 </div>
               </div>
             </div>

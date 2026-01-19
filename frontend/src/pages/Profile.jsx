@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
+import { getImageSrc } from "../utils/imageUtils";
 import UserAvatar from "../components/UserAvatar";
 
 const Profile = () => {
@@ -62,20 +63,11 @@ const Profile = () => {
     return null;
   }
 
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (typeof image === "string") return image;
-    if (typeof image === "object") {
-      return image.base64 || image.preview || image.url || null;
-    }
-    return null;
-  };
-
   const stats = [
     {
       icon: ShoppingBag,
       label: "Total Books",
-      value: 0, //Implement orders from backend
+      value: purchasedBooks?.length + cartItems.length || 0,
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-100 dark:bg-blue-900/30",
     },
@@ -281,18 +273,21 @@ const Profile = () => {
                         <img
                           src={imageSrc}
                           alt={book.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-50"
                         />
 
-                        {/* Hover Overlay with Title and Author */}
-                        <div className="absolute inset-0 bg-black/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer">
+                        {/* Title and Author */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer z-10">
                           <h3
                             dir="auto"
-                            className="font-bold text-lg text-white line-clamp-2 mb-1"
+                            className="font-bold text-lg text-white line-clamp-2 mb-1 drop-shadow-md"
                           >
                             {book.title}
                           </h3>
-                          <p dir="auto" className="text-sm text-gray-300">
+                          <p
+                            dir="auto"
+                            className="text-sm text-gray-200 drop-shadow-md"
+                          >
                             {book.author}
                           </p>
                         </div>
@@ -319,10 +314,10 @@ const Profile = () => {
                           dir={i18n.dir()}
                           href={book.pdf || "#"}
                           download
-                          className="touch-area bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 hover:from-indigo-700 hover:to-purple-700 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                          className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                           title={t("Download PDF")}
                         >
-                          <Download size={16} />
+                          <Download className="" size={16} />
                         </a>
                       </div>
                     </div>
@@ -453,8 +448,11 @@ const Profile = () => {
                           {book.author}
                         </p>
                       </div>
-                      <p className="text-indigo-600 dark:text-indigo-400 font-bold mb-3">
-                        ₹{book.price}
+                      <p
+                        dir={i18n.dir()}
+                        className="text-indigo-600 dark:text-indigo-400 font-bold mb-3"
+                      >
+                        {book.price} {t("EGP")}
                       </p>
 
                       {/* Actions */}
@@ -496,7 +494,6 @@ const Profile = () => {
             </div>
           )}
         </div>
-
 
         {/* Account Actions */}
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 transition-colors duration-300">

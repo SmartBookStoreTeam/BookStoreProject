@@ -117,8 +117,8 @@ const Cart = () => {
                     ))}
                   </div>
 
-                  <p className="touch-area text-lg font-bold text-indigo-600 dark:text-indigo-200 mt-1">
-                    ₹{item.price}
+                  <p dir={i18n.dir()} className="touch-area text-lg font-bold text-indigo-600 dark:text-indigo-200 mt-1">
+                    {item.price} {t("EGP")}
                   </p>
                 </div>
 
@@ -141,8 +141,8 @@ const Cart = () => {
                 <span className="touch-area text-xl font-bold text-gray-900 dark:text-gray-200">
                   {t("Total")}:
                 </span>
-                <span className="touch-area text-2xl font-bold text-indigo-600 dark:text-indigo-200">
-                  ₹{getCartTotal().toFixed(2)}
+                <span dir={i18n.dir()} className="touch-area text-2xl font-bold text-indigo-600 dark:text-indigo-200">
+                  {getCartTotal().toFixed(2)} {t("EGP")}
                 </span>
               </div>
 

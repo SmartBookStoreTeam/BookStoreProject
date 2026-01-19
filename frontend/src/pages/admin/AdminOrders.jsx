@@ -10,7 +10,7 @@ import {
   EyeIcon,
   CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
-import { getOrders } from "../../api/adminApi";
+import { getOrders, approveOrder, rejectOrder } from "../../api/adminApi";
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -24,7 +24,7 @@ const AdminOrders = () => {
       try {
         setLoading(true);
         const response = await getOrders();
-        const ordersData = response.orders || response || [];
+        const ordersData = Array.isArray(response.data) ? response.data : [];
         setOrders(ordersData);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -37,30 +37,28 @@ const AdminOrders = () => {
     fetchOrders();
   }, []);
 
-  const statusOptions = [
-    "all",
-    "Pending",
-    "Processing",
-    "Downloaded",
-    "Cancelled",
-  ];
+  const statusOptions = ["all", "requested", "approved", "rejected"];
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+      order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case "Downloaded":
+    switch (status?.toLowerCase()) {
+      case "downloaded":
+      case "approved":
+      case "completed":
         return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-      case "Processing":
+      case "processing":
+      case "requested":
         return <ClockIcon className="h-5 w-5 text-yellow-500" />;
-      case "Cancelled":
+      case "cancelled":
+      case "rejected":
         return <XCircleIcon className="h-5 w-5 text-red-500" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-500" />;
@@ -68,24 +66,44 @@ const AdminOrders = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Downloaded":
+    switch (status?.toLowerCase()) {
+      case "downloaded":
+      case "approved":
+      case "completed":
         return "bg-green-100 text-green-800";
-      case "Processing":
+      case "processing":
+      case "requested":
         return "bg-yellow-100 text-yellow-800";
-      case "Cancelled":
+      case "cancelled":
+      case "rejected":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(
-      orders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      let updatedOrder;
+      if (newStatus === "Downloaded" || newStatus === "approved") {
+        updatedOrder = await approveOrder(orderId);
+      } else if (newStatus === "Cancelled" || newStatus === "rejected") {
+        updatedOrder = await rejectOrder(orderId);
+      } else {
+        return;
+      }
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === orderId
+            ? { ...order, status: updatedOrder?.status || newStatus }
+            : order,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Failed to update order status");
+    }
   };
 
   return (
@@ -105,8 +123,8 @@ const AdminOrders = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {["Pending", "Processing", "Downloaded", "Cancelled"].map((status) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {["requested", "approved", "rejected"].map((status) => (
           <div key={status} className="bg-white rounded-xl shadow-sm p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -206,23 +224,23 @@ const AdminOrders = () => {
                   </tr>
                 ) : (
                   filteredOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
+                    <tr key={order._id} className="hover:bg-gray-50">
                       <td className="px-4 sm:px-6 py-4">
                         <div className="text-sm font-medium text-blue-600">
-                          {order.id}
+                          {order._id}
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="text-sm font-medium text-gray-900 truncate max-w-[100px] sm:max-w-none">
-                          {order.customer}
+                          {order.user?.name || "Unknown"}
                         </div>
                       </td>
                       <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500">
-                        {new Date(order.date).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </td>
                       <td className="hidden md:table-cell px-6 py-4">
                         <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
-                          {order.items} items
+                          {order.items?.length || 0} items
                         </span>
                       </td>
                       <td className="px-4 sm:px-6 py-4">
@@ -234,7 +252,7 @@ const AdminOrders = () => {
                         <div className="flex items-center space-x-2">
                           <span
                             className={`px-2 sm:px-3 py-1 text-xs rounded-full ${getStatusColor(
-                              order.status
+                              order.status,
                             )}`}
                           >
                             {order.status}
@@ -242,7 +260,7 @@ const AdminOrders = () => {
                           <select
                             value={order.status}
                             onChange={(e) =>
-                              updateOrderStatus(order.id, e.target.value)
+                              updateOrderStatus(order._id, e.target.value)
                             }
                             className="hidden sm:block text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500"
                           >
@@ -268,7 +286,7 @@ const AdminOrders = () => {
                             className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
                             title="Mark as Downloaded"
                             onClick={() =>
-                              updateOrderStatus(order.id, "Downloaded")
+                              updateOrderStatus(order._id, "approved")
                             }
                           >
                             <ArrowDownTrayIcon className="h-5 w-5" />
@@ -277,7 +295,7 @@ const AdminOrders = () => {
                             className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
                             title="Cancel Order"
                             onClick={() =>
-                              updateOrderStatus(order.id, "Cancelled")
+                              updateOrderStatus(order._id, "rejected")
                             }
                           >
                             <XCircleIcon className="h-5 w-5" />

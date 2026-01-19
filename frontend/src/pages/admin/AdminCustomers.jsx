@@ -19,18 +19,20 @@ const AdminCustomers = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const data = await getUsers();
+        const response = await getUsers();
+        // The API returns { success: true, data: [...] }
+        const usersData = Array.isArray(response.data) ? response.data : [];
 
         // Map and filter only users
-        const mappedCustomers = data
+        const mappedCustomers = usersData
           .filter((customer) => customer.role === "user") // <-- only keep role = user
           .map((customer) => ({
             ...customer,
             id: customer._id,
             role: customer.role || "user",
             joinDate: customer.createdAt || new Date(),
-            orders: customer.orders || 0,
-            totalSpent: customer.totalSpent || 0,
+            orders: customer.ordersCount || 0, // expecting from aggregation
+            totalSpent: customer.totalSpent || 0, // expecting from aggregation
             status: customer.status || "Active",
             phone: customer.phone || "-",
           }));
@@ -61,8 +63,8 @@ const AdminCustomers = () => {
               ...customer,
               status: customer.status === "Active" ? "Inactive" : "Active",
             }
-          : customer
-      )
+          : customer,
+      ),
     );
   };
 

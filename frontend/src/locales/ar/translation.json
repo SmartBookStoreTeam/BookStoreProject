@@ -68,6 +68,11 @@
   "No PDF file found for this book": "لا يوجد ملف PDF لهذا الكتاب",
   "Failed to load book data": "فشل في تحميل بيانات الكتاب",
   "Loading book...": "جاري تحميل الكتاب...",
+  "Loading Best Seller Books...": "جاري تحميل الكتب الأكثر مبيعًا...",
+  "Loading Top Rated Books...": "جاري تحميل الكتب الأعلى تقييمًا...",
+  "Loading Suggestion books...": "جاري تحميل الكتب المقترحة...",
+  "Loading Popular books...": "جاري تحميل الكتب الأكثر شهرة...",
+  "Loading New Releases...": "جاري تحميل الكتب الجديدة...",
   "Failed to load book!": "فشل في تحميل الكتاب!",
   "Back": "رجوع",
   "Enjoying": "هل استمتعت بـ",
@@ -188,6 +193,7 @@
   "Items": "العناصر",
   "After payment, download links will be sent to your email": "بعد الدفع، سيتم إرسال روابط التحميل إلى بريدك الإلكتروني",
   "By": "بواسطة",
+  "Page": "صفحة",
   "Digital Book": "كتاب رقمي",
   "Remove from order": "إزالة من الطلب",
   "Customer Information": "معلومات العميل",
@@ -248,6 +254,7 @@
   "Publish Book": "نشر الكتاب",
   "PublishBookParagraph": "أضف كتبك وامنحها فرصة الوصول إلى آلاف القرّاء أونلاين. املأ النموذج أدناه للبدء",
   "Previous": "السابق",
+  "Prev": "السابق",
   "Next": "التالي",
   "Upload Book Images": "رفع صور الكتاب",
   "Your Name": "اسمك",
@@ -316,6 +323,7 @@
   "Health": "صحة",
   "Non-fiction": "واقعية",
 
+
   "Follow Us": "تابعنا",
   "Address": "العنوان",
   "We Accept": "نقبل الدفع عبر",
@@ -357,8 +365,9 @@
   "Baking": "الخبز",
   "Cooking": "الطبخ",
   "Programming": "البرمجة",
-  "Self-Help": "المساعدة الذاتية",
+  "Self-Help": "تطوير الذات",
   "baking": "الخبز",
+  
 
   "categories": "الفئات",
   "searchBooks": "ابحث عن الكتب",
