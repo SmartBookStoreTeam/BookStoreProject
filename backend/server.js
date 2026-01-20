@@ -26,6 +26,7 @@ const app = express();
 
 // JSON parser
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // CORS setup
 const allowedOrigins = [
