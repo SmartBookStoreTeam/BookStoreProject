@@ -21,38 +21,68 @@ import {
 } from "lucide-react";
 
 import { getBookById } from "../api/booksApi";
+import api from "../api/api";
 import toast from "react-hot-toast";
-import { t } from "i18next";
 import { useGlobalLoading } from "../context/LoadingContext";
+import { getImageSrc } from "../utils/imageUtils";
 
-// Helper function to fill missing book data with placeholders
-const fillMissingBookData = (book) => {
+// helpers
+const getCategoryName = (category, t) => {
+  if (!category) return t("uncategorized");
+  if (typeof category === "string") return category;
+  return category?.name || t("uncategorized");
+};
+
+const fillMissingBookData = (book, t) => {
   if (!book) return null;
+
+  const catName = getCategoryName(book.category, t);
 
   return {
     ...book,
+    _id: book._id || book.id,
+    id: book._id || book.id,
+
     title: book.title || t("Book title not available"),
     author: book.author || t("Author not available"),
     description:
       book.description ||
       book.desc ||
       t("No description available for this book. Sorry for the inconvenience."),
-    price: book.price || 0,
-    category: book.category || t("uncategorized"),
+
+    price:
+      typeof book.price === "number" ? book.price : Number(book.price || 0),
+
+    category: book.category, 
+    categoryName: catName, 
+
     isbn:
       book.isbn ||
       "ISBN-" + Math.random().toString(36).substr(2, 13).toUpperCase(),
     edition: book.edition || t("First Edition"),
     publicationYear: book.publicationYear || new Date().getFullYear(),
     pages: book.pages || 200,
-    ratings: book.ratings || book.rate || book.userRating || 4,
+
+    // ratings
+    ratings:
+      typeof book.ratings === "number"
+        ? book.ratings
+        : typeof book.rate === "number"
+          ? book.rate
+          : 0,
+    numReviews:
+      typeof book.numReviews === "number"
+        ? book.numReviews
+        : Array.isArray(book.reviews)
+          ? book.reviews.length
+          : 0,
   };
 };
 
 const BookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks, cartItems } = useCart();
+  const { addToCart, userBooks, cartItems, isBookPurchased } = useCart();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,11 +96,7 @@ const BookDetails = () => {
   // Sync local loading with global loading bar
   useEffect(() => {
     setIsLoading(loading);
-
-    // Cleanup: reset loading when component unmounts
-    return () => {
-      setIsLoading(false);
-    };
+    return () => setIsLoading(false);
   }, [loading, setIsLoading]);
 
   useEffect(() => {
@@ -79,52 +105,54 @@ const BookDetails = () => {
         setLoading(true);
         setError(null);
 
-        // First try to fetch from API
+        // API first
         try {
-          const bookData = await getBookById(id);
-          if (bookData) {
-            setBook(fillMissingBookData(bookData));
+          const res = await getBookById(id);
+          // getBookById  { success, data: book }
+          const apiBook = res?.data;
+          if (apiBook) {
+            setBook(fillMissingBookData(apiBook, t));
             return;
           }
         } catch {
-          console.log("Book not found in API, checking local books...");
+          // ignore
         }
 
-        // Fallback: Check in userBooks (local data)
+        //fallback: local community books
         const localBook = userBooks.find(
-          (b) => b.id === id || b._id === id || b.id === parseInt(id)
+          (b) => String(b.id || b._id) === String(id),
         );
 
         if (localBook) {
-          setBook(fillMissingBookData(localBook));
+          setBook(fillMissingBookData(localBook, t));
         } else {
           setError(t("Book not found"));
         }
-      } catch (error) {
+      } catch (err) {
         setError(
-          error.response?.data?.message || t("Failed to fetch book details")
+          err?.response?.data?.message || t("Failed to fetch book details"),
         );
       } finally {
         setLoading(false);
       }
     };
-    if (id) {
-      fetchBook();
-    }
+
+    if (id) fetchBook();
   }, [id, t, userBooks]);
 
-  // Check if book is already in cart
+  // Update page title
+  useEffect(() => {
+    if (book?.title) document.title = `${book.title} : ${t("Bookfly Store")}`;
+    return () => {
+      document.title = t("Bookfly Store - Buy your favorite books online");
+    };
+  }, [book, t]);
+
   const isBookInCart =
     book &&
-    cartItems &&
-    cartItems.some((item) => {
-      return (
-        item.id === book.id ||
-        item._id === book._id ||
-        item.id === book._id ||
-        item._id === book.id
-      );
-    });
+    cartItems?.some(
+      (item) => String(item._id || item.id) === String(book._id || book.id),
+    );
 
   const handleAddToCart = (bookToAdd) => {
     if (!user) {
@@ -133,15 +161,13 @@ const BookDetails = () => {
       return;
     }
 
-    // If book is already in cart, go to checkout
     if (isBookInCart) {
       navigate("/checkout", { state: { books: cartItems } });
       return;
     }
 
-    // Otherwise, add to cart
     const result = addToCart(bookToAdd);
-    if (result.success) {
+    if (result?.success) {
       toast.success(`${t("Added")} "${bookToAdd.title}" ${t("to Cart")}!`, {
         duration: 1500,
         style: {
@@ -165,91 +191,57 @@ const BookDetails = () => {
     if (!user) {
       toast.error(t("Please login to rate books"), {
         duration: 2000,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: i18n.dir(),
-        },
+        style: { background: "#333", color: "#fff", direction: i18n.dir() },
       });
       return;
     }
 
     try {
-      // Update local state immediately for UI feedback
-      setBook({ ...book, userRating: value });
+      // UI feedback
+      setBook((prev) => ({ ...prev, userRating: value }));
 
-      // Send rating to backend
-      const response = await fetch(
-        `/api/books/${id}/rate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            rating: value,
-            userId: user._id || user.id,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Update book with new rating data from server
-        setBook({
-          ...book,
-          userRating: value,
-          rate: data.rate,
-          ratings: data.ratings,
-        });
-
-        // Mark this book as rated for this user
-        const userId = user?._id || user?.id || "guest";
-        const storageKey = `ratedBooks_${userId}`;
-        const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
-        if (!ratedBooks.includes(id)) {
-          ratedBooks.push(id);
-          localStorage.setItem(storageKey, JSON.stringify(ratedBooks));
-        }
-
-        toast.success(t("Thank you for your rating!"), {
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-            direction: i18n.dir(),
-          },
-        });
-      } else {
-        // Revert state if request failed
-        setBook({ ...book, userRating: book.userRating || 0 });
-        toast.error(data.message || t("Failed to submit rating"), {
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-            direction: i18n.dir(),
-          },
-        });
-      }
-    } catch (error) {
-      console.error("Error submitting rating:", error);
-      // Revert state on error
-      setBook({ ...book, userRating: book.userRating || 0 });
-      toast.error(t("Failed to submit rating"), {
-        duration: 2000,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: i18n.dir(),
-        },
+      // ✅ الباك بيستخدم req.user.id من التوكن
+      const response = await api.post(`/books/${id}/rate`, {
+        rating: value,
+        // comment اختياري لو عندك UI ليه
       });
+
+      // ✅ شكل الريسبونس عندك:
+      // { success, message, data: { ratings, numReviews } }
+      const payload = response.data;
+      const newRatings = payload?.data?.ratings;
+      const newNumReviews = payload?.data?.numReviews;
+
+      setBook((prev) => ({
+        ...prev,
+        userRating: value,
+        ratings: typeof newRatings === "number" ? newRatings : prev.ratings,
+        numReviews:
+          typeof newNumReviews === "number" ? newNumReviews : prev.numReviews,
+      }));
+
+      toast.success(t("Thank you for your rating!"), {
+        duration: 2000,
+        style: { background: "#333", color: "#fff", direction: i18n.dir() },
+      });
+    } catch (err) {
+      console.error("Error submitting rating:", err);
+
+      // revert UI
+      setBook((prev) => ({ ...prev, userRating: prev?.userRating || 0 }));
+
+      toast.error(
+        err?.response?.data?.message || t("Failed to submit rating"),
+        {
+          duration: 2000,
+          style: { background: "#333", color: "#fff", direction: i18n.dir() },
+        },
+      );
     }
   };
-  if (loading) {
-    return <SkeletonLoading />;
-  }
+
+  if (loading) return <SkeletonLoading />;
+
   if (error || !book) {
     return (
       <div className="pt-20 flex items-center justify-center dark:bg-zinc-900 py-20">
@@ -259,7 +251,6 @@ const BookDetails = () => {
             height="h-60"
             status="error"
           />
-
           <button
             className="touch-area bg-gray-800 dark:bg-gray-800 hover:bg-gray-700 dark:hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
             onClick={() => navigate(-1)}
@@ -271,28 +262,18 @@ const BookDetails = () => {
     );
   }
 
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (typeof image === "string") return image;
-    if (typeof image === "object") {
-      if (image.base64) return image.base64;
-      if (image.preview) return image.preview;
-      if (image.url) return image.url;
-    }
-    return null;
-  };
-
-  //Image Source
   const bookImage =
     book.img ||
     book.image ||
-    (book.images && book.images.length > 0
+    (book.images?.length > 0
       ? getImageSrc(book.images[0]) || book.images[0]
       : null) ||
     assets.placeholderBook;
+
+  const bookId = book._id || book.id;
+
   return (
     <>
-      {/* Authentication Modal */}
       <AuthModal
         icon={
           authModalMode === "cart" ? (
@@ -312,24 +293,24 @@ const BookDetails = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
+
       <div
         dir={i18n.dir()}
         className="bg-gray-50 dark:bg-zinc-900 overflow-x-hidden"
       >
         <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back Button */}
           <button
             dir="ltr"
             onClick={() => navigate("/shop")}
-            className="group touch-area flex md:hidden items-center justify-start rounded-full mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 mb-7 transition-colors cursor-pointer"
+            className="group touch-area flex md:hidden items-center justify-start rounded-full mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-100/10 p-2 mb-7 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
             {t("Back to Shop")}
           </button>
-          {/* Book Details */}
+
           <div className="overflow-hidden">
             <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_340px] gap-6 lg:gap-10 p-2 bg-gray-50 dark:bg-zinc-900 lg:p-10">
-              {/* Book Image */}
+              {/* Image */}
               <div className="touch-area flex flex-col items-center lg:items-start order-1">
                 <div
                   className="w-full max-w-xs lg:w-72 aspect-3/4 bg-gray-100 rounded-xl overflow-hidden shadow-md relative group"
@@ -342,7 +323,6 @@ const BookDetails = () => {
                     className="w-full h-full object-cover"
                   />
 
-                  {/* Hover Overlay - Only show if book has PDF */}
                   {book.pdf && (
                     <div
                       className={`absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 rounded-xl ${
@@ -351,11 +331,13 @@ const BookDetails = () => {
                     >
                       {user ? (
                         <Link
-                          to={`/pdf-viewer/${book._id || book.id}`}
+                          to={`/pdf-viewer/${bookId}`}
                           className="touch-area px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
                         >
                           <BookOpen className="w-5 h-5" />
-                          {t("Preview Book")}
+                          {isBookPurchased(bookId)
+                            ? t("View Book")
+                            : t("Preview Book")}
                         </Link>
                       ) : (
                         <button
@@ -366,15 +348,16 @@ const BookDetails = () => {
                           className="touch-area px-6 py-3 bg-white dark:bg-indigo-600 text-gray-900 dark:text-white rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-transform shadow-xl cursor-pointer"
                         >
                           <BookOpen className="w-5 h-5" />
-                          {t("Preview Book")}
+                          {isBookPurchased(bookId)
+                            ? t("View Book")
+                            : t("Preview Book")}
                         </button>
                       )}
                     </div>
                   )}
                 </div>
 
-                {/* Additional Images if available */}
-                {book.images && book.images.length > 1 && (
+                {book.images?.length > 1 && (
                   <div className="grid grid-cols-4 gap-2 mt-4 w-full max-w-xs lg:w-72">
                     {book.images.slice(1, 5).map((img, index) => {
                       const imgSrc =
@@ -396,9 +379,8 @@ const BookDetails = () => {
                 )}
               </div>
 
-              {/* Book Info */}
+              {/* Info */}
               <div className="flex flex-col order-2">
-                {/* Title */}
                 <h1
                   dir="auto"
                   className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200"
@@ -406,7 +388,6 @@ const BookDetails = () => {
                   {book.title}
                 </h1>
 
-                {/* Author */}
                 <Link
                   to={`/author/${encodeURIComponent(book.author)}`}
                   className="touch-area flex items-center text-lg md:text-xl text-gray-700 mb-4 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors cursor-pointer group w-fit"
@@ -422,60 +403,59 @@ const BookDetails = () => {
                   <div dir="ltr" className="flex">
                     {Array.from({ length: 5 }).map((_, i) => {
                       const value = i + 1;
+                      const activeValue =
+                        book.hoverRating ||
+                        book.userRating ||
+                        book.ratings ||
+                        0;
                       return (
                         <Star
                           key={i}
                           size={20}
                           className={`cursor-pointer transition-all ${
-                            value <=
-                            (book.hoverRating || book.ratings || book.rate || 0)
+                            value <= activeValue
                               ? "text-yellow-400 fill-yellow-400"
                               : "text-gray-300 fill-gray-300"
                           } hover:text-yellow-400 hover:fill-yellow-400`}
                           onMouseEnter={() =>
-                            setBook({ ...book, hoverRating: value })
+                            setBook((prev) => ({ ...prev, hoverRating: value }))
                           }
                           onMouseLeave={() =>
-                            setBook({ ...book, hoverRating: 0 })
+                            setBook((prev) => ({ ...prev, hoverRating: 0 }))
                           }
                           onClick={() => handleRating(value)}
                         />
                       );
                     })}
                   </div>
+
                   <span className="text-gray-600 font-medium dark:text-gray-300">
-                    ({book.ratings || book.rate || 0} / 5)
+                    ({(book.ratings || 0).toFixed?.(1) ?? book.ratings} / 5)
                     {book.numReviews > 0 &&
-                      ` • ${book.numReviews} ${
-                        book.numReviews === 1 ? t("review") : t("reviews")
-                      }`}
+                      ` • ${book.numReviews} ${book.numReviews === 1 ? t("review") : t("reviews")}`}
                   </span>
                 </div>
-                {/* Price Card */}
-                <div className="my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
-                  <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                    {book.price} {t("EGP")}
-                  </span>
-                  {book.originalPrice && book.originalPrice > book.price && (
-                    <span className="text-lg text-gray-400 line-through ml-3 lg:block lg:mt-1">
-                      {book.originalPrice} {t("EGP")}
+
+                {/* Price card small */}
+                {!isBookPurchased(bookId) && (
+                  <div className="my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                    <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                      {book.price} {t("EGP")}
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
+
                 {/* Category */}
                 <div className="flex flex-wrap gap-3 mb-6">
                   <span
                     className={`inline-flex items-center text-sm font-medium px-3 py-1 rounded-full ${
-                      book.category === "uncategorized"
+                      book.categoryName === t("uncategorized")
                         ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                         : "bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200"
                     }`}
                   >
-                    <Tag className="w-4 h-4 mr-1" />
-                    {t(
-                      book.category?.charAt(0).toUpperCase() +
-                        book.category?.slice(1)
-                    )}
+                    <Tag className="w-4 h-4 mr-1 ml-1" />
+                    {t(book.categoryName)}
                   </span>
                 </div>
 
@@ -496,30 +476,27 @@ const BookDetails = () => {
                 </div>
               </div>
 
-              {/* Price & Actions*/}
+              {/* Price & Actions */}
               <div className="flex flex-col space-y-4 order-3 lg:w-full">
-                {/* Price Card */}
-                <div className="hidden md:block p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
-                  <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                    {book.price} {t("EGP")}
-                  </span>
-                  {book.originalPrice && book.originalPrice > book.price && (
-                    <span className="text-lg text-gray-400 line-through ml-3 lg:block lg:mt-1">
-                      {book.originalPrice} {t("EGP")}
+                {!isBookPurchased(bookId) && (
+                  <div className="hidden md:block p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                    <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                      {book.price} {t("EGP")}
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {/* Preview Book Link */}
-                {book.pdf && (
+                {book.pdf && !isBookPurchased(bookId) && (
                   <div dir={i18n.dir()} className="touch-area">
                     {user ? (
                       <Link
-                        to={`/pdf-viewer/${book._id || book.id}`}
+                        to={`/pdf-viewer/${bookId}`}
                         className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
                       >
                         <BookOpen className="w-5 h-5" />
-                        {t("Preview Book")}
+                        {isBookPurchased(bookId)
+                          ? t("View Book")
+                          : t("Preview Book")}
                       </Link>
                     ) : (
                       <button
@@ -530,69 +507,85 @@ const BookDetails = () => {
                         className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
                       >
                         <BookOpen className="w-5 h-5" />
-                        {t("Preview Book")}
+                        {isBookPurchased(bookId)
+                          ? t("View Book")
+                          : t("Preview Book")}
                       </button>
                     )}
                   </div>
                 )}
 
-                {/* Add to Cart / Go to Checkout Button */}
-                <button
-                  dir="ltr"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddToCart(book);
-                  }}
-                  className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white active:scale-95 dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
-                >
-                  {isBookInCart ? (
-                    <>
-                      <FaShoppingCart className="w-6 h-6" />
-                      {t("Go to Checkout")}
-                    </>
-                  ) : (
-                    <>
-                      <FaCartPlus className="w-6 h-6" />
-                      {t("Add to Cart")}
-                    </>
-                  )}
-                </button>
+                {isBookPurchased(bookId) ? (
+                  book.pdf && (
+                    <Link
+                      to={`/pdf-viewer/${bookId}`}
+                      className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-green-600 hover:bg-green-700 text-white active:scale-95 cursor-pointer shadow-lg hover:shadow-xl"
+                    >
+                      <BookOpen className="w-6 h-6" />
+                      {t("View Book")}
+                    </Link>
+                  )
+                ) : (
+                  <button
+                    dir="ltr"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(book);
+                    }}
+                    className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white active:scale-95 dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
+                  >
+                    {isBookInCart ? (
+                      <>
+                        <FaShoppingCart className="w-6 h-6" />
+                        {t("Go to Checkout")}
+                      </>
+                    ) : (
+                      <>
+                        <FaCartPlus className="w-6 h-6" />
+                        {t("Add to Cart")}
+                      </>
+                    )}
+                  </button>
+                )}
 
-                {/* Secondary Actions */}
                 <div
                   dir={i18n.dir()}
                   className="grid grid-cols-1 lg:grid-cols-1 gap-3"
                 >
                   <Link
                     to="/shop"
-                    className="touch-area hidden md:block w-full text-center px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-gray-200 font-medium block"
+                    className="touch-area hidden md:block w-full text-center px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-gray-200 font-medium"
                   >
                     {t("Continue Shopping")}
                   </Link>
-                  <Link
-                    dir="ltr"
-                    to="/cart"
-                    className="touch-area flex items-center justify-center gap-2 w-full text-center px-6 py-4 border-2 border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all text-indigo-600 dark:text-indigo-300 font-medium block"
-                  >
-                    <ShoppingCart className="w-6 h-6" />
-                    {t("View Cart")}
-                  </Link>
+
+                  {!isBookPurchased(bookId) && (
+                    <Link
+                      dir="ltr"
+                      to="/cart"
+                      className="touch-area flex items-center justify-center gap-2 w-full text-center px-6 py-4 border-2 border-indigo-600 dark:border-indigo-500 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all text-indigo-600 dark:text-indigo-300 font-medium"
+                    >
+                      <ShoppingCart className="w-6 h-6" />
+                      {t("View Cart")}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Additional Details*/}
+            {/* Additional Details */}
             <div dir={i18n.dir()} className="px-2 mt-4 lg:px-10 pb-8 lg:pb-10">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 dark:text-gray-300">
                 {t("Additional Details")}
               </h3>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6 bg-gray-50 rounded-lg dark:bg-gray-800">
                 <div>
                   <span className="text-sm text-gray-600 dark:text-gray-200">
                     ISBN:
                   </span>
                   <p
-                    className="font-medium text-gray-900 dark:text-gray-200 text-sm break-words"
+                    className="font-medium text-gray-900 dark:text-gray-200 text-sm wrap-break-word"
                     title={book.isbn}
                   >
                     {book.isbn}
@@ -628,13 +621,10 @@ const BookDetails = () => {
         </div>
       </div>
 
-      {/* Author Books Section */}
-      {book && book.author && (
+      {/* Author Books */}
+      {book?.author && (
         <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <AuthorBooks
-            authorName={book.author}
-            excludeBookId={book._id || book.id}
-          />
+          <AuthorBooks authorName={book.author} excludeBookId={bookId} />
         </div>
       )}
     </>

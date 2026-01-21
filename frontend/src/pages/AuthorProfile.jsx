@@ -12,6 +12,7 @@ import { FaCartPlus } from "react-icons/fa";
 import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { getImageSrc } from "../utils/imageUtils";
 
 const AuthorProfile = () => {
   const { name } = useParams();
@@ -40,25 +41,30 @@ const AuthorProfile = () => {
         setLoading(true);
 
         // Fetch books from API
-        const response = await getBooks();
-        const apiBooks = response.books || response || [];
+        const response = await getBooks({
+          author: decodeURIComponent(name),
+          pageSize: 100,
+        });
+        const apiBooks = response.data || response.books || response || [];
 
-        // Filter API books by author name
+        // Filter API books by author name (client-side)
         const filteredApiBooks = apiBooks.filter(
           (book) =>
             book.author?.toLowerCase() ===
-            decodeURIComponent(name).toLowerCase()
+            decodeURIComponent(name).toLowerCase(),
         );
 
         // Filter userBooks by author name
         const filteredUserBooks = userBooks.filter(
           (book) =>
             book.author?.toLowerCase() ===
-            decodeURIComponent(name).toLowerCase()
+            decodeURIComponent(name).toLowerCase(),
         );
 
         // Combine both sources
-        setAuthorBooks([...filteredApiBooks, ...filteredUserBooks]);
+        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];    
+
+        setAuthorBooks(combinedBooks);
       } catch (error) {
         console.error("Error fetching author books:", error);
         setAuthorBooks([]);
@@ -96,18 +102,6 @@ const AuthorProfile = () => {
     });
   };
 
-  // Helper function to get image source
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (typeof image === "string") return image;
-    if (typeof image === "object") {
-      if (image.base64) return image.base64;
-      if (image.preview) return image.preview;
-      if (image.url) return image.url;
-    }
-    return null;
-  };
-
   if (loading) {
     return (
       <Loading
@@ -127,11 +121,11 @@ const AuthorProfile = () => {
       />
 
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
+        <div className="w-full max-w-[1350px] mx-auto px-4 py-4">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 rounded-full mb-6 transition-colors cursor-pointer"
+            className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-100/10 p-2 rounded-full mb-6 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 group-active:-translate-x-1 transition-all" />
             {t("Go Back")}
@@ -202,8 +196,11 @@ const AuthorProfile = () => {
                           if (isMobile) e.preventDefault();
                         }}
                       />
-                      <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-10 pointer-events-none">
-                        ₹{book.price}
+                      <span
+                        dir={i18n.dir()}
+                        className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-10 pointer-events-none"
+                      >
+                        {book.price} {t("EGP")}
                       </span>
                     </Link>
 
@@ -232,7 +229,10 @@ const AuthorProfile = () => {
                             key={i}
                             size={14}
                             className={`${
-                              i < (book.rate || book.rating || 0)
+                              i <
+                              Math.round(
+                                book.ratings || book.rate || book.rating || 0,
+                              )
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"
                             } transition-colors duration-300`}

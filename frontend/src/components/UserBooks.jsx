@@ -3,6 +3,7 @@ import { useCart } from "../hooks/useCart";
 import { Users, ShoppingCart, BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { getImageSrc } from "../utils/imageUtils";
 
 const UserBooks = () => {
   const { userBooks, addToCart } = useCart();
@@ -64,7 +65,7 @@ const UserBooks = () => {
               >
                 {book.images && book.images.length > 0 ? (
                   <img
-                    src={book.images[0].preview}
+                    src={getImageSrc(book.images[0])}
                     alt={book.title}
                     className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                   />
@@ -87,8 +88,11 @@ const UserBooks = () => {
                   >
                     {book.title}
                   </Link>
-                  <span className="text-green-600 font-bold text-lg">
-                    ₹{book.price}
+                  <span
+                    dir={i18n.dir()}
+                    className="text-green-600 font-bold text-lg"
+                  >
+                    {book.price} {t("EGP")}
                   </span>
                 </div>
 

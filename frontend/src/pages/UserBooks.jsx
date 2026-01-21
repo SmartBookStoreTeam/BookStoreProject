@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
 import { FaCartPlus } from "react-icons/fa";
+import { getImageSrc } from "../utils/imageUtils";
 
 const UserBooks = () => {
   const { userBooks, removeUserBook, addToCart } = useCart();
@@ -36,18 +37,6 @@ const UserBooks = () => {
         justifyContent: "center",
       },
     });
-  };
-
-  // Helper function to get image source
-  const getImageSrc = (image) => {
-    if (!image) return null;
-    if (typeof image === "string") return image;
-    if (typeof image === "object") {
-      if (image.base64) return image.base64;
-      if (image.preview) return image.preview;
-      if (image.url) return image.url;
-    }
-    return null;
   };
 
   return (
@@ -105,8 +94,11 @@ const UserBooks = () => {
                         src={bookImage}
                         alt={book.title}
                       />
-                      <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800">
-                        ₹{book.price}
+                      <span
+                        dir={i18n.dir()}
+                        className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800"
+                      >
+                        {book.price} {t("EGP")}
                       </span>
                       {/* Delete Button */}
                       <button
@@ -147,7 +139,10 @@ const UserBooks = () => {
                             key={i}
                             size={14}
                             className={`${
-                              i < (book.rate || book.rating || 0)
+                              i <
+                              Math.round(
+                                book.ratings || book.rate || book.rating || 0,
+                              )
                                 ? "text-yellow-500 fill-yellow-500"
                                 : "text-indigo-200 fill-indigo-200"
                             } transition-colors duration-300`}

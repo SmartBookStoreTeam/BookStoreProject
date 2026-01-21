@@ -19,18 +19,20 @@ const AdminCustomers = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const data = await getUsers();
+        const response = await getUsers();
+        // The API returns { success: true, data: [...] }
+        const usersData = Array.isArray(response.data) ? response.data : [];
 
         // Map and filter only users
-        const mappedCustomers = data
+        const mappedCustomers = usersData
           .filter((customer) => customer.role === "user") // <-- only keep role = user
           .map((customer) => ({
             ...customer,
             id: customer._id,
             role: customer.role || "user",
             joinDate: customer.createdAt || new Date(),
-            orders: customer.orders || 0,
-            totalSpent: customer.totalSpent || 0,
+            orders: customer.ordersCount || 0, // expecting from aggregation
+            totalSpent: customer.totalSpent || 0, // expecting from aggregation
             status: customer.status || "Active",
             phone: customer.phone || "-",
           }));
@@ -61,8 +63,8 @@ const AdminCustomers = () => {
               ...customer,
               status: customer.status === "Active" ? "Inactive" : "Active",
             }
-          : customer
-      )
+          : customer,
+      ),
     );
   };
 
@@ -95,17 +97,19 @@ const AdminCustomers = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Active Customers</p>
-              <p className="text-2xl font-bold mt-1 text-green-600">
+              <p className="text-xs sm:text-sm text-gray-600">
+                Active Customers
+              </p>
+              <p className="text-xl sm:text-2xl font-bold mt-1 text-green-600">
                 {customers?.filter((c) => c.status === "Active").length}
               </p>
             </div>
-            <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <UsersIcon className="h-6 w-6 text-green-600" />
+            <div className="h-8 w-8 sm:h-10 sm:w-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <UsersIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
             </div>
           </div>
         </div>
@@ -113,13 +117,13 @@ const AdminCustomers = () => {
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Orders</p>
-              <p className="text-2xl font-bold mt-1 text-blue-600">
+              <p className="text-xs sm:text-sm text-gray-600">Total Orders</p>
+              <p className="text-xl sm:text-2xl font-bold mt-1 text-blue-600">
                 {customers?.reduce((sum, c) => sum + c.orders, 0)}
               </p>
             </div>
-            <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <StarIcon className="h-6 w-6 text-blue-600" />
+            <div className="h-8 w-8 sm:h-10 sm:w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <StarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
             </div>
           </div>
         </div>
@@ -127,16 +131,16 @@ const AdminCustomers = () => {
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold mt-1 text-purple-600">
+              <p className="text-xs sm:text-sm text-gray-600">Total Revenue</p>
+              <p className="text-xl sm:text-2xl font-bold mt-1 text-purple-600">
                 $
                 {customers
                   ?.reduce((sum, c) => sum + c.totalSpent, 0)
                   .toFixed(2)}
               </p>
             </div>
-            <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <StarIcon className="h-6 w-6 text-purple-600" />
+            <div className="h-8 w-8 sm:h-10 sm:w-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <StarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
             </div>
           </div>
         </div>
@@ -144,8 +148,10 @@ const AdminCustomers = () => {
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Avg. Order Value</p>
-              <p className="text-2xl font-bold mt-1 text-orange-600">
+              <p className="text-xs sm:text-sm text-gray-600">
+                Avg. Order Value
+              </p>
+              <p className="text-xl sm:text-2xl font-bold mt-1 text-orange-600">
                 $
                 {(
                   customers.reduce((sum, c) => sum + c.totalSpent, 0) /
@@ -153,8 +159,8 @@ const AdminCustomers = () => {
                 ).toFixed(2)}
               </p>
             </div>
-            <div className="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <StarIcon className="h-6 w-6 text-orange-600" />
+            <div className="h-8 w-8 sm:h-10 sm:w-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <StarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
             </div>
           </div>
         </div>
@@ -189,132 +195,134 @@ const AdminCustomers = () => {
 
       {/* Customers Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Orders
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Spent
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Loyalty
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCustomers.map((customer) => {
-                const loyalty = getLoyaltyLevel(customer.totalSpent);
-                return (
-                  <tr key={customer.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 shrink-0 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="font-medium text-blue-600">
-                            {customer.name.charAt(0)}
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+            <table className="w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="hidden md:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Orders
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Spent
+                  </th>
+                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Loyalty
+                  </th>
+                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredCustomers.map((customer) => {
+                  const loyalty = getLoyaltyLevel(customer.totalSpent);
+                  return (
+                    <tr key={customer.id} className="hover:bg-gray-50">
+                      <td className="px-4 sm:px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 sm:h-10 sm:w-10 shrink-0 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs sm:text-sm font-medium text-blue-600">
+                              {customer.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="ml-3 sm:ml-4 min-w-0">
+                            <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                              {customer.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Joined{" "}
+                              {new Date(customer.joinDate).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="hidden lg:table-cell px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <EnvelopeIcon className="h-4 w-4 mr-2" />
+                            {customer.email}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <PhoneIcon className="h-4 w-4 mr-2" />
+                            {customer.phone}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="hidden md:table-cell px-4 sm:px-6 py-4">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-gray-900">
+                            {customer.orders}
                           </span>
+                          <div className="text-xs text-gray-500">orders</div>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {customer.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Joined{" "}
-                            {new Date(customer.joinDate).toLocaleDateString()}
-                          </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4">
+                        <div className="text-sm font-bold text-gray-900">
+                          ${(customer?.totalSpent ?? 0).toFixed(2)}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <EnvelopeIcon className="h-4 w-4 mr-2" />
-                          {customer.email}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <PhoneIcon className="h-4 w-4 mr-2" />
-                          {customer.phone}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-center">
-                        <span className="text-lg font-bold text-gray-900">
-                          {customer.orders}
+                      </td>
+
+                      <td className="hidden sm:table-cell px-6 py-4">
+                        <span
+                          className={`px-2 sm:px-3 py-1 text-xs rounded-full ${loyalty.color}`}
+                        >
+                          {loyalty.level}
                         </span>
-                        <div className="text-xs text-gray-500">orders</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-bold text-gray-900">
-                        ${(customer?.totalSpent ?? 0).toFixed(2)}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs rounded-full ${loyalty.color}`}
-                      >
-                        {loyalty.level}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs rounded-full ${
-                          customer.status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {customer.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => setPreviewCustomer(customer)}
-                          className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                          title="View Details"
-                        >
-                          <EyeIcon className="h-5 w-5" />
-                        </button>
-
-                        <button
-                          onClick={() => toggleCustomerStatus(customer.id)}
-                          className={`p-1 rounded ${
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4">
+                        <span
+                          className={`px-3 py-1 text-xs rounded-full ${
                             customer.status === "Active"
-                              ? "text-red-600 hover:text-red-900 hover:bg-red-50"
-                              : "text-green-600 hover:text-green-900 hover:bg-green-50"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
                           }`}
-                          title={
-                            customer.status === "Active"
-                              ? "Deactivate"
-                              : "Activate"
-                          }
                         >
-                          <NoSymbolIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          {customer.status}
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => setPreviewCustomer(customer)}
+                            className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+                            title="View Details"
+                          >
+                            <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </button>
+
+                          <button
+                            onClick={() => toggleCustomerStatus(customer.id)}
+                            className={`p-1 rounded ${
+                              customer.status === "Active"
+                                ? "text-red-600 hover:text-red-900 hover:bg-red-50"
+                                : "text-green-600 hover:text-green-900 hover:bg-green-50"
+                            }`}
+                            title={
+                              customer.status === "Active"
+                                ? "Deactivate"
+                                : "Activate"
+                            }
+                          >
+                            <NoSymbolIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

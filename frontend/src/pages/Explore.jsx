@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import Chatbot from "../components/Chatbot";
 import {
   ChevronUp,
   ChevronDown,
@@ -178,6 +179,9 @@ const Explore = () => {
       </div>
 
       {/* Main Content */}
+      <div className="absolute top-0 right-0 h-0">
+        <Chatbot />
+      </div>
       <LandingExplore />
       <Releases />
       <TopRated />

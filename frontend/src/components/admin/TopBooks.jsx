@@ -54,11 +54,11 @@ const TopBooks = () => {
         {topBooks.map((book, index) => (
           <div
             key={book.title}
-            className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
+            className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg gap-2"
           >
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center ${
                   index === 0
                     ? "bg-yellow-100 text-yellow-800"
                     : index === 1
@@ -70,14 +70,18 @@ const TopBooks = () => {
               >
                 <span className="font-bold text-sm">#{index + 1}</span>
               </div>
-              <div>
-                <div className="font-medium text-gray-800">{book.title}</div>
-                <div className="text-sm text-gray-600">{book.author}</div>
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-gray-800 truncate">
+                  {book.title}
+                </div>
+                <div className="text-sm text-gray-600 truncate">
+                  {book.author}
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+              <div className="text-right hidden sm:block">
                 <div className="font-bold text-gray-900">{book.sales}</div>
                 <div className="text-xs text-gray-500">sales</div>
               </div>
@@ -85,7 +89,7 @@ const TopBooks = () => {
                 <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
                 <span className="text-sm font-medium">{book.rating}</span>
               </div>
-              <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+              <span className="hidden md:inline-block px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
                 {book.category}
               </span>
             </div>

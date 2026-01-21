@@ -50,7 +50,7 @@ const AdminLogin = () => {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white transition-colors">
-              BookStore Admin
+              Bookfly Admin
             </h1>
             <p className="text-gray-600 dark:text-gray-300 mt-2 transition-colors">
               Sign in to access the dashboard
@@ -75,7 +75,7 @@ const AdminLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="admin@bookstore.com"
+                placeholder="admin@bookfly.com"
                 required
               />
             </div>
@@ -143,7 +143,7 @@ const AdminLogin = () => {
               onClick={() => navigate("/")}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
             >
-              ← Return to Book Store
+              ← Return to Bookfly Store
             </button>
           </div>
         </div>
