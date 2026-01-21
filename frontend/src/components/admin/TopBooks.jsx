@@ -58,7 +58,7 @@ const TopBooks = () => {
           >
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               <div
-                className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center ${
+                className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center ${
                   index === 0
                     ? "bg-yellow-100 text-yellow-800"
                     : index === 1
@@ -80,7 +80,7 @@ const TopBooks = () => {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+            <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
               <div className="text-right hidden sm:block">
                 <div className="font-bold text-gray-900">{book.sales}</div>
                 <div className="text-xs text-gray-500">sales</div>
