@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <h1 className="text-2xl font-bold mb-4">{t("Books")}</h1>
+            <h1 className="text-2xl font-bold mb-4">Bookfly.com</h1>
             <p className="text-gray-300 text-sm leading-relaxed max-w-xs">
               {t(
                 "booksDelivered",
@@ -64,7 +64,7 @@ const Footer = () => {
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-start">
                 <span className="min-w-[80px]">{t("Email")}:</span>
-                <span dir="ltr">samy@gmail.com</span>
+                <span dir="ltr">bookfly@gmail.com</span>
               </li>
               <li className="flex items-start">
                 <span className="min-w-[80px]">{t("Phone")}:</span>
@@ -131,7 +131,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
           <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} Books Store. {t("All rights reserved")}
+            © {new Date().getFullYear()} Bookfly. {t("All rights reserved")}
             .
           </p>
         </div>

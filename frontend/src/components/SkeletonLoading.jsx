@@ -14,18 +14,18 @@ const SkeletonLoading = () => {
         <button
           dir="ltr"
           onClick={() => navigate("/shop")}
-          className="group touch-area flex md:hidden items-center justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-800 p-2 rounded-full mb-7 transition-colors cursor-pointer"
+          className="group touch-area flex md:hidden items-center justify-start mr-auto text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 hover:bg-gray-100 hover:dark:bg-gray-100/10 p-2 rounded-full mb-7 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 group-active:-translate-x-1 transition-all" />
           {t("Back to Shop")}
         </button>
 
         {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden dark:bg-[#1a1a22]">
+        <div className="rounded-2xl overflow-hidden">
           <div className="p-2 lg:p-10">
             <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_340px] gap-6 lg:gap-10">
               {/* Book Image Skeleton */}
-              <div className="flex flex-col items-start">
+              <div className="flex flex-col items-center">
                 <Skeleton
                   width={288}
                   height={384}

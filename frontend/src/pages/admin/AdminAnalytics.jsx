@@ -2,7 +2,7 @@
 import React from "react";
 import {
   ChartBarIcon,
-  ArrowTrendingUpIcon ,
+  ArrowTrendingUpIcon,
   UsersIcon,
   ShoppingCartIcon,
   CurrencyDollarIcon,
@@ -84,7 +84,7 @@ const AdminAnalytics = () => {
               <p className="text-sm text-gray-600">Total Revenue</p>
               <p className="text-2xl font-bold mt-2">$124,560</p>
               <div className="flex items-center mt-2">
-                <ArrowTrendingUpIcon  className="h-4 w-4 text-green-500" />
+                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-500 ml-1">+12.5%</span>
                 <span className="text-sm text-gray-500 ml-2">
                   from last month
@@ -103,7 +103,7 @@ const AdminAnalytics = () => {
               <p className="text-sm text-gray-600">Total Orders</p>
               <p className="text-2xl font-bold mt-2">3,845</p>
               <div className="flex items-center mt-2">
-                <ArrowTrendingUpIcon  className="h-4 w-4 text-green-500" />
+                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-500 ml-1">+8.2%</span>
                 <span className="text-sm text-gray-500 ml-2">
                   from last month
@@ -122,7 +122,7 @@ const AdminAnalytics = () => {
               <p className="text-sm text-gray-600">Total Customers</p>
               <p className="text-2xl font-bold mt-2">2,456</p>
               <div className="flex items-center mt-2">
-                <ArrowTrendingUpIcon  className="h-4 w-4 text-green-500" />
+                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-500 ml-1">+5.7%</span>
                 <span className="text-sm text-gray-500 ml-2">
                   from last month
@@ -141,7 +141,7 @@ const AdminAnalytics = () => {
               <p className="text-sm text-gray-600">Avg. Order Value</p>
               <p className="text-2xl font-bold mt-2">$89.50</p>
               <div className="flex items-center mt-2">
-                <ArrowTrendingUpIcon  className="h-4 w-4 text-green-500" />
+                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-500 ml-1">+3.9%</span>
                 <span className="text-sm text-gray-500 ml-2">
                   from last month
@@ -229,70 +229,72 @@ const AdminAnalytics = () => {
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Top Selling Books
         </h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Book Title
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Author
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Units Sold
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Revenue
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Rank
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {topBooks.map((book, index) => (
-                <tr key={book.title} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-gray-800">
-                      {book.title}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {book.author}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                      {book.sales} units
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-gray-800">
-                    ${book.revenue.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        index === 0
-                          ? "bg-yellow-100 text-yellow-800"
-                          : index === 1
-                          ? "bg-gray-100 text-gray-800"
-                          : index === 2
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      <span className="font-bold">#{index + 1}</span>
-                    </div>
-                  </td>
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Book Title
+                  </th>
+                  <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Author
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Units Sold
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Revenue
+                  </th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Rank
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {topBooks.map((book, index) => (
+                  <tr key={book.title} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-800 text-sm sm:text-base">
+                        {book.title}
+                      </div>
+                    </td>
+                    <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-600">
+                      {book.author}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 sm:px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                        {book.sales} units
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      ${book.revenue.toLocaleString()}
+                    </td>
+                    <td className="hidden md:table-cell px-4 py-3">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          index === 0
+                            ? "bg-yellow-100 text-yellow-800"
+                            : index === 1
+                            ? "bg-gray-100 text-gray-800"
+                            : index === 2
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        <span className="font-bold">#{index + 1}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* Additional Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h4 className="font-medium text-gray-800 mb-3">Conversion Rate</h4>
           <div className="text-3xl font-bold text-blue-600">4.8%</div>
@@ -305,14 +307,6 @@ const AdminAnalytics = () => {
           <h4 className="font-medium text-gray-800 mb-3">Customer Retention</h4>
           <div className="text-3xl font-bold text-green-600">78%</div>
           <div className="text-sm text-gray-600 mt-1">Repeat customer rate</div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h4 className="font-medium text-gray-800 mb-3">Stock Turnover</h4>
-          <div className="text-3xl font-bold text-purple-600">3.2x</div>
-          <div className="text-sm text-gray-600 mt-1">
-            Annual inventory turnover
-          </div>
         </div>
       </div>
     </div>

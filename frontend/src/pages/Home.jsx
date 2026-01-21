@@ -6,6 +6,7 @@ import Releases from "../components/Releases";
 import { useTranslation } from "react-i18next";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
+import Chatbot from "../components/Chatbot";
 
 const Home = () => {
   const { t } = useTranslation();
@@ -121,8 +122,11 @@ const Home = () => {
         </button>
       </div>
 
-      <div>
+      <div className="relative">
         <Landing />
+        <div className="absolute top-0 right-0 h-0">
+          <Chatbot />
+        </div>
         <SellerBooks />
         <FavoriteBooks />
         <NationalBook />

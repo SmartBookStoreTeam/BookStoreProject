@@ -17,6 +17,7 @@ import adminOrderRoutes from "./routes/adminOrderRoutes.js";
 import downloadRoutes from "./routes/downloadRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import adminCategoryRoutes from "./routes/adminCategoryRoutes.js";
+import previewRoutes from "./routes/previewRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -25,6 +26,7 @@ const app = express();
 
 // JSON parser
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // CORS setup
 const allowedOrigins = [
@@ -33,6 +35,7 @@ const allowedOrigins = [
   "http://192.168.1.19:5173", // dev frontend
   // ضع هنا دومين الـ production بعد الرفع
   "https://d1r1pvso22xiyd.cloudfront.net",
+  "http://d1r1pvso22xiyd.cloudfront.net"
 ];
 
 app.use(
@@ -68,6 +71,7 @@ app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api", downloadRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
+app.use("/api", previewRoutes);
 
 const PORT = process.env.PORT || 5000;
 

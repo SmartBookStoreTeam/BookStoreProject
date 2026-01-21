@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
-import { addBook, updateBook, deleteBook } from "../../api/adminApi";
-import { getBooks } from "../../api/booksApi";
+import {
+  addBook,
+  updateBook,
+  deleteBook,
+  getAdminBooks,
+} from "../../api/adminApi";
+import { getCategories } from "../../api/categoriesApi";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -22,17 +27,25 @@ const AdminBooks = () => {
 
   const navigate = useNavigate();
 
-  const categories = [
-    "all",
-    "Fiction",
-    "Technology",
-    "Romance",
-    "Programming",
-    "Fantasy",
-    "Education",
-    "Cooking",
-    "Self-Help",
-  ];
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [booksData, categoriesData] = await Promise.all([
+          getAdminBooks({ isActive: "true" }),
+          getCategories(),
+        ]);
+        setBooks(Array.isArray(booksData.data) ? booksData.data : []);
+        setCategories(
+          Array.isArray(categoriesData.data) ? categoriesData.data : [],
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchData();
+  }, []);
 
   /* ================= FILTER ================= */
   const filteredBooks = books.filter((book) => {
@@ -41,7 +54,9 @@ const AdminBooks = () => {
       book?.author?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === "all" || book.category === selectedCategory;
+      selectedCategory === "all" ||
+      book.category?._id === selectedCategory ||
+      book.category?.name === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -63,7 +78,7 @@ const AdminBooks = () => {
     try {
       const updated = await updateBook(id, bookData);
       setBooks((prev) =>
-        prev.map((b) => (b._id === updated._id ? updated : b))
+        prev.map((b) => (b._id === updated._id ? updated : b)),
       );
       setEditingBook(null);
     } catch (err) {
@@ -84,18 +99,7 @@ const AdminBooks = () => {
   };
 
   /* ================= FETCH ================= */
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const data = await getBooks();
-        setBooks(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-        setBooks([]);
-      }
-    };
-    fetchBooks();
-  }, []);
+  // Fetched in initial useEffect above
 
   return (
     <div className="space-y-6 relative">
@@ -161,9 +165,10 @@ const AdminBooks = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="border rounded-lg px-3 py-2"
           >
+            <option value="all">All Categories</option>
             {categories.map((c) => (
-              <option key={c} value={c}>
-                {c === "all" ? "All Categories" : c}
+              <option key={c._id} value={c._id}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -171,59 +176,93 @@ const AdminBooks = () => {
       </div>
 
       {/* ================= TABLE ================= */}
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table className="min-w-full divide-y">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs">Book</th>
-              <th className="px-6 py-3 text-left text-xs">Category</th>
-              <th className="px-6 py-3 text-left text-xs">Price</th>
-              <th className="px-6 py-3 text-left text-xs">Status</th>
-              <th className="px-6 py-3 text-left text-xs">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredBooks.map((book) => (
-              <tr key={book._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <BookOpenIcon className="h-6 w-6 text-blue-600 mr-3" />
-                    <div>
-                      <div className="font-medium">{book.title}</div>
-                      <div className="text-sm text-gray-500">{book.author}</div>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4">{book.category}</td>
-                <td className="px-6 py-4">
-                  ${Number(book.price || 0).toFixed(2)}
-                </td>
-                <td className="px-6 py-4">{book.status}</td>
-
-                <td className="px-6 py-4 flex space-x-2 mt-2">
-                  <button onClick={() => setEditingBook(book)}>
-                    <PencilIcon className="h-5 w-5 text-blue-600 cursor-pointer" />
-                  </button>
-                  <button onClick={() => handleDelete(book._id)}>
-                    <TrashIcon className="h-5 w-5 text-red-600 cursor-pointer" />
-                  </button>
-                  <button onClick={() => navigate(`/admin/books/${book._id}`)}>
-                    <EyeIcon className="h-5 w-5 text-gray-600 cursor-pointer" />
-                  </button>
-                </td>
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto -mx-4 sm:mx-0">
+        <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+          <table className="w-full divide-y">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 sm:px-4 md:px-6 py-3 text-left text-xs">
+                  Book
+                </th>
+                <th className="hidden md:table-cell px-6 py-3 text-left text-xs">
+                  Category
+                </th>
+                <th className="hidden sm:table-cell px-4 md:px-6 py-3 text-left text-xs">
+                  Price
+                </th>
+                <th className="hidden md:table-cell px-6 py-3 text-left text-xs">
+                  Status
+                </th>
+                <th className="px-3 sm:px-4 md:px-6 py-3 text-left text-xs">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {filteredBooks.map((book) => (
+                <tr key={book._id} className="hover:bg-gray-50">
+                  <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+                    <div className="flex items-center gap-2">
+                      <BookOpenIcon className="hidden sm:block h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-xs sm:text-sm md:text-base truncate">
+                          {book.title}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {book.author}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="hidden md:table-cell px-6 py-4">
+                    {book.category?.name || "Uncategorized"}
+                  </td>
+                  <td className="hidden sm:table-cell px-4 md:px-6 py-4 font-semibold text-sm sm:text-base">
+                    ${Number(book.price || 0).toFixed(2)}
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    {book.status}
+                  </td>
+
+                  <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+                    <div className="flex gap-1 sm:gap-2">
+                      <button
+                        onClick={() => setEditingBook(book)}
+                        title="Edit"
+                        className="p-1"
+                      >
+                        <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 cursor-pointer hover:text-blue-800" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(book._id)}
+                        title="Delete"
+                        className="p-1"
+                      >
+                        <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 cursor-pointer hover:text-red-800" />
+                      </button>
+                      <button
+                        onClick={() => navigate(`/admin/books/${book._id}`)}
+                        title="View"
+                        className="p-1"
+                      >
+                        <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 cursor-pointer hover:text-gray-800" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* ================= ADD / EDIT MODAL ================= */}
       {(showAddModal || editingBook) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg sm:text-xl font-bold mb-4">
               {editingBook ? "Edit Book" : "Add Book"}
             </h2>
 
@@ -289,14 +328,17 @@ const AdminBooks = () => {
 
               <select
                 name="category"
-                defaultValue={editingBook?.category}
+                defaultValue={
+                  editingBook?.category?._id || editingBook?.category
+                }
                 className="w-full border px-3 py-2 rounded"
               >
-                {categories
-                  .filter((c) => c !== "all")
-                  .map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
+                <option value="">Select Category</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
 
               <select
@@ -340,8 +382,8 @@ const AdminBooks = () => {
                   {isUploading
                     ? "Uploading..."
                     : editingBook
-                    ? "Update"
-                    : "Add"}
+                      ? "Update"
+                      : "Add"}
                 </button>
               </div>
             </form>

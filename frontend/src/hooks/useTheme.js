@@ -10,14 +10,21 @@ export const useTheme = () => {
 
   useEffect(() => {
     const root = window.document.documentElement;
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
 
     if (theme === "dark") {
       root.classList.add("dark");
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute("content", "#18181b"); // zinc-900
+      }
       if(typeof window !=="undefined"){
         localStorage.setItem("theme", "dark");
       }
     } else if (theme === "light") {
       root.classList.remove("dark");
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute("content", "#e4e4e7"); // zinc-200
+      }
       if(typeof window !=="undefined"){
         localStorage.setItem("theme", "light");
       }
@@ -27,8 +34,17 @@ export const useTheme = () => {
         "(prefers-color-scheme: dark)"
       ).matches;
 
-      if (systemPrefersDark) root.classList.add("dark");
-      else root.classList.remove("dark");
+      if (systemPrefersDark) {
+        root.classList.add("dark");
+        if (metaThemeColor) {
+          metaThemeColor.setAttribute("content", "#18181b"); // zinc-900
+        }
+      } else {
+        root.classList.remove("dark");
+        if (metaThemeColor) {
+          metaThemeColor.setAttribute("content", "#e4e4e7"); // zinc-200
+        }
+      }
       if(typeof window !=="undefined"){
         localStorage.setItem("theme", "system");
       }

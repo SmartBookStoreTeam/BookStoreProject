@@ -39,7 +39,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
   const touchEndX = useRef(0);
   const touchStartY = useRef(0);
 
-  const { addToCart } = useCart();
+  const { addToCart, isBookPurchased } = useCart();
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -62,7 +62,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
     if (typeof window !== "undefined" && window.innerWidth < 768) {
       sessionStorage.setItem(
         `carousel-index-${carouselId}`,
-        currentIndex.toString()
+        currentIndex.toString(),
       );
     }
   }, [currentIndex, carouselId]);
@@ -149,7 +149,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
       const diff = touchStartX.current - currentX;
       setDragOffset(diff);
     },
-    [isDragging]
+    [isDragging],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -180,7 +180,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
   useEffect(() => {
     sessionStorage.setItem(
       `carousel-index-${carouselId}`,
-      currentIndex.toString()
+      currentIndex.toString(),
     );
   }, [currentIndex, carouselId]);
 
@@ -217,7 +217,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
       ([entry]) => {
         setIsInView(entry.isIntersecting && entry.intersectionRatio >= 0.5);
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     observer.observe(container);
@@ -417,9 +417,11 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         }}
                       />
                     </div>
-                    <span className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
-                      ₹{book.price}
-                    </span>
+                    {!isBookPurchased(book._id || book.id) && (
+                      <span dir={i18n.dir()} className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
+                        {book.price} {t("EGP")}
+                      </span>
+                    )}
                   </Link>
                   {/* Book Info */}
                   <Link
@@ -479,18 +481,21 @@ const Carousel = ({ books, carouselId = "default" }) => {
                     >
                       {t("Details")}
                     </Link>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddToCart(book);
-                      }}
-                      className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
-                    >
-                      <FaCartPlus className="w-4 h-4" />
-                      <span className="text-xs whitespace-nowrap">
-                        {t("Add to Cart")}
-                      </span>
-                    </button>
+                    {/* Hide Add to Cart for purchased books */}
+                    {!isBookPurchased(book._id || book.id) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(book);
+                        }}
+                        className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                      >
+                        <FaCartPlus className="w-4 h-4" />
+                        <span className="text-xs whitespace-nowrap">
+                          {t("Add to Cart")}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

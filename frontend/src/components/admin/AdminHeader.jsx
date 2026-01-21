@@ -1,5 +1,5 @@
 // components/admin/AdminHeader.jsx
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   HomeIcon,
   UserIcon,
@@ -16,6 +16,25 @@ import { useNavigate } from "react-router-dom";
 const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   const handleLogout = () => {
     logout();
@@ -23,7 +42,7 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-4">
+    <header className="bg-white shadow-sm border-b border-gray-200 px-4 my-4 py-4">
       <div className="flex items-center justify-between">
         {/* Left side */}
         <div className="flex items-center space-x-4">
@@ -39,7 +58,7 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
           </button>
 
           {/* Search */}
-          <div className="hidden md:block relative">
+          <div className="hidden md:block relative mt-2">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
@@ -63,29 +82,45 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
               <p className="text-sm font-medium text-gray-700">{user?.name}</p>
               <p className="text-xs text-gray-500">Administrator</p>
             </div>
-            <div className="relative group">
-              <button className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-colors"
+              >
                 <UserIcon className="h-5 w-5" />
               </button>
 
               {/* Dropdown */}
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <div
+                className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 transition-all duration-200 z-10 ${
+                  dropdownOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                }`}
+              >
                 <div className="py-2">
                   <button
-                    onClick={() => navigate("/admin/settings")}
+                    onClick={() => {
+                      navigate("/admin/settings");
+                      setDropdownOpen(false);
+                    }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Profile Settings
                   </button>
                   <button
-                    onClick={() => navigate("/")}
+                    onClick={() => {
+                      navigate("/");
+                      setDropdownOpen(false);
+                    }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     View Store
                   </button>
                   <div className="border-t border-gray-200 my-1"></div>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      handleLogout();
+                      setDropdownOpen(false);
+                    }}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
                   >
                     <ArrowRightStartOnRectangleIcon className="h-4 w-4 mr-2" />

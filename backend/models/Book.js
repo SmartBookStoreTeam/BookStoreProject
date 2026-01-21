@@ -60,15 +60,14 @@ const bookSchema = new mongoose.Schema(
       required: [true, "Book image is required"],
     },
 
-    // ✅ لا ترجع مسار الـ PDF للعميل
     pdf: {
       type: String,
       required: [true, "Book PDF file is required"],
       select: false,
     },
     previewPdf: {
-      type: String,
-      required: [true, "Book PreviewPDF file is required"],
+      type: String, // S3 key for preview file
+      select: false,
     },
 
     fileMeta: {

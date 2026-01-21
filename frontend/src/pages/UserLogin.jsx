@@ -123,19 +123,18 @@ const UserLogin = () => {
 
         {/* Google Login Button */}
         <GoogleLoginButton
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-          />
-       
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+        />
+
         {/* Divider */}
         <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-white/20"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-transparent text-gray-500 dark:text-white/60">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border-t border-gray-300 dark:border-white/20"></div>
+            <span className="text-sm text-gray-500 dark:text-white/60">
               {t("Or continue with email")}
             </span>
+            <div className="flex-1 border-t border-gray-300 dark:border-white/20"></div>
           </div>
         </div>
 
@@ -213,9 +212,9 @@ const UserLogin = () => {
           {t("Need help? Contact us at")}{" "}
           <a
             className="text-indigo-600 dark:text-indigo-300 transition-colors duration-300 hover:text-indigo-700 dark:hover:text-indigo-200 hover:underline focus:underline font-medium cursor-pointer"
-            href="mailto:bookstore@gmail.com"
+            href="mailto:bookfly@gmail.com"
           >
-            bookstore@gmail.com
+            bookfly@gmail.com
           </a>
         </p>
       </div>
@@ -226,9 +225,9 @@ const UserLogin = () => {
         {t("Need help? Contact us at")}{" "}
         <a
           className="text-indigo-600 dark:text-indigo-300 transition-colors duration-300 hover:text-indigo-700 dark:hover:text-indigo-200 hover:underline focus:underline font-medium cursor-pointer"
-          href="mailto:bookstore@gmail.com"
+          href="mailto:bookfly@gmail.com"
         >
-          bookstore@gmail.com
+          bookfly@gmail.com
         </a>
       </p>
     </div>

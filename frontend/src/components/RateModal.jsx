@@ -19,16 +19,7 @@ const RateModal = ({ isOpen, onClose, onSubmit, bookTitle }) => {
   const handleSkip = () => {
     onClose();
   };
-const getAutoDir = (text = "") => {
-    if (
-      /^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0590-\u05FF]/.test(
-        text.trim()
-      )
-    ) {
-      return "rtl";
-    }
-    return "ltr";
-  };
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="relative bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-xl max-w-md w-full border border-gray-200 dark:border-zinc-700 transform transition-all scale-100 opacity-100">
@@ -59,7 +50,6 @@ const getAutoDir = (text = "") => {
             <p className="text-sm text-gray-600 dark:text-gray-300">
               <span className="font-semibold text-lg text-indigo-600 dark:text-indigo-300">
                 {bookTitle}
-                {getAutoDir(bookTitle) === "rtl" ? "؟" : "?"}
               </span>
             </p>
           </div>
@@ -105,7 +95,7 @@ const getAutoDir = (text = "") => {
               onClick={handleSkip}
               className="touch-area flex-1 px-4 py-2.5 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
             >
-              {t("Maybe Later")}
+              {t("Later")}
             </button>
             <button
               onClick={handleSubmit}

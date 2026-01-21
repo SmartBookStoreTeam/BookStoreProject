@@ -1,7 +1,9 @@
 import { assets } from "../assets/assets";
 import { Search, MoreHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { searchBooks } from "../api/booksApi";
 
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -12,19 +14,104 @@ const Landing = () => {
     assets.landingBook3,
     assets.landingBook4,
   ];
+
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const searchContainerRef = useRef(null);
   const [displayedText, setDisplayedText] = useState("");
   const [displayedText2, setDisplayedText2] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [books, setBooks] = useState([]);
 
   const fullText = t("landingIntro", "Buy and sell your books online");
   const fullText2 = t("landingIntro2", "for the best prices");
 
+  // Fetch books from API based on search term (Autocomplete)
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchTerm.trim()) {
+        try {
+          const response = await searchBooks({ q: searchTerm, limit: 5 });
+          const booksData = Array.isArray(response.data) ? response.data : [];
+
+          // Map the books to the format needed for autocomplete
+          const formattedBooks = booksData.map((book) => ({
+            id: book._id || book.id,
+            img:
+              book.img ||
+              book.image ||
+              (book.images && book.images.length > 0
+                ? book.images[0].base64 || book.images[0].url || book.images[0]
+                : null) ||
+              assets.placeholderBook ||
+              assets.book1,
+            title: book.title,
+            author: book.author,
+            category: book.category,
+          }));
+
+          setBooks(formattedBooks);
+        } catch (error) {
+          console.error("Error searching books:", error);
+          setBooks([]);
+        }
+      } else {
+        setBooks([]);
+      }
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setShowDropdown(false);
+    if (searchTerm.trim()) {
+      // Navigate to shop page with search query
+      navigate(`/shop?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      // Just navigate to shop page if no search term
+      navigate("/shop");
+    }
+  };
+
+  const handleBookClick = (bookId) => {
+    setShowDropdown(false);
+    setSearchTerm("");
+    navigate(`/book/${bookId}`);
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setShowDropdown(value.trim().length > 0);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     // Check if animation has already been shown in this session
     const animationShown = sessionStorage.getItem(
-      "landingTypingAnimationShown"
+      "landingTypingAnimationShown",
     );
 
     if (animationShown) {
@@ -72,8 +159,8 @@ const Landing = () => {
   }, [currentIndex, fullText, fullText2, hasAnimated]);
   return (
     <div className="bg-zinc-200 dark:bg-zinc-900 transition-colors duration-300">
-      <section className="relative flex items-center dark:bg-zinc-900  justify-center min-h-screen overflow-hidden">
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-12">
+      <section className="relative flex items-center dark:bg-zinc-900 justify-center min-h-screen">
+        <div className="w-full max-w-337.5 mx-auto px-4 py-12">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
             {/* Text Content */}
             <div className="w-full lg:max-w-xl text-center lg:text-left space-y-6 flex flex-col justify-center order-2 lg:order-1">
@@ -107,26 +194,99 @@ const Landing = () => {
               >
                 {t(
                   "landingParagraph",
-                  "Find and read more you'll love, and keep track of the books you want to read. Be part of the world's largest community of book lovers on Goodreads."
+                  "Find and read more you'll love, and keep track of the books you want to read. Be part of the world's largest community of book lovers on Goodreads.",
                 )}
               </p>
 
-              {/* Search bar */}
-              <div className="touch-area relative flex items-center w-full max-w-md mx-auto lg:mx-0">
-                <Search
-                  className="absolute left-4 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors duration-300"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  placeholder={`${t("Search for a book")}...`}
-                  dir={i18n.dir()}
-                  className="w-full px-10 py-3 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 focus:hover:bg-white dark:focus:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
-                />
-                <MoreHorizontal
-                  className="absolute right-4 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors duration-300"
-                  size={20}
-                />
+              {/* Search bar with autocomplete */}
+              <div
+                ref={searchContainerRef}
+                className="relative w-full max-w-md mx-auto lg:mx-0"
+              >
+                <form
+                  onSubmit={handleSearch}
+                  className="touch-area relative flex items-center"
+                >
+                  <Search
+                    className="absolute left-4 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors duration-300 pointer-events-none z-10"
+                    size={20}
+                  />
+                  <input
+                    type="text"
+                    placeholder={`${t("Search for a book")}...`}
+                    dir={i18n.dir()}
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    onFocus={() => {
+                      if (searchTerm.trim().length > 0) {
+                        setShowDropdown(true);
+                      }
+                    }}
+                    className="w-full px-10 py-3 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 focus:hover:bg-white dark:focus:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-sm sm:text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400 transition-all duration-300"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-4 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors duration-300 cursor-pointer z-10"
+                    aria-label="Search"
+                  >
+                    <MoreHorizontal size={20} />
+                  </button>
+                </form>
+
+                {/* Autocomplete Dropdown */}
+                {showDropdown && books.length > 0 && (
+                  <div
+                    style={{
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "#818cf8 transparent",
+                    }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+                  >
+                    {books.map((book) => (
+                      <div
+                        key={book.id}
+                        onClick={() => handleBookClick(book.id)}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer transition-colors border-b border-zinc-200 dark:border-zinc-700 last:border-b-0"
+                      >
+                        {/* Book Image */}
+                        <img
+                          src={book.img}
+                          alt={book.title}
+                          className="w-12 h-16 object-cover rounded"
+                        />
+                        {/* Book Info */}
+                        <div className="flex-1 min-w-0">
+                          <h4
+                            dir="auto"
+                            className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 whitespace-normal"
+                          >
+                            {book.title}
+                          </h4>
+                          <p
+                            dir="auto"
+                            className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-normal"
+                          >
+                            {book.author}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* No results message */}
+                {showDropdown &&
+                  searchTerm.trim().length > 0 &&
+                  books.length === 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-4 z-50">
+                      <p
+                        dir={i18n.dir()}
+                        className="text-sm text-zinc-600 dark:text-zinc-400 text-center"
+                      >
+                        {t("No books found")}
+                      </p>
+                    </div>
+                  )}
               </div>
             </div>
 
