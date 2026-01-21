@@ -1,3 +1,4 @@
+import { PDFDocument } from "pdf-lib"; 
 import Book from "../models/Book.js";
 import User from "../models/User.js";
 
@@ -14,37 +15,92 @@ import { uploadToS3 } from "../utils/uploadToS3.js";
 
 export const createBook = async (req, res, next) => {
   try {
-    const { title, author, description, category, price } = req.body;
+    const { title, author, description, category, price, year } = req.body;
 
-    if (!req.files?.image || !req.files?.pdf) {
-      throw new Error("Image and PDF are required");
+    if (!title || !author || !description || !category || !price) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Upload image to Cloudinary (public is OK for cover images)
+    if (!req.files?.image?.[0] || !req.files?.pdf?.[0]) {
+      return res.status(400).json({ message: "Image and PDF are required" });
+    }
+
+    const pdfBuffer = req.files.pdf[0].buffer;
+    const pdfDoc = await PDFDocument.load(pdfBuffer);
+    const pageCount = pdfDoc.getPageCount(); 
+
+    // 2. رفع الصورة لـ Cloudinary
     const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
       folder: "book-store/images",
     });
 
-    // Upload PDF to S3 and store only the object key in the database
+    // 3. رفع ملف الـ PDF الأصلي لـ S3
     const pdfUpload = await uploadToS3(
-      req.files.pdf[0].buffer,
+      pdfBuffer,
       req.files.pdf[0].originalname,
       req.files.pdf[0].mimetype,
-      { folder: "books", isPublic: false }
+      { folder: "books", isPublic: false },
     );
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> Stashed changes
+    // 4. معالجة ملف الـ Preview (اختياري)
+    let previewKey = null;
+    let previewPages = null;
+
+    if (req.files?.previewPdf?.[0]) {
+      const previewBuffer = req.files.previewPdf[0].buffer;
+
+      // استخراج صفحات الـ preview بنفس الطريقة
+      const previewPdfDoc = await PDFDocument.load(previewBuffer);
+      previewPages = previewPdfDoc.getPageCount();
+
+      const previewUpload = await uploadToS3(
+        previewBuffer,
+        req.files.previewPdf[0].originalname,
+        req.files.previewPdf[0].mimetype,
+        { folder: "previews", isPublic: false },
+      );
+      previewKey = previewUpload.key;
+    }
+
+    // 5. حفظ في قاعدة البيانات
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     const book = await Book.create({
       title,
       author,
       description,
+      year,
       category,
-      price,
+      price: Number(price),
       image: imageUpload.secure_url,
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
       pdf: pdfUpload.key, // Store the S3 key, not the URL
+=======
+=======
+>>>>>>> Stashed changes
+      pdf: pdfUpload.key,
+      previewPdf: previewKey,
+>>>>>>> Stashed changes
       fileMeta: {
         size: req.files.pdf[0].size,
         mime: req.files.pdf[0].mimetype,
+        pages: pageCount,
       },
+      previewMeta: previewKey
+        ? {
+            size: req.files.previewPdf[0].size,
+            mime: req.files.previewPdf[0].mimetype,
+            pages: previewPages,
+          }
+        : null,
     });
 
     res.status(201).json({
@@ -53,10 +109,10 @@ export const createBook = async (req, res, next) => {
       data: book,
     });
   } catch (err) {
+    console.error("Error creating book:", err);
     next(err);
   }
 };
-
 // @desc    Update a book
 // @route   PUT /api/admin/books/:id
 // @access  Admin
@@ -90,9 +146,23 @@ export const updateBook = async (req, res, next) => {
         req.files.pdf[0].buffer,
         req.files.pdf[0].originalname,
         req.files.pdf[0].mimetype,
-        { folder: "books", isPublic: false }
+        { folder: "books", isPublic: false },
       );
 
+<<<<<<< Updated upstream
+=======
+      if (req.files?.previewPdf?.[0]) {
+        const previewUpload = await uploadToS3(
+          req.files.previewPdf[0].buffer,
+          req.files.previewPdf[0].originalname,
+          req.files.previewPdf[0].mimetype,
+          { folder: "previews", isPublic: false },
+        );
+
+        updateData.previewPdf = previewUpload.key;
+      }
+
+>>>>>>> Stashed changes
       updateData.pdf = pdfUpload.key;
       updateData.fileMeta = {
         size: req.files.pdf[0].size,
@@ -106,7 +176,7 @@ export const updateBook = async (req, res, next) => {
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     if (!updatedBook) {
@@ -131,7 +201,7 @@ export const deleteBook = async (req, res, next) => {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
       { isActive: false },
-      { new: true }
+      { new: true },
     );
 
     if (!book) {
