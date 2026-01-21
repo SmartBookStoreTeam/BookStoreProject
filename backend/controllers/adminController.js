@@ -1,4 +1,4 @@
-import { PDFDocument } from "pdf-lib"; 
+import { PDFDocument } from "pdf-lib";
 import Book from "../models/Book.js";
 import User from "../models/User.js";
 
@@ -27,7 +27,7 @@ export const createBook = async (req, res, next) => {
 
     const pdfBuffer = req.files.pdf[0].buffer;
     const pdfDoc = await PDFDocument.load(pdfBuffer);
-    const pageCount = pdfDoc.getPageCount(); 
+    const pageCount = pdfDoc.getPageCount();
 
     // 2. رفع الصورة لـ Cloudinary
     const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
@@ -42,11 +42,6 @@ export const createBook = async (req, res, next) => {
       { folder: "books", isPublic: false },
     );
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
     // 4. معالجة ملف الـ Preview (اختياري)
     let previewKey = null;
     let previewPages = null;
@@ -68,10 +63,7 @@ export const createBook = async (req, res, next) => {
     }
 
     // 5. حفظ في قاعدة البيانات
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+
     const book = await Book.create({
       title,
       author,
@@ -80,15 +72,12 @@ export const createBook = async (req, res, next) => {
       category,
       price: Number(price),
       image: imageUpload.secure_url,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
       pdf: pdfUpload.key, // Store the S3 key, not the URL
-=======
-=======
->>>>>>> Stashed changes
+
       pdf: pdfUpload.key,
       previewPdf: previewKey,
->>>>>>> Stashed changes
+
       fileMeta: {
         size: req.files.pdf[0].size,
         mime: req.files.pdf[0].mimetype,
@@ -149,8 +138,6 @@ export const updateBook = async (req, res, next) => {
         { folder: "books", isPublic: false },
       );
 
-<<<<<<< Updated upstream
-=======
       if (req.files?.previewPdf?.[0]) {
         const previewUpload = await uploadToS3(
           req.files.previewPdf[0].buffer,
@@ -162,7 +149,6 @@ export const updateBook = async (req, res, next) => {
         updateData.previewPdf = previewUpload.key;
       }
 
->>>>>>> Stashed changes
       updateData.pdf = pdfUpload.key;
       updateData.fileMeta = {
         size: req.files.pdf[0].size,

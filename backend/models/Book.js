@@ -66,6 +66,10 @@ const bookSchema = new mongoose.Schema(
       required: [true, "Book PDF file is required"],
       select: false,
     },
+    previewPdf: {
+      type: String,
+      required: [true, "Book PreviewPDF file is required"],
+    },
 
     fileMeta: {
       size: { type: Number }, // bytes
