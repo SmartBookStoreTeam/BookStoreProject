@@ -204,7 +204,7 @@ const AdminBooks = () => {
                 <tr key={book._id} className="hover:bg-gray-50">
                   <td className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
                     <div className="flex items-center gap-2">
-                      <BookOpenIcon className="hidden sm:block h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" />
+                      <BookOpenIcon className="hidden sm:block h-5 w-5 sm:h-6 sm:w-6 text-blue-600 shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="font-medium text-xs sm:text-sm md:text-base truncate">
                           {book.title}
