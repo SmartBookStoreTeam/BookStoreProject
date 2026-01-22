@@ -55,6 +55,12 @@ export const rejectOrder = async (id) => {
   return res.data;
 };
 
+// Delete order
+export const deleteOrder = async (id) => {
+  const res = await api.delete(`/admin/orders/${id}`);
+  return res.data;
+};
+
 // Delete a user
 export const deleteUser = async (id) => {
   const res = await api.delete(`/admin/users/${id}`);

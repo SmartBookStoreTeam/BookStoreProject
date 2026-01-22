@@ -9,8 +9,14 @@ import {
   FunnelIcon,
   EyeIcon,
   CurrencyDollarIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
-import { getOrders, approveOrder, rejectOrder } from "../../api/adminApi";
+import {
+  getOrders,
+  approveOrder,
+  rejectOrder,
+  deleteOrder,
+} from "../../api/adminApi";
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -110,6 +116,25 @@ const AdminOrders = () => {
     }
   };
 
+  const handleDelete = async (orderId) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this order? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteOrder(orderId);
+      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+      alert("Order deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete order:", error);
+      alert("Failed to delete order");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -129,7 +154,7 @@ const AdminOrders = () => {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
-                EGP
+              EGP
             </span>
           </span>
         </div>
@@ -313,6 +338,13 @@ const AdminOrders = () => {
                           >
                             <XCircleIcon className="h-5 w-5" />
                           </button>
+                          <button
+                            className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded p-1"
+                            title="Delete Order"
+                            onClick={() => handleDelete(order._id)}
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -331,12 +363,11 @@ const AdminOrders = () => {
               <span className="font-bold">{filteredOrders.length}</span>
             </div>
             <div className="text-sm font-bold text-gray-800">
-              Total Value: 
+              Total Value:
               {filteredOrders
                 .reduce((sum, order) => sum + order.total, 0)
-                .toFixed(2)}
-{" "}
-                EGP
+                .toFixed(2)}{" "}
+              EGP
             </div>
           </div>
         </div>

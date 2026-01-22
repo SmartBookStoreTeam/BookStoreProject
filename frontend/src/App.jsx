@@ -106,7 +106,7 @@ function App() {
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="settings" element={<AdminSettings />} />
-                <Route path="admin/books/:id" element={<AdminBookDetails />} />
+                <Route path="books/:id" element={<AdminBookDetails />} />
               </Route>
             </Routes>
           </LoadingProvider>

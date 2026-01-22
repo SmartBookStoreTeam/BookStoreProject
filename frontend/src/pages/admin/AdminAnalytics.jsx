@@ -20,9 +20,29 @@ const AdminAnalytics = () => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/admin/dashboard/analytics");
-        if (response.data?.success) {
-          setData(response.data.data);
+        const [analyticsResponse, topBooksResponse] = await Promise.all([
+          api.get("/admin/dashboard/analytics"),
+          api.get("/books/top?limit=5"),
+        ]);
+
+        if (analyticsResponse.data?.success) {
+          const analyticsData = analyticsResponse.data.data;
+          // Replace topBooks with data from /api/books/top
+          const topBooksData =
+            topBooksResponse.data?.success &&
+            Array.isArray(topBooksResponse.data.data)
+              ? topBooksResponse.data.data.map((book) => ({
+                  title: book.title,
+                  author: book.author,
+                  sales: book.sales || 0,
+                  revenue: (book.sales || 0) * (book.price || 0),
+                }))
+              : [];
+
+          setData({
+            ...analyticsData,
+            topBooks: topBooksData,
+          });
         }
       } catch (error) {
         console.error("Error fetching analytics:", error);
@@ -80,9 +100,7 @@ const AdminAnalytics = () => {
             <div>
               <p className="text-sm text-gray-600">Total Sales</p>
               <p className="text-2xl font-bold mt-2">
-                {metrics.totalSales.toLocaleString()}
-                {" "}
-                EGP
+                {metrics.totalSales.toLocaleString()} EGP
               </p>
               <div className="flex items-center mt-2">
                 <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
@@ -189,37 +207,49 @@ const AdminAnalytics = () => {
             Top Categories by Revenue
           </h3>
           <div className="space-y-4">
-            {topCategories.map((cat, index) => (
-              <div
-                key={cat.category}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-blue-600 font-medium">
-                      {index + 1}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{cat.category}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-gray-800">
-                    {cat.sales.toLocaleString()} EGP
-                  </p>
-                  <p
-                    className={`text-sm ${
-                      cat.growth.startsWith("+")
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {cat.growth}
-                  </p>
-                </div>
+            {!topCategories || topCategories.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <ChartBarIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p>No category data available yet</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Categories will appear here once orders are approved
+                </p>
               </div>
-            ))}
+            ) : (
+              topCategories.map((cat, index) => (
+                <div
+                  key={cat.category}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <span className="text-blue-600 font-medium">
+                        {index + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">
+                        {cat.category}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-800">
+                      {cat.sales.toLocaleString()} EGP
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        cat.growth.startsWith("+")
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {cat.growth}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -252,41 +282,56 @@ const AdminAnalytics = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {topBooks.map((book, index) => (
-                  <tr key={book.title} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-800 text-sm sm:text-base">
-                        {book.title}
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-600">
-                      {book.author}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 sm:px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                        {book.sales} units
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      ${book.revenue.toLocaleString()}
-                    </td>
-                    <td className="hidden md:table-cell px-4 py-3">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          index === 0
-                            ? "bg-yellow-100 text-yellow-800"
-                            : index === 1
-                              ? "bg-gray-100 text-gray-800"
-                              : index === 2
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        <span className="font-bold">#{index + 1}</span>
-                      </div>
+                {!topBooks || topBooks.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="5"
+                      className="px-4 py-8 text-center text-gray-500"
+                    >
+                      <BookOpenIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <p>No sales data available yet</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Books will appear here once orders are approved
+                      </p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  topBooks.map((book, index) => (
+                    <tr key={book.title} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-800 text-sm sm:text-base">
+                          {book.title}
+                        </div>
+                      </td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-600">
+                        {book.author}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 sm:px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                          {book.sales} units
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-800">
+                        ${book.revenue.toLocaleString()}
+                      </td>
+                      <td className="hidden md:table-cell px-4 py-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            index === 0
+                              ? "bg-yellow-100 text-yellow-800"
+                              : index === 1
+                                ? "bg-gray-100 text-gray-800"
+                                : index === 2
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          <span className="font-bold">#{index + 1}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
