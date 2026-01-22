@@ -38,7 +38,9 @@ const bookSchema = new mongoose.Schema(
       required: [true, "Book description is required"],
       maxlength: 5000,
     },
-
+    year: {
+      type: String,
+    },
     // ✅ category ObjectId
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -73,7 +75,11 @@ const bookSchema = new mongoose.Schema(
       pages: { type: Number },
       mime: { type: String }, // application/pdf
     },
-
+    previewMeta: {
+      size: Number,
+      pages: Number,
+      mime: String,
+    },
     // ⭐ rating الاحترافي: Avg + Count
     ratingAvg: {
       type: Number,
@@ -124,7 +130,11 @@ const bookSchema = new mongoose.Schema(
       index: true,
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
 
 // indexes useful for searching filtring

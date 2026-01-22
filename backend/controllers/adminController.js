@@ -1,3 +1,4 @@
+import { PDFDocument } from "pdf-lib";
 import Book from "../models/Book.js";
 import User from "../models/User.js";
 
@@ -14,51 +15,81 @@ import { uploadToS3 } from "../utils/uploadToS3.js";
 
 export const createBook = async (req, res, next) => {
   try {
-    const { title, author, description, category, price } = req.body;
+    const { title, author, description, category, price, year } = req.body;
 
-    if (!req.files?.image || !req.files?.pdf) {
-      throw new Error("Image and PDF are required");
+    if (!title || !author || !description || !category || !price) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Upload image to Cloudinary (public is OK for cover images)
+    if (!req.files?.image?.[0] || !req.files?.pdf?.[0]) {
+      return res.status(400).json({ message: "Image and PDF are required" });
+    }
+
+    const pdfBuffer = req.files.pdf[0].buffer;
+    const pdfDoc = await PDFDocument.load(pdfBuffer);
+    const pageCount = pdfDoc.getPageCount();
+
+    // 2. رفع الصورة لـ Cloudinary
     const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
       folder: "book-store/images",
     });
 
-    // Upload PDF to S3 and store only the object key in the database
+    // 3. رفع ملف الـ PDF الأصلي لـ S3
     const pdfUpload = await uploadToS3(
-      req.files.pdf[0].buffer,
+      pdfBuffer,
       req.files.pdf[0].originalname,
       req.files.pdf[0].mimetype,
-      { folder: "books", isPublic: false }
+      { folder: "books", isPublic: false },
     );
 
+    // 4. معالجة ملف الـ Preview (اختياري)
     let previewKey = null;
-    // Upload preview PDF to S3 (optional)
+    let previewPages = null;
+
     if (req.files?.previewPdf?.[0]) {
+      const previewBuffer = req.files.previewPdf[0].buffer;
+
+      // استخراج صفحات الـ preview بنفس الطريقة
+      const previewPdfDoc = await PDFDocument.load(previewBuffer);
+      previewPages = previewPdfDoc.getPageCount();
+
       const previewUpload = await uploadToS3(
-        req.files.previewPdf[0].buffer,
+        previewBuffer,
         req.files.previewPdf[0].originalname,
         req.files.previewPdf[0].mimetype,
-        { folder: "previews", isPublic: false }
+        { folder: "previews", isPublic: false },
       );
-
       previewKey = previewUpload.key;
     }
+
+    // 5. حفظ في قاعدة البيانات
 
     const book = await Book.create({
       title,
       author,
       description,
+      year,
       category,
-      price,
+      price: Number(price),
       image: imageUpload.secure_url,
+
       pdf: pdfUpload.key, // Store the S3 key, not the URL
+
+      pdf: pdfUpload.key,
       previewPdf: previewKey,
+
       fileMeta: {
         size: req.files.pdf[0].size,
         mime: req.files.pdf[0].mimetype,
+        pages: pageCount,
       },
+      previewMeta: previewKey
+        ? {
+            size: req.files.previewPdf[0].size,
+            mime: req.files.previewPdf[0].mimetype,
+            pages: previewPages,
+          }
+        : null,
     });
 
     res.status(201).json({
@@ -67,10 +98,10 @@ export const createBook = async (req, res, next) => {
       data: book,
     });
   } catch (err) {
+    console.error("Error creating book:", err);
     next(err);
   }
 };
-
 // @desc    Update a book
 // @route   PUT /api/admin/books/:id
 // @access  Admin
@@ -104,7 +135,7 @@ export const updateBook = async (req, res, next) => {
         req.files.pdf[0].buffer,
         req.files.pdf[0].originalname,
         req.files.pdf[0].mimetype,
-        { folder: "books", isPublic: false }
+        { folder: "books", isPublic: false },
       );
 
       if (req.files?.previewPdf?.[0]) {
@@ -112,7 +143,7 @@ export const updateBook = async (req, res, next) => {
           req.files.previewPdf[0].buffer,
           req.files.previewPdf[0].originalname,
           req.files.previewPdf[0].mimetype,
-          { folder: "previews", isPublic: false }
+          { folder: "previews", isPublic: false },
         );
 
         updateData.previewPdf = previewUpload.key;
@@ -131,7 +162,7 @@ export const updateBook = async (req, res, next) => {
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     if (!updatedBook) {
@@ -156,7 +187,7 @@ export const deleteBook = async (req, res, next) => {
     const book = await Book.findByIdAndUpdate(
       req.params.id,
       { isActive: false },
-      { new: true }
+      { new: true },
     );
 
     if (!book) {
@@ -188,47 +219,20 @@ export const getAllUsers = async (req, res, next) => {
     const page = Number(req.query.page) || 1;
     const q = req.query.q?.trim();
 
-    const matchStage = { role: "user" }; // Only fetch regular users
+    const filter = {};
     if (q) {
-      matchStage.$or = [
+      filter.$or = [
         { name: { $regex: q, $options: "i" } },
         { email: { $regex: q, $options: "i" } },
       ];
     }
 
-    // 1. Get Total Count for Pagination (approximate matches)
-    const total = await User.countDocuments(matchStage);
-
-    // 2. Aggregation Pipeline
-    const users = await User.aggregate([
-      { $match: matchStage },
-      // Lookup orders for this user
-      {
-        $lookup: {
-          from: "orders",
-          localField: "_id",
-          foreignField: "user",
-          as: "userOrders",
-        },
-      },
-      // Calculate stats
-      {
-        $project: {
-          _id: 1,
-          name: 1,
-          email: 1,
-          role: 1,
-          phone: 1,
-          status: 1,
-          createdAt: 1,
-          ordersCount: { $size: "$userOrders" },
-          totalSpent: { $sum: "$userOrders.total" }, // Sum total of all orders
-        },
-      },
-      { $sort: { createdAt: -1 } },
-      { $skip: pageSize * (page - 1) },
-      { $limit: pageSize },
-    ]);
+    const total = await User.countDocuments(filter);
+    const users = await User.find(filter)
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
 
     res.json({
       success: true,
@@ -283,7 +287,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
       ];
     }
 
-    if (isActive === "true") filter.isActive = { $ne: false };
+    if (isActive === "true") filter.isActive = true;
     if (isActive === "false") filter.isActive = false;
 
     if (category) filter.category = category;
@@ -292,7 +296,6 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
     const books = await Book.find(filter)
       .select("-pdf -reviews -__v")
-      .populate("category", "name")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
