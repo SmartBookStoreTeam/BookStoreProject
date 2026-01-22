@@ -201,3 +201,16 @@ export const getMe = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// -----------------------------------------
+// DELETE /api/auth/me
+// Delete self account
+// -----------------------------------------
+export const deleteMe = async (req, res, next) => {
+  try {
+    await User.findByIdAndDelete(req.user.id);
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -583,7 +583,16 @@ const PdfViewer = () => {
                   theme={{
                     theme: "dark",
                   }}
-                  onDocumentLoad={(e) => setTotalPages(e.doc.numPages)}
+                  onDocumentLoad={(e) => {
+                    const numPages = e.doc.numPages;
+                    setTotalPages(numPages);
+
+                    // Save page count to localStorage for BookDetails
+                    localStorage.setItem(
+                      `book_${bookId}_pages`,
+                      numPages.toString(),
+                    );
+                  }}
                   onPageChange={(e) => setCurrentPage(e.currentPage + 1)} // currentPage is 0-indexed
                 />
               </div>

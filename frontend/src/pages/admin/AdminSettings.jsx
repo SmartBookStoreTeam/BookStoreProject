@@ -17,10 +17,10 @@ const AdminSettings = () => {
   const [settings, setSettings] = useState({
     storeName: "Bookfly Store",
     storeEmail: "bookfly2026@gmail.com",
-    storePhone: "+1 234 567 8900",
-    storeAddress: "123 Book Street, New York, NY 10001",
-    currency: "USD",
-    timezone: "America/New_York",
+    storePhone: "+20 123 456 7890",
+    storeAddress: "123 Book Street, Zagazig, Egypt",
+    currency: "EGP",
+    timezone: "Africa/Cairo",
     maintenanceMode: false,
     emailNotifications: true,
     smsNotifications: false,
@@ -157,6 +157,7 @@ const AdminSettings = () => {
                 onChange={(e) => handleChange("currency", e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
+                <option value="EGP">EGP (EGP)</option>
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
                 <option value="GBP">GBP (£)</option>

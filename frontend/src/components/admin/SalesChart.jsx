@@ -59,7 +59,7 @@ const SalesChart = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-gray-200">
         <div className="text-center">
           <div className="text-2xl font-bold text-gray-800">
-            ${salesData.reduce((sum, d) => sum + d.sales, 0).toLocaleString()}
+            {salesData.reduce((sum, d) => sum + d.sales, 0).toLocaleString()} EGP
           </div>
           <div className="text-sm text-gray-600">Total Sales</div>
         </div>

@@ -19,7 +19,7 @@ const AdminCustomers = () => {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const response = await getUsers();
+        const response = await getUsers({ pageSize: 1000 });
         // The API returns { success: true, data: [...] }
         const usersData = Array.isArray(response.data) ? response.data : [];
 
@@ -133,10 +133,10 @@ const AdminCustomers = () => {
             <div>
               <p className="text-xs sm:text-sm text-gray-600">Total Revenue</p>
               <p className="text-xl sm:text-2xl font-bold mt-1 text-purple-600">
-                $
                 {customers
                   ?.reduce((sum, c) => sum + c.totalSpent, 0)
                   .toFixed(2)}
+                <span className="ml-1">EGP</span>
               </p>
             </div>
             <div className="h-8 w-8 sm:h-10 sm:w-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -152,11 +152,11 @@ const AdminCustomers = () => {
                 Avg. Order Value
               </p>
               <p className="text-xl sm:text-2xl font-bold mt-1 text-orange-600">
-                $
                 {(
                   customers.reduce((sum, c) => sum + c.totalSpent, 0) /
                   customers.reduce((sum, c) => sum + c.orders, 1)
                 ).toFixed(2)}
+                <span className="ml-1">EGP</span>
               </p>
             </div>
             <div className="h-8 w-8 sm:h-10 sm:w-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -268,7 +268,7 @@ const AdminCustomers = () => {
                       </td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="text-sm font-bold text-gray-900">
-                          ${(customer?.totalSpent ?? 0).toFixed(2)}
+                          {(customer?.totalSpent ?? 0).toFixed(2)} EGP
                         </div>
                       </td>
 

@@ -146,3 +146,66 @@ export const deleteCategory = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Get top categories by revenue
+// @route   GET /api/admin/categories/top-revenue
+// @access  Admin
+export const getTopCategoriesByRevenue = async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit) || 5;
+    
+    // Import Order model dynamically to avoid circular dependency
+    const Order = (await import("../models/Order.js")).default;
+    
+    const topCategories = await Order.aggregate([
+      { $match: { status: "approved" } },
+      { $unwind: "$items" },
+      {
+        $lookup: {
+          from: "books",
+          localField: "items.book",
+          foreignField: "_id",
+          as: "bookData",
+        },
+      },
+      { $unwind: "$bookData" },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "bookData.category",
+          foreignField: "_id",
+          as: "categoryData",
+        },
+      },
+      { $unwind: "$categoryData" },
+      {
+        $group: {
+          _id: "$categoryData._id",
+          category: { $first: "$categoryData.name" },
+          revenue: { $sum: { $multiply: ["$items.priceSnapshot", "$items.quantity"] } },
+          orders: { $sum: 1 }
+        },
+      },
+      { $sort: { revenue: -1 } },
+      { $limit: limit },
+      {
+        $project: {
+          _id: 0,
+          category: 1,
+          sales: "$revenue", // Rename for frontend compatibility
+          revenue: 1,
+          orders: 1,
+          growth: { $literal: "+0%" } // Placeholder for growth
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: topCategories,
+    });
+  } catch (err) {
+    console.error("Error getting top categories:", err);
+    next(err);
+  }
+};

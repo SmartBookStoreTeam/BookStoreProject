@@ -11,3 +11,9 @@ export const getMyOrders = async () => {
   const res = await api.get("/orders/my-orders");
   return res.data;
 };
+
+// Get user's library (purchased books)
+export const getMyLibrary = async () => {
+  const res = await api.get("/orders/my-library");
+  return res.data;
+};

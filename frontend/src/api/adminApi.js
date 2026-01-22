@@ -6,6 +6,12 @@ export const getAdminBooks = async (params = {}) => {
   return res.data;
 };
 
+// Get a single book by ID (admin)
+export const getAdminBookById = async (id) => {
+  const res = await api.get(`/admin/books/${id}`);
+  return res.data;
+};
+
 // Add a book
 export const addBook = async (bookData) => {
   const res = await api.post("/admin/books", bookData);
@@ -25,8 +31,9 @@ export const deleteBook = async (id) => {
 };
 
 // Get all users
-export const getUsers = async () => {
-  const res = await api.get("/admin/users");
+// Get all users
+export const getUsers = async (params = {}) => {
+  const res = await api.get("/admin/users", { params });
   return res.data;
 };
 
@@ -45,5 +52,17 @@ export const approveOrder = async (id) => {
 // Reject order
 export const rejectOrder = async (id) => {
   const res = await api.patch(`/admin/orders/${id}/reject`);
+  return res.data;
+};
+
+// Delete a user
+export const deleteUser = async (id) => {
+  const res = await api.delete(`/admin/users/${id}`);
+  return res.data;
+};
+
+// Delete own account
+export const deleteMyAccount = async () => {
+  const res = await api.delete("/auth/me");
   return res.data;
 };

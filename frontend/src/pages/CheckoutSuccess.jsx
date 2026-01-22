@@ -17,7 +17,7 @@ const CheckoutSuccess = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { clearCart, addPurchasedBooks } = useCart();
+  const { clearCart, fetchPurchasedBooks } = useCart();
 
   const { books, customerInfo } = location.state || {};
 
@@ -29,12 +29,12 @@ const CheckoutSuccess = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
-  // Clear cart and save purchased books on success - run once
+  // Clear cart on success and refresh library from server - run once
   useEffect(() => {
     if (books && books.length > 0) {
       clearCart();
-      // Save purchased books
-      addPurchasedBooks(books);
+      // Refresh library from server to get any approved orders
+      fetchPurchasedBooks();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
@@ -147,7 +147,6 @@ const CheckoutSuccess = () => {
                       <Eye className="w-4 h-4" />
                       <span>{t("View")}</span>
                     </Link>
-           
                   </div>
                 </div>
               ))}

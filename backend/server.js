@@ -18,6 +18,8 @@ import downloadRoutes from "./routes/downloadRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import adminCategoryRoutes from "./routes/adminCategoryRoutes.js";
 import previewRoutes from "./routes/previewRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -41,7 +43,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // السماح بالطلبات من same origin أو Postman
+      if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -49,7 +51,7 @@ app.use(
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ PATCH 
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -66,8 +68,10 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
+app.use("/api/admin/dashboard", dashboardRoutes);
 app.use("/api", downloadRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);

@@ -5,6 +5,7 @@ import {
   getAdminOrders,
   approveOrder,
   rejectOrder,
+  deleteOrder,
 } from "../controllers/adminOrderController.js";
 
 const router = express.Router();
@@ -12,5 +13,6 @@ const router = express.Router();
 router.get("/", protect, admin, getAdminOrders);
 router.patch("/:id/approve", protect, admin, approveOrder);
 router.patch("/:id/reject", protect, admin, rejectOrder);
+router.delete("/:id", protect, admin, deleteOrder);
 
 export default router;

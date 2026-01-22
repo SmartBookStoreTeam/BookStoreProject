@@ -20,6 +20,8 @@ import { Toaster } from "react-hot-toast";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooks from "./pages/admin/AdminBooks";
+import AddBook from "./pages/admin/AddBook";
+import EditBook from "./pages/admin/EditBook";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
@@ -98,11 +100,13 @@ function App() {
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="books" element={<AdminBooks />} />
+                <Route path="books/add" element={<AddBook />} />
+                <Route path="books/edit/:id" element={<EditBook />} />
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="settings" element={<AdminSettings />} />
-                <Route path="/admin/books/:id" element={<AdminBookDetails />} />
+                <Route path="admin/books/:id" element={<AdminBookDetails />} />
               </Route>
             </Routes>
           </LoadingProvider>

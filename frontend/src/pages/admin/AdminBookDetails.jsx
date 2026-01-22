@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getBookById } from "../../api/booksApi";
+import { getAdminBookById } from "../../api/adminApi";
 import axios from "axios";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
@@ -26,14 +26,35 @@ const AdminBookDetails = () => {
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
 
   // جلب بيانات الكتاب
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
         setLoading(true);
-        const data = await getBookById(id);
-        setBook(data);
+        const response = await getAdminBookById(id);
+        setBook(response.data);
+
+        // Fetch signed URL for PDF
+        if (response.data?.pdf) {
+          try {
+            const token = localStorage.getItem("token");
+            const pdfResponse = await axios.get(
+              `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/books/${id}/download`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            );
+            if (pdfResponse.data?.data?.url) {
+              setPdfUrl(pdfResponse.data.data.url);
+            }
+          } catch (pdfError) {
+            console.error("Error fetching PDF URL:", pdfError);
+          }
+        }
       } catch (error) {
         console.error("Error fetching book details:", error);
       } finally {
@@ -45,9 +66,9 @@ const AdminBookDetails = () => {
 
   // تحميل PDF
   const downloadPDF = () => {
-    if (book?.pdf) {
+    if (pdfUrl) {
       const link = document.createElement("a");
-      link.href = book.pdf;
+      link.href = pdfUrl;
       link.download = `${book.title}.pdf`;
       document.body.appendChild(link);
       link.click();
@@ -68,7 +89,7 @@ const AdminBookDetails = () => {
       const res = await axios.post(
         `/api/admin/books/${id}/upload-pdf`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       setBook((prev) => ({ ...prev, pdf: res.data.url }));
       alert("PDF uploaded successfully!");
@@ -183,11 +204,20 @@ const AdminBookDetails = () => {
             </div>
 
             {book.pdf ? (
-              <div className="border rounded-lg overflow-hidden h-96">
-                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                  <Viewer fileUrl={book.pdf} />
-                </Worker>
-              </div>
+              pdfUrl ? (
+                <div className="border rounded-lg overflow-hidden h-96">
+                  <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                    <Viewer fileUrl={pdfUrl} />
+                  </Worker>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-96 border rounded-lg">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-500">Loading PDF...</p>
+                  </div>
+                </div>
+              )
             ) : (
               <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed border-gray-300 rounded-lg">
                 <BookOpenIcon className="h-16 w-16 text-gray-400 mb-4" />

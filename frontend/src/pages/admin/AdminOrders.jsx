@@ -24,7 +24,11 @@ const AdminOrders = () => {
       try {
         setLoading(true);
         const response = await getOrders();
-        const ordersData = Array.isArray(response.data) ? response.data : [];
+        const ordersData = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : [];
         setOrders(ordersData);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -117,7 +121,16 @@ const AdminOrders = () => {
         <div className="flex items-center space-x-2 mt-4 md:mt-0">
           <CurrencyDollarIcon className="h-5 w-5 text-gray-400" />
           <span className="text-sm font-medium text-gray-700">
-            Total Revenue: <span className="text-green-600">$1,023.69</span>
+            Total Revenue:{" "}
+            <span className="text-green-600">
+              {orders
+                .reduce((sum, order) => sum + (order.total || 0), 0)
+                .toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+                EGP
+            </span>
           </span>
         </div>
       </div>
@@ -245,7 +258,7 @@ const AdminOrders = () => {
                       </td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="text-sm font-bold text-gray-900">
-                          ${order.total.toFixed(2)}
+                          {order.total.toFixed(2)} EGP
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4">
@@ -318,10 +331,12 @@ const AdminOrders = () => {
               <span className="font-bold">{filteredOrders.length}</span>
             </div>
             <div className="text-sm font-bold text-gray-800">
-              Total Value: $
+              Total Value: 
               {filteredOrders
                 .reduce((sum, order) => sum + order.total, 0)
                 .toFixed(2)}
+{" "}
+                EGP
             </div>
           </div>
         </div>

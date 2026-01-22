@@ -692,8 +692,8 @@ const Header = () => {
           boxShadow: isPulsing
             ? "0 0 20px rgba(99, 102, 241, 0.8), 0 0 40px rgba(168, 85, 247, 0.6)"
             : isLoading
-            ? "0 0 10px rgba(99, 102, 241, 0.5)"
-            : "none",
+              ? "0 0 10px rgba(99, 102, 241, 0.5)"
+              : "none",
         }}
       >
         {/* Moving wave effect */}
