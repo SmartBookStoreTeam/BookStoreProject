@@ -56,7 +56,7 @@ const EditBook = () => {
         "category",
         "description",
         "status",
-        "publicationYear",
+        "year",
       ].forEach((f) => bookData.append(f, data.get(f)));
 
       bookData.append("price", parseFloat(data.get("price") || 0));
