@@ -125,7 +125,7 @@ const bookSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["draft", "published", "archived"],
+      enum: ["available", "unavailable"],
       default: "published",
       index: true,
     },
