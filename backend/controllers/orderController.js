@@ -89,3 +89,19 @@ export const createOrder = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Get logged in user orders
+// @route   GET /api/orders/my-orders
+// @access  Private
+export const getMyOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .populate("items.book", "title image")
+      .sort({
+        createdAt: -1,
+      });
+    res.json(orders);
+  } catch (err) {
+    next(err);
+  }
+};
