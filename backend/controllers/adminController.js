@@ -117,6 +117,7 @@ export const updateBook = async (req, res, next) => {
       "price",
       "publicationYear",
       "isActive",
+      "status",
     ];
 
     fields.forEach((field) => {
