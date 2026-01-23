@@ -60,8 +60,8 @@ const fillMissingBookData = (book, t, actualPages = null) => {
     price:
       typeof book.price === "number" ? book.price : Number(book.price || 0),
 
-    category: book.category,
-    categoryName: catName,
+    category: book.category || "Unavailable",
+    categoryName: catName|| "Unavailable",
 
     isbn:
       book.isbn || "Unavailable",
@@ -655,7 +655,7 @@ const BookDetails = () => {
                     className="font-medium text-gray-900 dark:text-gray-200 text-sm wrap-break-word"
                     title={book.isbn}
                   >
-                    {book.isbn}
+                    {t(book.isbn)}
                   </p>
                 </div>
                 <div>
@@ -663,7 +663,7 @@ const BookDetails = () => {
                     {t("Edition")}:
                   </span>
                   <p className="font-medium text-gray-900 dark:text-gray-200">
-                    {book.edition}
+                    {t(book.edition)}th Edition
                   </p>
                 </div>
                 <div>
