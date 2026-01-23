@@ -35,7 +35,7 @@ const AddBook = () => {
         "category",
         "description",
         "status",
-        "publicationYear",
+        "year",
       ].forEach((f) => bookData.append(f, data.get(f)));
 
       bookData.append("price", parseFloat(data.get("price") || 0));
@@ -130,7 +130,7 @@ const AddBook = () => {
                   Publication Year
                 </label>
                 <input
-                  name="publicationYear"
+                  name="year"
                   type="number"
                   className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder={new Date().getFullYear()}
