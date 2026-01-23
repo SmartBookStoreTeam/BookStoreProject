@@ -17,12 +17,12 @@ api.interceptors.response.use(
     const ct = res.headers["content-type"] || "";
     if (ct.includes("text/html")) {
       return Promise.reject(
-        new Error("API misrouted: got HTML instead of JSON.")
+        new Error("API misrouted: got HTML instead of JSON."),
       );
     }
     return res;
   },
-  (err) => Promise.reject(err)
+  (err) => Promise.reject(err),
 );
 
 export default api;
