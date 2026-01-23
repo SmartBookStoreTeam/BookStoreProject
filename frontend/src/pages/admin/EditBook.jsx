@@ -50,14 +50,9 @@ const EditBook = () => {
       const data = new FormData(e.target);
       const bookData = new FormData();
 
-      [
-        "title",
-        "author",
-        "category",
-        "description",
-        "status",
-        "publicationYear",
-      ].forEach((f) => bookData.append(f, data.get(f)));
+      ["title", "author", "category", "description", "status", "year"].forEach(
+        (f) => bookData.append(f, data.get(f)),
+      );
 
       bookData.append("price", parseFloat(data.get("price") || 0));
 
@@ -80,7 +75,7 @@ const EditBook = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
+      <div className="flex justify-center items-center min-h-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -162,9 +157,9 @@ const EditBook = () => {
                   Publication Year
                 </label>
                 <input
-                  name="publicationYear"
+                  name="year"
                   type="number"
-                  defaultValue={book.publicationYear}
+                  defaultValue={book.year}
                   className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder={new Date().getFullYear()}
                   min="1000"
