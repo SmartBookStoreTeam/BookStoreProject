@@ -232,12 +232,9 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className="relative p-2 bg-zinc-700/50 rounded-full hover:bg-zinc-300 dark:hover:bg-zinc-700 transition"
+                  className="relative p-2 rounded-full bg-zinc-300 dark:bg-zinc-700 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
                 >
-                  <Bell
-                    size={24}
-                    className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
-                  />
+                  <Bell size={24} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
                       {unreadCount > 9 ? "9+" : unreadCount}
@@ -589,12 +586,9 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className="relative p-2 rounded-full hover:bg-zinc-300 dark:hover:bg-zinc-700 transition"
+                  className="touch-area relative mt-[2px] p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
                 >
-                  <Bell
-                    size={24}
-                    className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
-                  />
+                  <Bell size={24} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
                       {unreadCount > 9 ? "9+" : unreadCount}
@@ -617,7 +611,7 @@ const Header = () => {
                       {notifications.length > 0 && (
                         <button
                           onClick={markAllAsRead}
-                          className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                          className="touch-area text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
                         >
                           {t("Mark all as read")}
                         </button>
@@ -688,7 +682,7 @@ const Header = () => {
                                     e.stopPropagation();
                                     removeNotification(notification.id);
                                   }}
-                                  className="text-zinc-400 hover:text-red-500 transition"
+                                  className="touch-area text-zinc-400 hover:text-red-500 transition"
                                 >
                                   <X size={16} />
                                 </button>
