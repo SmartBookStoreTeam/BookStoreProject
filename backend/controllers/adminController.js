@@ -296,6 +296,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
     const books = await Book.find(filter)
       .select("-pdf -reviews -__v")
+      .populate("category", "name slug")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
