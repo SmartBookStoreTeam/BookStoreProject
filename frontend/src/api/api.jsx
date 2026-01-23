@@ -12,4 +12,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// 2) لو رجع HTML بدل JSON اعتبره خطأ (ده اللي كنا بنتكلم عنه)
+api.interceptors.response.use(
+  (res) => {
+    const ct = res.headers["content-type"] || "";
+    if (ct.includes("text/html")) {
+      return Promise.reject(
+        new Error("API misrouted: got HTML instead of JSON."),
+      );
+    }
+    return res;
+  },
+  (err) => Promise.reject(err),
+);
+
 export default api;
