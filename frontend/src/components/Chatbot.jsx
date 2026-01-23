@@ -252,14 +252,14 @@ Rate: ${book.rate}`;
     <>
       {/* CHAT WINDOW */}
       <div
-        className={`fixed bottom-24 right-6 z-[100] transition-all duration-300 ${
+        className={`fixed bottom-24 right-6 z-100 transition-all duration-300 ${
           isOpen
             ? "translate-y-0 opacity-100"
             : "translate-y-8 opacity-0 pointer-events-none"
         }`}
         style={{ width: "min(380px, calc(100vw - 3rem))" }}
       >
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-700 flex flex-col h-[500px] max-h-[calc(100vh-10rem)] overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-700 flex flex-col h-125 max-h-[calc(100vh-10rem)] overflow-hidden">
           {/* Header */}
           <div className="bg-indigo-600 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -357,7 +357,7 @@ Rate: ${book.rate}`;
 
       {/* FLOATING BUTTON */}
       <div
-        className={`fixed bottom-36 right-6 z-[100] flex items-center gap-3 transition-all duration-300 ${
+        className={`fixed bottom-36 right-6 z-100 flex items-center gap-3 transition-all duration-300 ${
           isOpen
             ? "scale-0 opacity-0"
             : showLabel
