@@ -164,7 +164,7 @@ const EditBook = () => {
                 <input
                   name="year"
                   type="number"
-                  defaultValue={book.publicationYear}
+                  defaultValue={book.year}
                   className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder={new Date().getFullYear()}
                   min="1000"
@@ -197,7 +197,7 @@ const EditBook = () => {
                 </label>
                 <select
                   name="status"
-                  defaultValue={book.status || "available"}
+                  defaultValue={"available"}
                   className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                   <option value="available">Available</option>
