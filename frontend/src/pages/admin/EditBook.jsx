@@ -50,9 +50,14 @@ const EditBook = () => {
       const data = new FormData(e.target);
       const bookData = new FormData();
 
-      ["title", "author", "category", "description", "status", "year"].forEach(
-        (f) => bookData.append(f, data.get(f)),
-      );
+      [
+        "title",
+        "author",
+        "category",
+        "description",
+        "status",
+        "year",
+      ].forEach((f) => bookData.append(f, data.get(f)));
 
       bookData.append("price", parseFloat(data.get("price") || 0));
 
@@ -192,7 +197,7 @@ const EditBook = () => {
                 </label>
                 <select
                   name="status"
-                  defaultValue={book.status || "available"}
+                  defaultValue={"available"}
                   className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                   <option value="available">Available</option>
