@@ -64,10 +64,9 @@ const fillMissingBookData = (book, t, actualPages = null) => {
     categoryName: catName,
 
     isbn:
-      book.isbn ||
-      "ISBN-" + Math.random().toString(36).substr(2, 13).toUpperCase(),
-    edition: book.edition || t("First Edition"),
-    publicationYear: book.publicationYear || "Unavailable",
+      book.isbn || "Unavailable",
+    edition: book.edition || "Unavailable",
+    year: book.year || "Unavailable",
     pages: actualPages || book.pages || "Unavailable",
 
     // ratings
@@ -672,7 +671,7 @@ const BookDetails = () => {
                     {t("Year")}:
                   </span>
                   <p className="font-medium text-gray-900 dark:text-gray-200">
-                    {t(book.publicationYear)}
+                    {t(book.year)}
                   </p>
                 </div>
                 <div>
@@ -685,7 +684,8 @@ const BookDetails = () => {
                         width="100px"
                         height="18px"
                         baseColor="#a09daaff"
-                        highlightColor="#f3f4f6" />
+                        highlightColor="#f3f4f6"
+                      />
                     </div>
                   ) : (
                     <p className="font-medium text-gray-900 dark:text-gray-200">

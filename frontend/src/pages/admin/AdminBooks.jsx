@@ -208,9 +208,9 @@ const AdminBooks = () => {
                           <div className="text-sm text-gray-500 truncate mt-1 cursor-pointer">
                             {book.author}
                           </div>
-                          {book.publicationYear && (
+                          {book.year && (
                             <div className="text-xs text-gray-400 mt-1 cursor-pointer">
-                              Published: {book.publicationYear}
+                              Published: {book.year}
                             </div>
                           )}
                         </div>
