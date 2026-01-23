@@ -29,6 +29,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import { AuthProvider } from "./context/AuthContext";
 import { NavigationProvider } from "./context/NavigationContext";
 import { LoadingProvider } from "./context/LoadingContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import Register from "./pages/Register";
@@ -55,7 +56,8 @@ function App() {
       <CartProvider>
         <NavigationProvider>
           <LoadingProvider>
-            <Toaster position="top-center" />
+            <NotificationProvider>
+              <Toaster position="top-center" />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Layout />}>
@@ -109,6 +111,7 @@ function App() {
                 <Route path="books/:id" element={<AdminBookDetails />} />
               </Route>
             </Routes>
+            </NotificationProvider>
           </LoadingProvider>
         </NavigationProvider>
       </CartProvider>

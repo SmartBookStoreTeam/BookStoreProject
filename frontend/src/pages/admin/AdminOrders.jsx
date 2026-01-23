@@ -211,7 +211,8 @@ const AdminOrders = () => {
 
       {/* Orders Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
           <div className="inline-block min-w-full align-middle px-4 sm:px-0">
             <table className="w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -222,10 +223,10 @@ const AdminOrders = () => {
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Customer
                   </th>
-                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Items
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -234,7 +235,7 @@ const AdminOrders = () => {
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -265,18 +266,18 @@ const AdminOrders = () => {
                     <tr key={order._id} className="hover:bg-gray-50">
                       <td className="px-4 sm:px-6 py-4">
                         <div className="text-sm font-medium text-blue-600">
-                          {order._id}
+                          {order._id.slice(-8)}
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900 truncate max-w-[100px] sm:max-w-none">
+                        <div className="text-sm font-medium text-gray-900">
                           {order.user?.name || "Unknown"}
                         </div>
                       </td>
-                      <td className="hidden sm:table-cell px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="hidden md:table-cell px-6 py-4">
+                      <td className="px-6 py-4">
                         <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
                           {order.items?.length || 0} items
                         </span>
@@ -300,7 +301,7 @@ const AdminOrders = () => {
                             onChange={(e) =>
                               updateOrderStatus(order._id, e.target.value)
                             }
-                            className="hidden sm:block text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500"
+                            className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500"
                           >
                             {statusOptions
                               .filter((o) => o !== "all")
@@ -312,7 +313,7 @@ const AdminOrders = () => {
                           </select>
                         </div>
                       </td>
-                      <td className="hidden lg:table-cell px-6 py-4 text-sm font-medium">
+                      <td className="px-6 py-4 text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
                             className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
@@ -355,15 +356,124 @@ const AdminOrders = () => {
           </div>
         </div>
 
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {loading ? (
+            <div className="px-4 py-12 text-center">
+              <div className="flex justify-center items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-gray-600">Loading orders...</span>
+              </div>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="px-4 py-12 text-center text-gray-500">
+              No orders found
+            </div>
+          ) : (
+            filteredOrders.map((order) => (
+              <div key={order._id} className="p-4 hover:bg-gray-50">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="text-sm font-medium text-blue-600 mb-1">
+                      #{order._id.slice(-8)}
+                    </div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {order.user?.name || "Unknown"}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(order.status)}
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
+                        order.status,
+                      )}`}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center mb-3">
+                  <div className="text-sm text-gray-600">
+                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                      {order.items?.length || 0} items
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold text-gray-900">
+                    {order.total.toFixed(2)} EGP
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  {/* Status Selector */}
+                  <select
+                    value={order.status}
+                    onChange={(e) =>
+                      updateOrderStatus(order._id, e.target.value)
+                    }
+                    className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500"
+                  >
+                    {statusOptions
+                      .filter((o) => o !== "all")
+                      .map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                  </select>
+
+                  {/* Mobile Actions */}
+                  <div className="flex gap-1">
+                    <button
+                      className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded"
+                      title="View Details"
+                    >
+                      <EyeIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded"
+                      title="Approve"
+                      onClick={() =>
+                        updateOrderStatus(order._id, "approved")
+                      }
+                    >
+                      <ArrowDownTrayIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded"
+                      title="Reject"
+                      onClick={() =>
+                        updateOrderStatus(order._id, "rejected")
+                      }
+                    >
+                      <XCircleIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      className="text-gray-600 hover:text-red-600 hover:bg-red-50 rounded p-2"
+                      title="Delete"
+                      onClick={() => handleDelete(order._id)}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
         {/* Order Summary */}
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
             <div className="text-sm text-gray-600">
               Total Orders:{" "}
               <span className="font-bold">{filteredOrders.length}</span>
             </div>
             <div className="text-sm font-bold text-gray-800">
-              Total Value:
+              Total Value:{" "}
               {filteredOrders
                 .reduce((sum, order) => sum + order.total, 0)
                 .toFixed(2)}{" "}

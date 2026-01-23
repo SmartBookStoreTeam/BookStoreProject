@@ -144,20 +144,21 @@ const AdminBooks = () => {
 
       {/* ================= TABLE ================= */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Book
                 </th>
-                <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Category
                 </th>
-                <th className="hidden sm:table-cell px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Price
                 </th>
-                <th className="hidden lg:table-cell px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
@@ -201,7 +202,7 @@ const AdminBooks = () => {
                         </div>
                         {/* Book Info */}
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-gray-900 truncate hover:text-blue-600 cursor-pointer">
+                          <div className="font-semibold text-gray-900 truncate hover:text-blue-600 cursor-pointer truncate max-w-[200px]">
                             {book.title}
                           </div>
                           <div className="text-sm text-gray-500 truncate mt-1 cursor-pointer">
@@ -216,19 +217,19 @@ const AdminBooks = () => {
                       </div>
                     </td>
 
-                    <td className="hidden md:table-cell px-6 py-4">
+                    <td className="px-6 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                         {book.category?.name || "Uncategorized"}
                       </span>
                     </td>
 
-                    <td className="hidden sm:table-cell px-6 py-4">
+                    <td className="px-6 py-4">
                       <span className="font-bold text-gray-900">
                         {Number(book.price || 0).toFixed(2)} EGP
                       </span>
                     </td>
 
-                    <td className="hidden lg:table-cell px-6 py-4">
+                    <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize ${
                           book.status === "available"
@@ -272,6 +273,99 @@ const AdminBooks = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {filteredBooks.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <BookOpenIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 font-medium">No books found</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Try adjusting your search or filters
+              </p>
+            </div>
+          ) : (
+            filteredBooks.map((book) => (
+              <div
+                key={book._id}
+                className="p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex gap-3">
+                  {/* Book Cover */}
+                  <div className="flex-shrink-0">
+                    {book.image ? (
+                      <img
+                        src={book.image}
+                        alt={book.title}
+                        className="h-16 w-12 object-cover rounded shadow-sm"
+                      />
+                    ) : (
+                      <div className="h-16 w-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded shadow-sm flex items-center justify-center">
+                        <BookOpenIcon className="h-6 w-6 text-white" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Book Details */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate text-sm">
+                      {book.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 truncate mt-1">
+                      by {book.author}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="font-bold text-gray-900 text-sm">
+                        {Number(book.price || 0).toFixed(2)} EGP
+                      </span>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {book.category?.name || "Uncategorized"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                          book.status === "available"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {book.status || "available"}
+                      </span>
+
+                      {/* Mobile Actions */}
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => navigate(`/admin/books/${book._id}`)}
+                          className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="View Details"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(`/admin/books/edit/${book._id}`)
+                          }
+                          className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                          title="Edit Book"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(book._id)}
+                          className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Delete Book"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

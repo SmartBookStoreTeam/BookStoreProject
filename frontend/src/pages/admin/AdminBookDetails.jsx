@@ -41,7 +41,7 @@ const AdminBookDetails = () => {
           try {
             const token = localStorage.getItem("token");
             const pdfResponse = await axios.get(
-              `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/books/${id}/download`,
+              `${import.meta.env.VITE_API_URL}/books/${id}/download`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,

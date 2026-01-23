@@ -9,6 +9,8 @@
   "Online": "متصل",
   "Type your message...": "اكتب رسالتك...",
   "Chat with us": "تحدث معنا",
+  "No notifications yet": "لا يوجد إشعارات بعد",
+  "You'll be notified when your orders are approved": "سيتم إشعارك عند اتمام طلباتك",
   "Welcome": "مرحباً",
   "How can I assist you": "كيف استطيع مساعدتك",
   "How can I assist you with finding books": "كيف استطيع مساعدتك لايجاد الكتب",
@@ -462,5 +464,8 @@
   "Failed to submit rating": "فشل في إرسال التقييم",
   "review": "تقييم",
   "reviews": "تقييمات",
-  "En": "Ar"
+  "En": "Ar",
+  "Notifications": "الإشعارات",
+  "Mark all as read": "تحديد الكل كمقروء",
+  "No notifications": "لا توجد إشعارات"
 }
