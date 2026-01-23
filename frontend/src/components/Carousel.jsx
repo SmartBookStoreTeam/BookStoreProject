@@ -395,7 +395,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
                       }
                     }}
                   >
-                    <div className="relative w-full h-[300px] sm:h-[250px] lg:h-[300px] rounded-2xl overflow-hidden">
+                    <div className="relative w-full h-75 sm:h-62.5 lg:h-75 rounded-2xl overflow-hidden">
                       <motion.img
                         className="w-full h-full object-cover rounded-2xl select-none"
                         src={
@@ -418,7 +418,10 @@ const Carousel = ({ books, carouselId = "default" }) => {
                       />
                     </div>
                     {!isBookPurchased(book._id || book.id) && (
-                      <span dir={i18n.dir()} className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none">
+                      <span
+                        dir={i18n.dir()}
+                        className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none"
+                      >
                         {book.price} {t("EGP")}
                       </span>
                     )}
@@ -462,7 +465,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
                   </div>
                   <p
                     dir="auto"
-                    className="touch-area text-xs truncate max-w-[250px] text-center text-gray-700  dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-30"
+                    className="touch-area text-xs truncate max-w-62.5 text-center text-gray-700  dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-30"
                   >
                     {book.desc ||
                       book.description ||

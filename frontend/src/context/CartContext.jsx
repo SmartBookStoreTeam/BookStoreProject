@@ -1,4 +1,7 @@
 import { createContext, useReducer, useEffect } from "react";
+import { getMyLibrary } from "../api/ordersApi";
+import { useAuth } from "../context/AuthContext";
+import * as cartApi from "../api/cartApi";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const CartContext = createContext();
@@ -87,37 +90,136 @@ const cartReducer = (state, action) => {
 
 export const CartProvider = ({ children }) => {
   const [cartItems, dispatch] = useReducer(cartReducer, []);
+  const { user } = useAuth() || {};
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = loadCartFromStorage();
-    if (savedCart.length > 0) {
-      dispatch({ type: "LOAD_CART", payload: savedCart });
+  // Fetch cart from API for logged-in users
+  const fetchCartFromAPI = async () => {
+    try {
+      const response = await cartApi.getCart();
+      if (response.success && Array.isArray(response.data)) {
+        dispatch({ type: "LOAD_CART", payload: response.data });
+      }
+    } catch (error) {
+      console.error("Error fetching cart from API:", error);
+      // Fallback to localStorage
+      const savedCart = loadCartFromStorage();
+      if (savedCart.length > 0) {
+        dispatch({ type: "LOAD_CART", payload: savedCart });
+      }
     }
-  }, []);
+  };
 
-  const addToCart = (book) => {
+  // Load cart on mount and when user changes
+  useEffect(() => {
+    if (user) {
+      // User logged in - fetch from API and sync localStorage
+      fetchCartFromAPI();
+
+      // Sync localStorage cart to server
+      const localCart = loadCartFromStorage();
+      if (localCart.length > 0) {
+        cartApi
+          .syncCart(localCart)
+          .then((response) => {
+            if (response.success) {
+              // Clear localStorage after successful sync
+              localStorage.removeItem("bookCart");
+              // Refresh cart from server
+              fetchCartFromAPI();
+            }
+          })
+          .catch((err) => {
+            console.error("Error syncing cart:", err);
+          });
+      }
+    } else {
+      // Guest user - load from localStorage
+      const savedCart = loadCartFromStorage();
+      if (savedCart.length > 0) {
+        dispatch({ type: "LOAD_CART", payload: savedCart });
+      }
+    }
+  }, [user]);
+
+  const addToCart = async (book) => {
     const bookId = generateBookId(book);
     const existingItem = cartItems.find((item) => item.id === bookId);
 
     if (existingItem) {
-      // Book already in cart
       return { success: false, alreadyInCart: true };
     }
 
+    // For logged-in users, save to API
+    if (user) {
+      try {
+        const response = await cartApi.addToCart(book._id || book.id);
+        if (response.success) {
+          await fetchCartFromAPI();
+          return { success: true, alreadyInCart: false };
+        }
+      } catch (error) {
+        console.error("Error adding to cart:", error);
+        // Fallback to localStorage
+      }
+    }
+
+    // For guest users or on API failure, save to localStorage
     dispatch({ type: "ADD_TO_CART", payload: book });
     return { success: true, alreadyInCart: false };
   };
 
-  const removeFromCart = (id) => {
+  const removeFromCart = async (id) => {
+    // For logged-in users, remove from API
+    if (user) {
+      try {
+        // Find the book's _id from cart
+        const item = cartItems.find((item) => item.id === id);
+        if (item) {
+          await cartApi.removeFromCart(item._id);
+          await fetchCartFromAPI();
+          return;
+        }
+      } catch (error) {
+        console.error("Error removing from cart:", error);
+      }
+    }
+
+    // For guest users or on API failure
     dispatch({ type: "REMOVE_FROM_CART", payload: id });
   };
 
-  const updateQuantity = (id, quantity) => {
+  const updateQuantity = async (id, quantity) => {
+    // For logged-in users, update via API
+    if (user) {
+      try {
+        const item = cartItems.find((item) => item.id === id);
+        if (item) {
+          await cartApi.updateCartItem(item._id, quantity);
+          await fetchCartFromAPI();
+          return;
+        }
+      } catch (error) {
+        console.error("Error updating cart:", error);
+      }
+    }
+
+    // For guest users or on API failure
     dispatch({ type: "UPDATE_QUANTITY", payload: { id, quantity } });
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    // For logged-in users, clear via API
+    if (user) {
+      try {
+        await cartApi.clearCart();
+        dispatch({ type: "CLEAR_CART" });
+        return;
+      } catch (error) {
+        console.error("Error clearing cart:", error);
+      }
+    }
+
+    // For guest users or on API failure
     dispatch({ type: "CLEAR_CART" });
   };
 
@@ -207,92 +309,68 @@ export const CartProvider = ({ children }) => {
 
   // Purchased Books functionality
   const purchasedBooksReducer = (state, action) => {
-    let newState;
-
     switch (action.type) {
-      case "ADD_PURCHASED_BOOKS": {
-        // Add new purchased books with purchase timestamp, avoiding duplicates
-        const newBooks = action.payload
-          .filter((newBook) => {
-            const isDuplicate = state.some(
-              (existingBook) =>
-                existingBook._id === newBook._id ||
-                existingBook.id === newBook._id ||
-                existingBook._id === newBook.id ||
-                existingBook.id === newBook.id,
-            );
-            return !isDuplicate;
-          })
-          .map((book) => ({
-            ...book,
-            purchasedAt: new Date().toISOString(),
-          }));
-
-        newState = [...state, ...newBooks];
-        break;
+      case "SET_PURCHASED_BOOKS": {
+        return action.payload;
       }
 
-      case "LOAD_PURCHASED_BOOKS": {
-        newState = action.payload;
-        break;
+      case "ADD_PURCHASED_BOOKS": {
+        // Add new purchased books, avoiding duplicates
+        const newBooks = action.payload.filter((newBook) => {
+          const isDuplicate = state.some(
+            (existingBook) =>
+              existingBook._id === newBook._id ||
+              existingBook.id === newBook._id ||
+              existingBook._id === newBook.id ||
+              existingBook.id === newBook.id,
+          );
+          return !isDuplicate;
+        });
+
+        return [...state, ...newBooks];
       }
 
       default:
         return state;
     }
-
-    // Save to localStorage
-    localStorage.setItem("purchasedBooks", JSON.stringify(newState));
-    return newState;
   };
 
-  // Load purchased books from localStorage
-  const loadPurchasedBooksFromStorage = () => {
+  // Initialize purchased books with empty array
+  const [purchasedBooks, purchasedBooksDispatch] = useReducer(
+    purchasedBooksReducer,
+    [],
+  );
+
+  // Fetch purchased books from API
+  const fetchPurchasedBooks = async () => {
     try {
-      const saved = localStorage.getItem("purchasedBooks");
-      if (!saved) return [];
-      const books = JSON.parse(saved);
-
-      // Deduplicate loaded books
-      const uniqueBooks = [];
-      const seenIds = new Set();
-
-      books.forEach((book) => {
-        // Use a consistent ID check similar to isBookPurchased
-        const id = book._id || book.id;
-        if (id && !seenIds.has(id)) {
-          seenIds.add(id);
-          uniqueBooks.push(book);
-        } else if (!id) {
-          // Keep books without ID just in case, or maybe filter them?
-          // Better to keep unique based on full object if ID missing?
-          // For now assuming ID exists as per app logic.
-          // If no ID, we might allow it or skip it. Let's skip to be safe against bad data.
-        }
-      });
-
-      // If we filtered out duplicates, update localStorage immediately to clean it up
-      if (uniqueBooks.length !== books.length) {
-        localStorage.setItem("purchasedBooks", JSON.stringify(uniqueBooks));
+      const response = await getMyLibrary();
+      if (response.success && Array.isArray(response.data)) {
+        purchasedBooksDispatch({
+          type: "SET_PURCHASED_BOOKS",
+          payload: response.data,
+        });
       }
-
-      return uniqueBooks;
     } catch (error) {
-      console.error("Error loading purchasedBooks from localStorage:", error);
-      return [];
+      console.error("Error fetching purchased books:", error);
+      // If error (like 401), set to empty array
+      purchasedBooksDispatch({ type: "SET_PURCHASED_BOOKS", payload: [] });
     }
   };
 
-  const [purchasedBooks, purchasedBooksDispatch] = useReducer(
-    purchasedBooksReducer,
-    null,
-    loadPurchasedBooksFromStorage,
-  );
+  // Fetch purchased books when user logs in
+  useEffect(() => {
+    if (user) {
+      fetchPurchasedBooks();
+    } else {
+      // Clear purchased books when user logs out
+      purchasedBooksDispatch({ type: "SET_PURCHASED_BOOKS", payload: [] });
+    }
+  }, [user]);
 
   const addPurchasedBooks = (books) => {
     purchasedBooksDispatch({ type: "ADD_PURCHASED_BOOKS", payload: books });
   };
-
   // Check if a book is purchased
   const isBookPurchased = (bookId) => {
     if (!purchasedBooks || purchasedBooks.length === 0) return false;
@@ -316,6 +394,7 @@ export const CartProvider = ({ children }) => {
     purchasedBooks,
     addPurchasedBooks,
     isBookPurchased,
+    fetchPurchasedBooks,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

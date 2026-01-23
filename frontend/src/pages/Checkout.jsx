@@ -150,7 +150,8 @@ const Checkout = () => {
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(
-        error.response?.data?.message || t("Payment failed. Please try again."),
+        t(error.response?.data?.message) ||
+          t("Payment failed. Please try again."),
         {
           duration: 5000,
           style: {
@@ -184,9 +185,9 @@ const Checkout = () => {
   return (
     <div
       dir={i18n.dir()}
-      className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/40 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 py-4 overflow-x-hidden"
+      className="min-h-screen bg-linear-to-br from-gray-50 via-blue-50/30 to-indigo-50/40 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800 py-4 overflow-x-hidden"
     >
-      <div className="w-full max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-337.5 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div dir="ltr" className="mb-6 md:hidden">
           <button
@@ -243,7 +244,7 @@ const Checkout = () => {
                 className={`touch-area cursor-pointer w-full mt-6 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all duration-200 focus-visible:ring-4 focus-visible:ring-indigo-300 dark:focus-visible:ring-indigo-700 ${
                   isButtonDisabled
                     ? "bg-gray-300 dark:bg-zinc-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 dark:from-indigo-500 dark:to-blue-500 dark:hover:from-indigo-600 dark:hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                    : "bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 dark:from-indigo-500 dark:to-blue-500 dark:hover:from-indigo-600 dark:hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 }`}
               >
                 {loading ? (

@@ -5,6 +5,7 @@ import {
   getMe,
   googleAuth,
   verifyEmail,
+  deleteMe,
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -164,5 +165,21 @@ router.post("/verify-email", verifyEmail);
  *         description: Not authorized, token missing or invalid
  */
 router.get("/me", protect, getMe);
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   delete:
+ *     summary: Delete self account
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Not authorized
+ */
+router.delete("/me", protect, deleteMe);
 
 export default router;

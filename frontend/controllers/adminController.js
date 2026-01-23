@@ -1,5 +1,6 @@
 import Book from "../models/Book.js";
 import User from "../models/User.js";
+import Order from "../models/Order.js";
 
 // =======================
 // Book CRUD (Admin Only)
@@ -98,6 +99,62 @@ export const deleteUser = async (req, res, next) => {
     }
 
     res.json({ message: "User removed successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// =======================
+// Order Management (Admin Only)
+// =======================
+
+// @desc    Get all orders
+// @route   GET /api/admin/orders
+// @access  Admin
+export const getAllOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({})
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Approve an order
+// @route   PATCH /api/admin/orders/:id/approve
+// @access  Admin
+export const approveOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404);
+      throw new Error("Order not found");
+    }
+
+    order.status = "approved";
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reject an order
+// @route   PATCH /api/admin/orders/:id/reject
+// @access  Admin
+export const rejectOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      res.status(404);
+      throw new Error("Order not found");
+    }
+
+    order.status = "rejected";
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
   } catch (error) {
     next(error);
   }

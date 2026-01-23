@@ -29,16 +29,20 @@ export const downloadBook = async (req, res, next) => {
     if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const owned = await LibraryItem.findOne({
-      user: userId,
-      book: bookId,
-      accessStatus: "active",
-    })
-      .select("_id")
-      .lean();
+    // Admin users can access any book PDF
+    if (req.user.role !== "admin") {
+      // For regular users, check ownership
+      const owned = await LibraryItem.findOne({
+        user: userId,
+        book: bookId,
+        accessStatus: "active",
+      })
+        .select("_id")
+        .lean();
 
-    if (!owned)
-      return res.status(403).json({ success: false, message: "Access denied" });
+      if (!owned)
+        return res.status(403).json({ success: false, message: "Access denied" });
+    }
 
     const book = await Book.findById(bookId).select("+pdf title");
     if (!book)

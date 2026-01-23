@@ -19,12 +19,19 @@ import {
   FileText,
   Eye,
 } from "lucide-react";
+import * as pdfjsLib from "pdfjs-dist";
 
 import { getBookById } from "../api/booksApi";
 import api from "../api/api";
 import toast from "react-hot-toast";
 import { useGlobalLoading } from "../context/LoadingContext";
 import { getImageSrc } from "../utils/imageUtils";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
+// Set PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 
 // helpers
 const getCategoryName = (category, t) => {
@@ -33,7 +40,7 @@ const getCategoryName = (category, t) => {
   return category?.name || t("uncategorized");
 };
 
-const fillMissingBookData = (book, t) => {
+const fillMissingBookData = (book, t, actualPages = null) => {
   if (!book) return null;
 
   const catName = getCategoryName(book.category, t);
@@ -53,15 +60,15 @@ const fillMissingBookData = (book, t) => {
     price:
       typeof book.price === "number" ? book.price : Number(book.price || 0),
 
-    category: book.category, 
-    categoryName: catName, 
+    category: book.category,
+    categoryName: catName,
 
     isbn:
       book.isbn ||
       "ISBN-" + Math.random().toString(36).substr(2, 13).toUpperCase(),
     edition: book.edition || t("First Edition"),
-    publicationYear: book.publicationYear || new Date().getFullYear(),
-    pages: book.pages || 200,
+    publicationYear: book.publicationYear || "Unavailable",
+    pages: actualPages || book.pages || "Unavailable",
 
     // ratings
     ratings:
@@ -92,6 +99,8 @@ const BookDetails = () => {
   const [authModalMode, setAuthModalMode] = useState("cart"); // 'cart' or 'preview'
   const [isImageHovered, setIsImageHovered] = useState(false);
   const { setIsLoading } = useGlobalLoading();
+  const [actualPages, setActualPages] = useState(null);
+  const [pagesLoading, setPagesLoading] = useState(false);
 
   // Sync local loading with global loading bar
   useEffect(() => {
@@ -111,7 +120,7 @@ const BookDetails = () => {
           // getBookById  { success, data: book }
           const apiBook = res?.data;
           if (apiBook) {
-            setBook(fillMissingBookData(apiBook, t));
+            setBook(fillMissingBookData(apiBook, t, actualPages));
             return;
           }
         } catch {
@@ -124,7 +133,7 @@ const BookDetails = () => {
         );
 
         if (localBook) {
-          setBook(fillMissingBookData(localBook, t));
+          setBook(fillMissingBookData(localBook, t, actualPages));
         } else {
           setError(t("Book not found"));
         }
@@ -138,7 +147,72 @@ const BookDetails = () => {
     };
 
     if (id) fetchBook();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, t, userBooks]);
+
+  // Extract actual page count from PDF
+  useEffect(() => {
+    const extractPageCount = async () => {
+      if (!book?.pdf) return;
+
+      // Check if already extracted
+      const bookId = book._id || book.id;
+      const savedPages = localStorage.getItem(`book_${bookId}_pages`);
+      if (savedPages) {
+        setActualPages(parseInt(savedPages));
+        setPagesLoading(false);
+        return;
+      }
+
+      // Start loading
+      setPagesLoading(true);
+
+      try {
+        // Get PDF URL
+        let pdfUrl = null;
+        if (book.pdfUrl) {
+          pdfUrl = book.pdfUrl;
+        } else if (book.pdf) {
+          // Try to get preview URL
+          try {
+            const pdfResponse = await api.get(`/books/${bookId}/preview`);
+            if (pdfResponse.data?.success && pdfResponse.data?.data?.url) {
+              pdfUrl = pdfResponse.data.data.url;
+            }
+          } catch {
+            pdfUrl = getImageSrc(book.pdf);
+          }
+        }
+
+        if (!pdfUrl) {
+          setPagesLoading(false);
+          return;
+        }
+
+        // Load PDF and get page count
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+        const pdf = await loadingTask.promise;
+        const numPages = pdf.numPages;
+
+        // Save to state and localStorage
+        setActualPages(numPages);
+        localStorage.setItem(`book_${bookId}_pages`, numPages.toString());
+      } catch (error) {
+        console.error("Error extracting PDF page count:", error);
+      } finally {
+        setPagesLoading(false);
+      }
+    };
+
+    extractPageCount();
+  }, [book]);
+
+  // Update book data when actualPages changes
+  useEffect(() => {
+    if (actualPages && book && book.pages !== actualPages) {
+      setBook((prevBook) => fillMissingBookData(prevBook, t, actualPages));
+    }
+  }, [actualPages, book, t]);
 
   // Update page title
   useEffect(() => {
@@ -197,17 +271,12 @@ const BookDetails = () => {
     }
 
     try {
-      // UI feedback
       setBook((prev) => ({ ...prev, userRating: value }));
 
-      // ✅ الباك بيستخدم req.user.id من التوكن
       const response = await api.post(`/books/${id}/rate`, {
         rating: value,
-        // comment اختياري لو عندك UI ليه
       });
 
-      // ✅ شكل الريسبونس عندك:
-      // { success, message, data: { ratings, numReviews } }
       const payload = response.data;
       const newRatings = payload?.data?.ratings;
       const newNumReviews = payload?.data?.numReviews;
@@ -227,7 +296,6 @@ const BookDetails = () => {
     } catch (err) {
       console.error("Error submitting rating:", err);
 
-      // revert UI
       setBook((prev) => ({ ...prev, userRating: prev?.userRating || 0 }));
 
       toast.error(
@@ -604,16 +672,26 @@ const BookDetails = () => {
                     {t("Year")}:
                   </span>
                   <p className="font-medium text-gray-900 dark:text-gray-200">
-                    {book.publicationYear}
+                    {t(book.publicationYear)}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-600 dark:text-gray-200">
                     {t("Pages")}:
                   </span>
-                  <p className="font-medium text-gray-900 dark:text-gray-200">
-                    {book.pages}
-                  </p>
+                  {pagesLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Skeleton
+                        width="100px"
+                        height="18px"
+                        baseColor="#a09daaff"
+                        highlightColor="#f3f4f6" />
+                    </div>
+                  ) : (
+                    <p className="font-medium text-gray-900 dark:text-gray-200">
+                      {t(book.pages)}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

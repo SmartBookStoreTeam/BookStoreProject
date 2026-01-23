@@ -37,7 +37,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gradient-to-b from-gray-900 to-indigo-800 text-white transform ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-linear-to-b from-gray-900 to-indigo-800 text-white transform ${
           sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full md:-translate-x-full"

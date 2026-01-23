@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../hooks/useCart";
+import { deleteMyAccount } from "../api/adminApi";
+import { getCategories } from "../api/categoriesApi";
 import { useNavigate, Link } from "react-router-dom";
 import {
   User,
@@ -32,22 +34,28 @@ const Profile = () => {
     email: user?.email || "",
   });
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  // Book categories (same as in Publish.jsx)
-  const categories = [
-    { value: "cooking", label: "Cooking" },
-    { value: "health", label: "Health & Nutrition" },
-    { value: "fiction", label: "Fiction" },
-    { value: "non-fiction", label: "Non-Fiction" },
-    { value: "academic", label: "Academic" },
-    { value: "children", label: "Children's Books" },
-    { value: "art", label: "Art & Photography" },
-    { value: "biography", label: "Biography" },
-    { value: "programming", label: "Programming" },
-  ];
-
-  // Load saved category preferences from localStorage
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await getCategories();
+        if (response.success && Array.isArray(response.data)) {
+          // Map API data to the format used in UI ({ value: _id, label: name })
+          const formattedCategories = response.data.map((cat) => ({
+            value: cat._id,
+            label: cat.name,
+          }));
+          setCategories(formattedCategories);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+
+    // Load saved category preferences from localStorage
     const savedCategories = localStorage.getItem("categoryPreferences");
     if (savedCategories) {
       try {
@@ -108,7 +116,7 @@ const Profile = () => {
     setShowEditModal(false);
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (
       window.confirm(
         t(
@@ -116,17 +124,24 @@ const Profile = () => {
         ),
       )
     ) {
-      // Implement account deletion
-      logout();
-      navigate("/");
-      toast.success(t("Account deleted successfully!"), {
-        duration: 1500,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: i18n.dir(),
-        },
-      });
+      try {
+        await deleteMyAccount(); // Call API to delete user self
+        logout();
+        navigate("/");
+        toast.success(t("Account deleted successfully!"), {
+          duration: 1500,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+      } catch (err) {
+        console.error(err);
+        toast.error(
+          err.response?.data?.message || t("Failed to delete account"),
+        );
+      }
     }
   };
 
@@ -231,9 +246,9 @@ const Profile = () => {
           ))}
         </div>
 
-        {/* My Purchased Books */}
+        {/*My Library*/}
         <h1 className="text-3xl text-center font-bold text-gray-900 dark:text-gray-100 mb-8">
-          {t("My Purchased Books")}
+          {t("My Library")}
         </h1>
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
           {!purchasedBooks || purchasedBooks.length === 0 ? (
@@ -243,7 +258,7 @@ const Profile = () => {
                 dir={i18n.dir()}
                 className="text-gray-600 dark:text-gray-400 mb-4"
               >
-                {t("You haven't purchased any books yet")}
+                {t("You haven't added any books to your library yet")}
               </p>
               <Link
                 dir={i18n.dir()}
@@ -256,11 +271,12 @@ const Profile = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {purchasedBooks.map((book, index) => {
-                const imageSrc =
+                const imageSrc = getImageSrc(
                   book.img ||
-                  book.image ||
-                  (book.images && book.images[0]) ||
-                  "/placeholder-book.jpg";
+                    book.image ||
+                    (book.images && book.images[0]) ||
+                    "/placeholder-book.jpg",
+                );
 
                 return (
                   <div
@@ -277,7 +293,7 @@ const Profile = () => {
                         />
 
                         {/* Title and Author */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer z-10">
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer z-10">
                           <h3
                             dir="auto"
                             className="font-bold text-lg text-white line-clamp-2 mb-1 drop-shadow-md"
@@ -291,11 +307,6 @@ const Profile = () => {
                             {book.author}
                           </p>
                         </div>
-                      </div>
-
-                      {/* Purchased Badge */}
-                      <div className="absolute top-3 right-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm">
-                        ✓ {t("Purchased Books")}
                       </div>
                     </div>
 
