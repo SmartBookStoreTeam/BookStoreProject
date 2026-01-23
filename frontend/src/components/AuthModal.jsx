@@ -21,7 +21,7 @@ const AuthModal = ({ isOpen, onClose, title, icon }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all transition-colors duration-300 ease-in-out"
+        className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all duration-300 ease-in-out"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center">

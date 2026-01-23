@@ -178,7 +178,7 @@ const Header = () => {
   }, []);
   return (
     <header className="fixed top-0 left-0 w-full bg-zinc-200 dark:bg-zinc-900 shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700">
-      <div className="w-full max-w-[1470px] mx-auto px-4">
+      <div className="w-full max-w-367.5 mx-auto px-4">
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
           <Link
@@ -433,7 +433,7 @@ const Header = () => {
                       </div>
                       <div
                         dir="ltr"
-                        className="relative inline-flex items-center gap-0.5 -ms-3 min-w-[60px] justify-end"
+                        className="relative inline-flex items-center gap-0.5 -ms-3 min-w-15 justify-end"
                       >
                         <div className="text-indigo-950 dark:text-zinc-200 text-xs font-semibold relative h-4 w-14 flex items-center justify-end">
                           <span
@@ -878,7 +878,7 @@ const Header = () => {
                 </div>
                 <div
                   dir="ltr"
-                  className="relative inline-flex items-center gap-0.5 ms-3 min-w-[70px] justify-end"
+                  className="relative inline-flex items-center gap-0.5 ms-3 min-w-17.5 justify-end"
                 >
                   <div className="text-indigo-950 dark:text-zinc-200 text-xs font-semibold relative h-4 w-14 flex items-center justify-end">
                     <span
@@ -957,7 +957,7 @@ const Header = () => {
 
       {/* Loading Bar */}
       <div
-        className={`absolute bottom-0 h-[2px] transition-all duration-300 overflow-hidden ${
+        className={`absolute bottom-0 h-0.5 transition-all duration-300 overflow-hidden ${
           isLoading ? "w-[95%] lg:w-[99%] opacity-100" : "w-0 opacity-0"
         } left-0`}
         style={{

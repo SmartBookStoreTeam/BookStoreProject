@@ -5,7 +5,7 @@ const Footer = () => {
   const { t, i18n } = useTranslation();
   return (
     <div dir={i18n.dir()} className="bg-black text-white py-12">
-      <div className="w-full max-w-[1350px] mx-auto px-4">
+      <div className="w-full max-w-337.5 mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
@@ -63,15 +63,15 @@ const Footer = () => {
             <h1 className="text-xl font-semibold mb-4">{t("Contact")}</h1>
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-start">
-                <span className="min-w-[80px]">{t("Email")}:</span>
+                <span className="min-w-20">{t("Email")}:</span>
                 <span dir="ltr">bookfly@gmail.com</span>
               </li>
               <li className="flex items-start">
-                <span className="min-w-[80px]">{t("Phone")}:</span>
+                <span className="min-w-20">{t("Phone")}:</span>
                 <span dir="ltr">+20 10 123 4561</span>
               </li>
               <li className="flex items-start">
-                <span className="min-w-[80px]">{t("Address")}:</span>
+                <span className="min-w-20">{t("Address")}:</span>
                 <span dir="ltr">MMEC, Mullana - 133207</span>
               </li>
             </ul>
