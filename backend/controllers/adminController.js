@@ -115,6 +115,7 @@ export const updateBook = async (req, res, next) => {
       "description",
       "category",
       "price",
+      "publicationYear",
       "isActive",
     ];
 
@@ -210,7 +211,7 @@ export const deleteBook = async (req, res, next) => {
 // User Management (Admin Only)
 // =======================
 
-// @desc    Get all users
+// @desc    Get all users with orders count and total spent
 // @route   GET /api/admin/users
 // @access  Admin
 export const getAllUsers = async (req, res, next) => {
@@ -219,20 +220,58 @@ export const getAllUsers = async (req, res, next) => {
     const page = Number(req.query.page) || 1;
     const q = req.query.q?.trim();
 
-    const filter = {};
+    const matchFilter = {};
     if (q) {
-      filter.$or = [
+      matchFilter.$or = [
         { name: { $regex: q, $options: "i" } },
         { email: { $regex: q, $options: "i" } },
       ];
     }
 
-    const total = await User.countDocuments(filter);
-    const users = await User.find(filter)
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+    // Count total users matching filter
+    const total = await User.countDocuments(matchFilter);
+
+    // Aggregate users with their order statistics
+    const users = await User.aggregate([
+      // Match users based on filter
+      { $match: matchFilter },
+      // Sort by creation date
+      { $sort: { createdAt: -1 } },
+      // Skip and limit for pagination
+      { $skip: pageSize * (page - 1) },
+      { $limit: pageSize },
+      // Lookup orders for each user
+      {
+        $lookup: {
+          from: "orders", // collection name in MongoDB
+          localField: "_id",
+          foreignField: "user",
+          as: "userOrders",
+        },
+      },
+      // Calculate order statistics
+      {
+        $addFields: {
+          ordersCount: { $size: "$userOrders" },
+          totalSpent: {
+            $sum: {
+              $map: {
+                input: "$userOrders",
+                as: "order",
+                in: "$$order.total",
+              },
+            },
+          },
+        },
+      },
+      // Remove password and orders array from output
+      {
+        $project: {
+          password: 0,
+          userOrders: 0,
+        },
+      },
+    ]);
 
     res.json({
       success: true,
@@ -295,7 +334,8 @@ export const getAllBooksAdmin = async (req, res, next) => {
     const total = await Book.countDocuments(filter);
 
     const books = await Book.find(filter)
-      .select("-pdf -reviews -__v")
+      .select("+pdf -reviews -__v")
+      .populate("category", "name")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
@@ -317,7 +357,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
 export const getBookAdminById = async (req, res, next) => {
   try {
-    const book = await Book.findById(req.params.id).select("-pdf -__v");
+    const book = await Book.findById(req.params.id).select("+pdf -__v");
     if (!book)
       return res
         .status(404)

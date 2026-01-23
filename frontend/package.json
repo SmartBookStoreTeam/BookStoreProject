@@ -23,7 +23,7 @@
     "@react-pdf-viewer/default-layout": "^3.12.0",
     "@react-pdf-viewer/zoom": "^3.12.0",
     "@tailwindcss/vite": "^4.1.14",
-    "aws-sdk": "^2.1693.0",
+    "aws-sdk": "^1.18.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "concurrently": "^9.2.1",

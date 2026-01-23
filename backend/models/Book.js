@@ -55,6 +55,12 @@ const bookSchema = new mongoose.Schema(
       min: [0, "Price cannot be negative"],
     },
 
+    publicationYear: {
+      type: Number,
+      min: [1000, "Invalid year"],
+      max: [new Date().getFullYear() + 1, "Year cannot be in the future"],
+    },
+
     image: {
       type: String,
       required: [true, "Book image is required"],

@@ -14,12 +14,14 @@ import {
   Users,
   Upload,
   ChevronDown,
+  Bell,
 } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "../context/NavigationContext";
 import { useGlobalLoading } from "../context/LoadingContext";
+import { useNotifications } from "../context/NotificationContext";
 
 import UserAvatar from "../components/UserAvatar";
 
@@ -82,6 +84,14 @@ const Header = () => {
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
   const [openSettings, setOpenSettings] = useState(false);
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    removeNotification,
+  } = useNotifications();
+  const [openNotifications, setOpenNotifications] = useState(false);
 
   const firstName = user?.name?.split(" ")[0];
 
@@ -97,11 +107,17 @@ const Header = () => {
   const sidebarRef = useRef(null);
   const languageRef = useRef(null);
   const mobileLanguageRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const notificationsDropdownRef = useRef(null);
+  const mobileNotificationsDropdownRef = useRef(null);
+  const mobileNotificationsRef = useRef(null);
   const toggleDropdown = () => setOpenDropdown(!openDropdown);
   const closeDropdown = () => setOpenDropdown(false);
   const toggleLanguageDropdown = () =>
     setOpenLanguageDropdown(!openLanguageDropdown);
   const closeLanguageDropdown = () => setOpenLanguageDropdown(false);
+  const toggleNotifications = () => setOpenNotifications(!openNotifications);
+  const closeNotifications = () => setOpenNotifications(false);
 
   const toggleTheme = () => {
     if (theme === "light") setTheme("dark");
@@ -137,9 +153,21 @@ const Header = () => {
       const clickedInsideMobile =
         mobileLanguageRef.current &&
         mobileLanguageRef.current.contains(event.target);
+      const clickedInsideNotifications =
+        (notificationsRef.current &&
+          notificationsRef.current.contains(event.target)) ||
+        (notificationsDropdownRef.current &&
+          notificationsDropdownRef.current.contains(event.target)) ||
+        (mobileNotificationsRef.current &&
+          mobileNotificationsRef.current.contains(event.target)) ||
+        (mobileNotificationsDropdownRef.current &&
+          mobileNotificationsDropdownRef.current.contains(event.target));
 
       if (!clickedInsideDesktop && !clickedInsideMobile) {
         setOpenLanguageDropdown(false);
+      }
+      if (!clickedInsideNotifications) {
+        setOpenNotifications(false);
       }
     };
 
@@ -192,7 +220,130 @@ const Header = () => {
           </nav>
 
           {/* Desktop Right Side */}
-          <div className="hidden md:flex items-center gap-6 shrink-0">
+          <div className="hidden md:flex items-center gap-5 shrink-0">
+            {/* Notifications */}
+            {user && (
+              <div className="relative" ref={notificationsRef}>
+                <button
+                  onClick={() => {
+                    toggleNotifications();
+                    // Mark all as read when opening notifications if there are unread ones
+                    if (!openNotifications && unreadCount > 0) {
+                      markAllAsRead();
+                    }
+                  }}
+                  className="relative p-2 rounded-full bg-zinc-300 dark:bg-zinc-700 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
+                >
+                  <Bell size={24} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notifications Dropdown */}
+                {openNotifications && (
+                  <div
+                    ref={notificationsDropdownRef}
+                    className="absolute right-0 mt-2 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-[100] max-h-96 overflow-hidden flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4 border-b border-zinc-300 dark:border-zinc-700">
+                      <h3 className="font-semibold text-indigo-950 dark:text-indigo-200">
+                        {t("Notifications")}
+                      </h3>
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 cursor-pointer"
+                        >
+                          {t("Mark all as read")}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Notifications List */}
+                    <div
+                      dir={i18n.dir()}
+                      style={{
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "#818cf8 transparent",
+                      }}
+                      className="overflow-y-auto flex-1"
+                    >
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-zinc-500 dark:text-zinc-400">
+                          <div className="flex flex-col items-center gap-2">
+                            <Bell
+                              size={32}
+                              className="text-zinc-400 dark:text-zinc-500"
+                            />
+                            <p className="text-sm">
+                              {t("No notifications yet")}
+                            </p>
+                            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                              {t(
+                                "You'll be notified when your orders are approved",
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-zinc-300 dark:divide-zinc-700">
+                          {notifications.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className={`group relative p-4 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition ${
+                                !notification.read
+                                  ? "bg-indigo-50 dark:bg-indigo-900/20"
+                                  : ""
+                              }`}
+                            >
+                              <div
+                                className="flex items-start justify-between gap-2 cursor-pointer"
+                                onClick={() => {
+                                  markAsRead(notification.id);
+                                  navigate("/profile");
+                                }}
+                              >
+                                <div className="flex-1 pr-6">
+                                  <p className="text-sm text-indigo-950 dark:text-indigo-200">
+                                    {i18n.language === "ar"
+                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملف الشخصي.`
+                                      : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
+                                  </p>
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                    {new Date(
+                                      notification.timestamp,
+                                    ).toLocaleString("en-US")}
+                                  </p>
+                                </div>
+                                {!notification.read && (
+                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 flex-shrink-0" />
+                                )}
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeNotification(notification.id);
+                                }}
+                                className="absolute top-4 right-4 text-zinc-400 hover:text-red-500 transition opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                                title={t("Remove")}
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Cart */}
             <Link
               to="/cart"
@@ -424,6 +575,128 @@ const Header = () => {
 
           {/* Mobile Cart + Menu */}
           <div className="flex items-center gap-4 md:hidden">
+            {/* Mobile Notifications */}
+            {user && (
+              <div className="relative" ref={mobileNotificationsRef}>
+                <button
+                  onClick={() => {
+                    toggleNotifications();
+                    // Mark all as read when opening notifications if there are unread ones
+                    if (!openNotifications && unreadCount > 0) {
+                      markAllAsRead();
+                    }
+                  }}
+                  className="touch-area relative mt-[2px] p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
+                >
+                  <Bell size={24} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Mobile Notifications Dropdown */}
+                {openNotifications && (
+                  <div
+                    ref={mobileNotificationsDropdownRef}
+                    className="fixed top-16 right-4 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-[100] max-h-96 overflow-hidden flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4 border-b border-zinc-300 dark:border-zinc-700">
+                      <h3 className="font-semibold text-indigo-950 dark:text-indigo-200">
+                        {t("Notifications")}
+                      </h3>
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="touch-area text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                        >
+                          {t("Mark all as read")}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Notifications List */}
+                    <div
+                      dir={i18n.dir()}
+                      style={{
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "#818cf8 transparent",
+                      }}
+                      className="overflow-y-auto flex-1"
+                    >
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-zinc-500 dark:text-zinc-400">
+                          <div className="flex flex-col items-center gap-2">
+                            <Bell
+                              size={32}
+                              className="text-zinc-400 dark:text-zinc-500"
+                            />
+                            <p className="text-sm">
+                              {t("No notifications yet")}
+                            </p>
+                            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                              {t(
+                                "You'll be notified when your orders are approved",
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-zinc-300 dark:divide-zinc-700">
+                          {notifications.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className={`p-4 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition cursor-pointer ${
+                                !notification.read
+                                  ? "bg-indigo-50 dark:bg-indigo-900/20"
+                                  : ""
+                              }`}
+                              onClick={() => {
+                                markAsRead(notification.id);
+                                navigate("/profile");
+                                closeNotifications();
+                                closeMenu();
+                              }}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <p className="text-sm text-indigo-950 dark:text-indigo-200">
+                                    {i18n.language === "ar"
+                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملف الشخصي.`
+                                      : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
+                                  </p>
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                    {new Date(
+                                      notification.timestamp,
+                                    ).toLocaleString("en-US")}
+                                  </p>
+                                </div>
+                                {!notification.read && (
+                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 flex-shrink-0" />
+                                )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeNotification(notification.id);
+                                  }}
+                                  className="touch-area text-zinc-400 hover:text-red-500 transition"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Mobile Cart */}
             <Link
               to="/cart"
@@ -692,8 +965,8 @@ const Header = () => {
           boxShadow: isPulsing
             ? "0 0 20px rgba(99, 102, 241, 0.8), 0 0 40px rgba(168, 85, 247, 0.6)"
             : isLoading
-            ? "0 0 10px rgba(99, 102, 241, 0.5)"
-            : "none",
+              ? "0 0 10px rgba(99, 102, 241, 0.5)"
+              : "none",
         }}
       >
         {/* Moving wave effect */}

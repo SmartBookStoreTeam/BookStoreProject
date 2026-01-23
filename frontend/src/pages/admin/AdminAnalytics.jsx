@@ -9,52 +9,69 @@ import {
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
 
+import { useState, useEffect } from "react";
+import api from "../../api/api";
+
 const AdminAnalytics = () => {
-  const monthlyData = [
-    { month: "Jan", sales: 4200, orders: 150, customers: 120 },
-    { month: "Feb", sales: 5200, orders: 180, customers: 140 },
-    { month: "Mar", sales: 6100, orders: 210, customers: 160 },
-    { month: "Apr", sales: 7300, orders: 240, customers: 190 },
-    { month: "May", sales: 8200, orders: 280, customers: 210 },
-    { month: "Jun", sales: 9500, orders: 310, customers: 240 },
-    { month: "Jul", sales: 10800, orders: 340, customers: 270 },
-    { month: "Aug", sales: 9700, orders: 290, customers: 230 },
-    { month: "Sep", sales: 8900, orders: 260, customers: 200 },
-    { month: "Oct", sales: 11200, orders: 380, customers: 290 },
-    { month: "Nov", sales: 12500, orders: 410, customers: 320 },
-    { month: "Dec", sales: 13800, orders: 450, customers: 350 },
-  ];
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const topCategories = [
-    { category: "Fiction", sales: 24500, growth: "+12%" },
-    { category: "Technology", sales: 18900, growth: "+18%" },
-    { category: "Self-Help", sales: 15600, growth: "+8%" },
-    { category: "Business", sales: 12400, growth: "+22%" },
-    { category: "Romance", sales: 9800, growth: "+5%" },
-  ];
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        const [analyticsResponse, topBooksResponse] = await Promise.all([
+          api.get("/admin/dashboard/analytics"),
+          api.get("/books/top?limit=5"),
+        ]);
 
-  const topBooks = [
-    {
-      title: "Digital Dreams",
-      author: "John Smith",
-      sales: 342,
-      revenue: 6830,
-    },
-    { title: "The Silent Echo", author: "Jane Doe", sales: 298, revenue: 7450 },
-    {
-      title: "Code Revolution",
-      author: "Mike Chen",
-      sales: 256,
-      revenue: 8945,
-    },
-    { title: "Mindful Living", author: "Lisa Wong", sales: 234, revenue: 4446 },
-    {
-      title: "Data Science 101",
-      author: "Sarah Miller",
-      sales: 189,
-      revenue: 7551,
-    },
-  ];
+        if (analyticsResponse.data?.success) {
+          const analyticsData = analyticsResponse.data.data;
+          // Replace topBooks with data from /api/books/top
+          const topBooksData =
+            topBooksResponse.data?.success &&
+            Array.isArray(topBooksResponse.data.data)
+              ? topBooksResponse.data.data.map((book) => ({
+                  title: book.title,
+                  author: book.author,
+                  sales: book.sales || 0,
+                  revenue: (book.sales || 0) * (book.price || 0),
+                }))
+              : [];
+
+          setData({
+            ...analyticsData,
+            topBooks: topBooksData,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching analytics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, []);
+
+  if (loading || !data) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-20 bg-gray-200 rounded-lg"></div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="h-80 bg-gray-200 rounded-lg"></div>
+          <div className="h-80 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  const { metrics, monthlyData, topCategories, topBooks } = data;
 
   return (
     <div className="space-y-6">
@@ -81,14 +98,14 @@ const AdminAnalytics = () => {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold mt-2">$124,560</p>
+              <p className="text-sm text-gray-600">Total Sales</p>
+              <p className="text-2xl font-bold mt-2">
+                {metrics.totalSales.toLocaleString()} EGP
+              </p>
               <div className="flex items-center mt-2">
                 <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-500 ml-1">+12.5%</span>
-                <span className="text-sm text-gray-500 ml-2">
-                  from last month
-                </span>
+                <span className="text-sm text-green-500 ml-1">Live</span>
+                <span className="text-sm text-gray-500 ml-2">All time</span>
               </div>
             </div>
             <div className="bg-green-100 p-3 rounded-lg">
@@ -101,14 +118,12 @@ const AdminAnalytics = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Orders</p>
-              <p className="text-2xl font-bold mt-2">3,845</p>
-              <div className="flex items-center mt-2">
-                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-500 ml-1">+8.2%</span>
-                <span className="text-sm text-gray-500 ml-2">
-                  from last month
-                </span>
-              </div>
+              <p className="text-2xl font-bold mt-2">
+                {metrics.totalOrders.toLocaleString()}
+              </p>
+              <span className="text-sm text-gray-500 mt-2 block">
+                All processed orders
+              </span>
             </div>
             <div className="bg-blue-100 p-3 rounded-lg">
               <ShoppingCartIcon className="h-6 w-6 text-blue-600" />
@@ -120,12 +135,17 @@ const AdminAnalytics = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold mt-2">2,456</p>
+              <p className="text-2xl font-bold mt-2">
+                {metrics.totalCustomers.toLocaleString()}
+              </p>
               <div className="flex items-center mt-2">
-                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-500 ml-1">+5.7%</span>
+                <span
+                  className={`text-sm ${metrics.weeklyGrowth >= 0 ? "text-green-500" : "text-red-500"} ml-1`}
+                >
+                  {metrics.weeklyGrowth.toFixed(1)}%
+                </span>
                 <span className="text-sm text-gray-500 ml-2">
-                  from last month
+                  Weekly Growth
                 </span>
               </div>
             </div>
@@ -138,15 +158,13 @@ const AdminAnalytics = () => {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Avg. Order Value</p>
-              <p className="text-2xl font-bold mt-2">$89.50</p>
-              <div className="flex items-center mt-2">
-                <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-500 ml-1">+3.9%</span>
-                <span className="text-sm text-gray-500 ml-2">
-                  from last month
-                </span>
-              </div>
+              <p className="text-sm text-gray-600">Daily Average</p>
+              <p className="text-2xl font-bold mt-2">
+                {metrics.dailyAverage.toFixed(1)}
+              </p>
+              <span className="text-sm text-gray-500 mt-2 block">
+                Orders per day
+              </span>
             </div>
             <div className="bg-orange-100 p-3 rounded-lg">
               <BookOpenIcon className="h-6 w-6 text-orange-600" />
@@ -168,7 +186,7 @@ const AdminAnalytics = () => {
                 <div className="w-16 text-sm text-gray-600">{month.month}</div>
                 <div className="flex-1 ml-4">
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>${month.sales.toLocaleString()}</span>
+                    <span>{month.sales.toLocaleString()} EGP</span>
                     <span>{month.orders} orders</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -189,37 +207,49 @@ const AdminAnalytics = () => {
             Top Categories by Revenue
           </h3>
           <div className="space-y-4">
-            {topCategories.map((cat, index) => (
-              <div
-                key={cat.category}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-blue-600 font-medium">
-                      {index + 1}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{cat.category}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-gray-800">
-                    ${cat.sales.toLocaleString()}
-                  </p>
-                  <p
-                    className={`text-sm ${
-                      cat.growth.startsWith("+")
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {cat.growth}
-                  </p>
-                </div>
+            {!topCategories || topCategories.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <ChartBarIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                <p>No category data available yet</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Categories will appear here once orders are approved
+                </p>
               </div>
-            ))}
+            ) : (
+              topCategories.map((cat, index) => (
+                <div
+                  key={cat.category}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <span className="text-blue-600 font-medium">
+                        {index + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">
+                        {cat.category}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-800">
+                      {cat.sales.toLocaleString()} EGP
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        cat.growth.startsWith("+")
+                          ? "text-green-500"
+                          : "text-red-500"
+                      }`}
+                    >
+                      {cat.growth}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -252,41 +282,56 @@ const AdminAnalytics = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {topBooks.map((book, index) => (
-                  <tr key={book.title} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-800 text-sm sm:text-base">
-                        {book.title}
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-600">
-                      {book.author}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 sm:px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                        {book.sales} units
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      ${book.revenue.toLocaleString()}
-                    </td>
-                    <td className="hidden md:table-cell px-4 py-3">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          index === 0
-                            ? "bg-yellow-100 text-yellow-800"
-                            : index === 1
-                            ? "bg-gray-100 text-gray-800"
-                            : index === 2
-                            ? "bg-orange-100 text-orange-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        <span className="font-bold">#{index + 1}</span>
-                      </div>
+                {!topBooks || topBooks.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="5"
+                      className="px-4 py-8 text-center text-gray-500"
+                    >
+                      <BookOpenIcon className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <p>No sales data available yet</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Books will appear here once orders are approved
+                      </p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  topBooks.map((book, index) => (
+                    <tr key={book.title} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-800 text-sm sm:text-base">
+                          {book.title}
+                        </div>
+                      </td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-600">
+                        {book.author}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 sm:px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                          {book.sales} units
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-800">
+                        ${book.revenue.toLocaleString()}
+                      </td>
+                      <td className="hidden md:table-cell px-4 py-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            index === 0
+                              ? "bg-yellow-100 text-yellow-800"
+                              : index === 1
+                                ? "bg-gray-100 text-gray-800"
+                                : index === 2
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          <span className="font-bold">#{index + 1}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

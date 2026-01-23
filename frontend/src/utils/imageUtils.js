@@ -25,7 +25,7 @@ export const getImageSrc = (img) => {
   if (typeof img === "string") {
     // In production, VITE_API_URL should be set (e.g. https://api.mysite.com/api)
     // We strip the /api suffix to get the base URL for uploads
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiUrl = import.meta.env.VITE_API_URL;
     const baseUrl = apiUrl.replace(/\/api\/?$/, ""); 
     
     // Ensure we don't have double slashes if img starts with /

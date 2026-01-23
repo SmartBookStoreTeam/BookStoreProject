@@ -5,6 +5,9 @@ import {
   deleteBook,
   getAllUsers,
   deleteUser,
+  getAllOrders,
+  approveOrder,
+  rejectOrder,
 } from "../controllers/adminController.js";
 
 import { protect, admin } from "../middleware/authMiddleware.js";
@@ -23,5 +26,12 @@ router.delete("/books/:id", protect, admin, deleteBook);
 // -----------------
 router.get("/users", protect, admin, getAllUsers);
 router.delete("/users/:id", protect, admin, deleteUser);
+
+// -----------------
+// Order Management
+// -----------------
+router.get("/orders", protect, admin, getAllOrders);
+router.patch("/orders/:id/approve", protect, admin, approveOrder);
+router.patch("/orders/:id/reject", protect, admin, rejectOrder);
 
 export default router;

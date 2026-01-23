@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {X} from "lucide-react"
+import { useTranslation } from "react-i18next";
 
 const VerifyEmail = () => {
+  const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,17 +43,28 @@ const VerifyEmail = () => {
         onSubmit={handleSubmit}
         className="bg-white dark:bg-zinc-800 p-8 rounded-xl shadow-lg w-full max-w-sm"
       >
-        <h2 className="text-2xl font-bold mb-2 text-center">
-          Verify your email
+        <div className="flex justify-end mb-4">
+          <button className="touch-area text-sm text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-gray-100/10 p-1 rounded-full transition-colors cursor-pointer" type="button" onClick={() => navigate("/register")}>
+            <X/>
+          </button>
+        </div>
+        <h2
+          dir="auto"
+          className="text-2xl text-zinc-900 dark:text-white font-bold mb-2 text-center"
+        >
+          {t("Verify your email")}
         </h2>
 
-        <p className="text-sm text-gray-600 dark:text-zinc-400 text-center mb-6">
-          We sent a 6-digit code to <b>{email}</b>
+        <p
+          dir="auto"
+          className="text-sm text-gray-600 dark:text-zinc-400 text-center mb-6"
+        >
+          {t("We sent a 6-digit code to")} <b>{email}</b>
         </p>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
-            {error}
+          <div className="bg-red-100 dark:bg-red-800 text-red-700 dark:text-white p-2 rounded mb-4">
+            {t(error)}
           </div>
         )}
 
@@ -59,17 +73,18 @@ const VerifyEmail = () => {
           maxLength="6"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          className="w-full text-center tracking-widest text-2xl py-3 border rounded-lg mb-4 dark:bg-zinc-700"
+          className="w-full text-center tracking-widest placeholder:text-gray-600/20 dark:placeholder:text-white/20 text-2xl text-gray-600 dark:text-white py-3 border rounded-lg mb-4 dark:bg-zinc-700"
           placeholder="123456"
           required
         />
 
         <button
+        dir="auto"
           type="submit"
           disabled={loading}
-          className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+          className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
         >
-          {loading ? "Verifying..." : "Verify"}
+          {loading ? t("Verifying...") : t("Verify")}
         </button>
       </form>
     </div>

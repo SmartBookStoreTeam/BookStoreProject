@@ -109,3 +109,28 @@ export const rejectOrder = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Delete an order
+// @route   DELETE /api/admin/orders/:id
+// @access  Admin
+export const deleteOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Order not found" 
+      });
+    }
+    
+    await Order.findByIdAndDelete(req.params.id);
+    
+    res.json({ 
+      success: true, 
+      message: "Order deleted successfully" 
+    });
+  } catch (error) {
+    next(error);
+  }
+};

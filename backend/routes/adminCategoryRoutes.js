@@ -5,6 +5,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  getTopCategoriesByRevenue,
 } from "../controllers/categoryController.js";
 
 const router = express.Router();
@@ -47,6 +48,9 @@ const router = express.Router();
  *       200:
  *         description: Categories retrieved successfully
  */
+// Must be before /:id routes to avoid conflicts
+router.get("/top-revenue", protect, admin, getTopCategoriesByRevenue);
+
 router.get("/", protect, admin, getAdminCategories);
 
 /**

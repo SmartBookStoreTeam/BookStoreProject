@@ -150,7 +150,8 @@ const Checkout = () => {
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(
-        error.response?.data?.message || t("Payment failed. Please try again."),
+        t(error.response?.data?.message) ||
+          t("Payment failed. Please try again."),
         {
           duration: 5000,
           style: {
