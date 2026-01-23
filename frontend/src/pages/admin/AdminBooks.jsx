@@ -234,7 +234,7 @@ const AdminBooks = () => {
                         className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize ${
                           book.status === "available"
                             ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                            : "bg-gray-100 text-red-500"
                         }`}
                       >
                         {book.status || "available"}
