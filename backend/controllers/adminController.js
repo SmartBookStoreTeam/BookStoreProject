@@ -115,7 +115,7 @@ export const updateBook = async (req, res, next) => {
       "description",
       "category",
       "price",
-      "publicationYear",
+      "year",
       "isActive",
     ];
 
