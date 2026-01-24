@@ -33,6 +33,22 @@ const bookSchema = new mongoose.Schema(
       maxlength: 120,
     },
 
+    isbn: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      match: [
+        /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/,
+        "Please provide a valid ISBN",
+      ],
+    },
+
+    edition: {
+      type: Number,
+      min: [1, "Edition must be at least 1"],
+      default: 1,
+    },
     description: {
       type: String,
       required: [true, "Book description is required"],
@@ -144,7 +160,12 @@ const bookSchema = new mongoose.Schema(
 );
 
 // indexes useful for searching filtring
-bookSchema.index({ title: "text", author: "text", description: "text" });
+bookSchema.index({
+  title: "text",
+  author: "text",
+  description: "text",
+  isbn: "text",
+});
 bookSchema.index({ category: 1, price: 1 });
 bookSchema.index({ status: 1, isActive: 1, createdAt: -1 });
 
