@@ -6,6 +6,7 @@ import {
   googleAuth,
   verifyEmail,
   deleteMe,
+  updateProfile,
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -149,6 +150,58 @@ router.post("/google", googleAuth);
  *         description: Invalid or expired code
  */
 router.post("/verify-email", verifyEmail);
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get logged-in user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile returned
+ *       401:
+ *         description: Not authorized
+ *   put:
+ *     summary: Update logged-in user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Samy Updated
+ *               email:
+ *                 type: string
+ *                 example: samy_new@email.com
+ *               avatar:
+ *                 type: string
+ *                 example: https://example.com/new-avatar.png
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       400:
+ *         description: Email already in use
+ *   delete:
+ *     summary: Delete self account
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Not authorized
+ */
+router.put("/me", protect, updateProfile);
 
 /**
  * @swagger
