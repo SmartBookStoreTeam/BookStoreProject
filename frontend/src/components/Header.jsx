@@ -586,7 +586,7 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className="touch-area relative mt-0.5 p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
+                  className="touch-area relative p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
                 >
                   <Bell size={24} />
                   {unreadCount > 0 && (
@@ -737,7 +737,7 @@ const Header = () => {
           <Link
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
-            className="touch-area flex items-center gap-3 text-indigo-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
+            className="touch-area flex items-center gap-3 text-gray-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
             onContextMenu={handleContextMenu}
           >
             <span>Bookfly</span>

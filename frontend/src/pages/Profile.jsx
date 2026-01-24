@@ -178,7 +178,7 @@ const Profile = () => {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+          className="group touch-area p-2 rounded-full md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
           {t("Go Back")}
