@@ -246,7 +246,7 @@ const Header = () => {
                 {openNotifications && (
                   <div
                     ref={notificationsDropdownRef}
-                    className="absolute right-0 mt-2 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-[100] max-h-96 overflow-hidden flex flex-col"
+                    className="absolute right-0 mt-2 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-100 max-h-96 overflow-hidden flex flex-col"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Header */}
@@ -321,7 +321,7 @@ const Header = () => {
                                   </p>
                                 </div>
                                 {!notification.read && (
-                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 flex-shrink-0" />
+                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 shrink-0" />
                                 )}
                               </div>
                               <button
@@ -586,7 +586,7 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className="touch-area relative mt-[2px] p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
+                  className="touch-area relative mt-0.5 p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
                 >
                   <Bell size={24} />
                   {unreadCount > 0 && (
@@ -600,7 +600,7 @@ const Header = () => {
                 {openNotifications && (
                   <div
                     ref={mobileNotificationsDropdownRef}
-                    className="fixed top-16 right-4 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-[100] max-h-96 overflow-hidden flex flex-col"
+                    className="fixed top-16 right-4 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-100 max-h-96 overflow-hidden flex flex-col"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Header */}
@@ -675,7 +675,7 @@ const Header = () => {
                                   </p>
                                 </div>
                                 {!notification.read && (
-                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 flex-shrink-0" />
+                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 shrink-0" />
                                 )}
                                 <button
                                   onClick={(e) => {

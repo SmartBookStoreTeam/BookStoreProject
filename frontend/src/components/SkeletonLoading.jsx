@@ -34,7 +34,7 @@ const SkeletonLoading = () => {
                   highlightColor="#f3f4f6"
                 />
                 {/* Thumbnail Skeletons */}
-                <div className="hidden grid grid-cols-4 gap-2 mt-4 w-72">
+                <div className="grid grid-cols-4 gap-2 mt-4 w-72">
                   {[1, 2, 3, 4].map((i) => (
                     <Skeleton
                       key={i}

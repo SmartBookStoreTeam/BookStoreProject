@@ -51,7 +51,7 @@ const PaymentMethods = ({ selectedMethod, setSelectedMethod }) => {
               key={method.id}
               className={`touch-area flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                 isSelected
-                  ? "border-indigo-600 dark:border-indigo-400 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 shadow-md"
+                  ? "border-indigo-600 dark:border-indigo-400 bg-linear-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 shadow-md"
                   : "border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-sm"
               }`}
             >
@@ -84,7 +84,7 @@ const PaymentMethods = ({ selectedMethod, setSelectedMethod }) => {
                 {/* Tooltip for wallet methods */}
                 {method.tooltip && isSelected && (
                   <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-2">
-                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                     <span className="text-xs text-blue-800 dark:text-blue-300">
                       {t(method.tooltip)}
                     </span>

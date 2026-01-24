@@ -174,7 +174,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-5 transition-colors duration-300">
-      <div className="w-full max-w-[1350px] mx-auto px-4">
+      <div className="w-full max-w-337.5 mx-auto px-4">
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
@@ -285,7 +285,7 @@ const Profile = () => {
                   >
                     {/* Book Image with Overlay */}
                     <div className="relative overflow-hidden">
-                      <div className="touch-area relative aspect-[3/4] overflow-hidden">
+                      <div className="touch-area relative aspect-3/4 overflow-hidden">
                         <img
                           src={imageSrc}
                           alt={book.title}
@@ -316,7 +316,7 @@ const Profile = () => {
                         <Link
                           to={`/pdf-viewer/${book._id || book.id}`}
                           state={{ pdfUrl: book.pdf, bookTitle: book.title }}
-                          className="touch-area flex-1 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                          className="touch-area flex-1 bg-linear-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                         >
                           <Eye size={16} />
                           {t("View")}

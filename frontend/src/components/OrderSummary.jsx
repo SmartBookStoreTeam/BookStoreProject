@@ -43,7 +43,7 @@ const OrderSummary = ({ books, onRemoveBook }) => {
               className="flex gap-4 pb-4 border-b border-gray-100 dark:border-zinc-700 last:border-0 relative group"
             >
               {/* Book Image */}
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <img
                   src={bookImage}
                   alt={book.title}
@@ -65,7 +65,7 @@ const OrderSummary = ({ books, onRemoveBook }) => {
                 >
                   {t("By")} {book.author}
                 </p>
-                <p className="text-base font-bold bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
+                <p className="text-base font-bold bg-linear-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
                   {book.price} {t("EGP")}
                 </p>
               </div>
@@ -95,18 +95,18 @@ const OrderSummary = ({ books, onRemoveBook }) => {
             {total} {t("EGP")}
           </span>
         </div>
-        <div className="flex justify-between items-center p-4 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl">
+        <div className="flex justify-between items-center p-4 bg-linear-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl">
           <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {t("Total")}
           </span>
-          <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold bg-linear-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
             {total} {t("EGP")}
           </span>
         </div>
       </div>
 
       {/* Important Note */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl">
+      <div className="mt-6 p-4 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl">
         <p className="text-sm text-blue-900 dark:text-blue-200 text-balance flex items-start gap-2">
           <span className="text-lg">📧</span>
           <span>
