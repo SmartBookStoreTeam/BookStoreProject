@@ -36,6 +36,8 @@ const AddBook = () => {
         "description",
         "status",
         "year",
+        "isbn",
+        "edition",
       ].forEach((f) => bookData.append(f, data.get(f)));
 
       bookData.append("price", parseFloat(data.get("price") || 0));
@@ -136,6 +138,28 @@ const AddBook = () => {
                   placeholder={new Date().getFullYear()}
                   min="1000"
                   max={new Date().getFullYear() + 1}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ISBN
+                </label>
+                <input
+                  name="isbn"
+                  className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="ISBN"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Edition
+                </label>
+                <input
+                  name="edition"
+                  className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Edition"
                 />
               </div>
 

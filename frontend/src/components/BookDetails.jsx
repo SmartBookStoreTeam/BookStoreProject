@@ -50,24 +50,22 @@ const fillMissingBookData = (book, t, actualPages = null) => {
     _id: book._id || book.id,
     id: book._id || book.id,
 
-    title: book.title || t("Book title not available"),
-    author: book.author || t("Author not available"),
+    title: book.title || "Book title not available",
+    author: book.author || "Author not available",
     description:
       book.description ||
       book.desc ||
-      t("No description available for this book. Sorry for the inconvenience."),
+      "No description available for this book. Sorry for the inconvenience.",
 
     price:
       typeof book.price === "number" ? book.price : Number(book.price || 0),
 
-    category: book.category,
-    categoryName: catName,
+    category: book.category || "Unavailable",
+    categoryName: catName || "Unavailable",
 
-    isbn:
-      book.isbn ||
-      "ISBN-" + Math.random().toString(36).substr(2, 13).toUpperCase(),
-    edition: book.edition || t("First Edition"),
-    publicationYear: book.publicationYear || "Unavailable",
+    isbn: book.isbn || "Unavailable",
+    edition: book.edition || "Unavailable",
+    year: book.year || "Unavailable",
     pages: actualPages || book.pages || "Unavailable",
 
     // ratings
@@ -84,6 +82,34 @@ const fillMissingBookData = (book, t, actualPages = null) => {
           ? book.reviews.length
           : 0,
   };
+};
+
+const getEditionSuffix = (num) => {
+  const n = parseInt(num, 10);
+  if (isNaN(n)) return "th";
+  const j = n % 10;
+  const k = n % 100;
+  if (j === 1 && k !== 11) return "st";
+  if (j === 2 && k !== 12) return "nd";
+  if (j === 3 && k !== 13) return "rd";
+  return "th";
+};
+
+const getArabicOrdinal = (num) => {
+  const n = parseInt(num);
+  const ordinals = {
+    1: "الأولى",
+    2: "الثانية",
+    3: "الثالثة",
+    4: "الرابعة",
+    5: "الخامسة",
+    6: "السادسة",
+    7: "السابعة",
+    8: "الثامنة",
+    9: "التاسعة",
+    10: "العاشرة",
+  };
+  return ordinals[n] || num;
 };
 
 const BookDetails = () => {
@@ -453,7 +479,7 @@ const BookDetails = () => {
                   dir="auto"
                   className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200"
                 >
-                  {book.title}
+                  {t(book.title)}
                 </h1>
 
                 <Link
@@ -462,7 +488,7 @@ const BookDetails = () => {
                 >
                   <User className="w-5 h-5 mr-2 text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors" />
                   <span dir="auto" className="font-medium hover:underline">
-                    {book.author}
+                    {t(book.author)}
                   </span>
                 </Link>
 
@@ -538,7 +564,7 @@ const BookDetails = () => {
                       dir="auto"
                       className="text-gray-700 leading-relaxed dark:text-gray-300"
                     >
-                      {book.description || book.desc}
+                      {t(book.description || book.desc)}
                     </p>
                   </div>
                 </div>
@@ -656,7 +682,7 @@ const BookDetails = () => {
                     className="font-medium text-gray-900 dark:text-gray-200 text-sm wrap-break-word"
                     title={book.isbn}
                   >
-                    {book.isbn}
+                    {t(book.isbn)}
                   </p>
                 </div>
                 <div>
@@ -664,7 +690,13 @@ const BookDetails = () => {
                     {t("Edition")}:
                   </span>
                   <p className="font-medium text-gray-900 dark:text-gray-200">
-                    {book.edition}
+                    {isNaN(Number(book.edition))
+                      ? t(book.edition)
+                      : i18n.language === "ar"
+                        ? `الطبعة ${getArabicOrdinal(book.edition)}`
+                        : `${book.edition}${getEditionSuffix(
+                            book.edition,
+                          )} Edition`}
                   </p>
                 </div>
                 <div>
@@ -672,7 +704,7 @@ const BookDetails = () => {
                     {t("Year")}:
                   </span>
                   <p className="font-medium text-gray-900 dark:text-gray-200">
-                    {t(book.publicationYear)}
+                    {t(book.year)}
                   </p>
                 </div>
                 <div>
@@ -685,7 +717,8 @@ const BookDetails = () => {
                         width="100px"
                         height="18px"
                         baseColor="#a09daaff"
-                        highlightColor="#f3f4f6" />
+                        highlightColor="#f3f4f6"
+                      />
                     </div>
                   ) : (
                     <p className="font-medium text-gray-900 dark:text-gray-200">
