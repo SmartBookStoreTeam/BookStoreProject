@@ -53,7 +53,7 @@ const hasFormData = (formData) => {
     formData.sellerLocation.trim() !== "" ||
     formData.edition.trim() !== "" ||
     formData.publisher.trim() !== "" ||
-    formData.publicationYear !== "" ||
+    formData.year !== "" ||
     formData.pages !== ""
   );
 };
@@ -86,7 +86,7 @@ const Publish = () => {
         // Additional Details
         edition: "",
         publisher: "",
-        publicationYear: "",
+        year: "",
         pages: "",
         language: "english",
       },
@@ -451,11 +451,8 @@ const Publish = () => {
         }
 
         // Publication year validation
-        if (
-          formData.publicationYear &&
-          !validatePublicationYear(formData.publicationYear)
-        ) {
-          newErrors.publicationYear = t(
+        if (formData.year && !validatePublicationYear(formData.year)) {
+          newErrors.year = t(
             `Please enter a valid year between 1900 and ${new Date().getFullYear()}`,
           );
         }
@@ -674,7 +671,7 @@ const Publish = () => {
         sellerLocation: formData.sellerLocation.trim(),
         edition: formData.edition.trim(),
         publisher: formData.publisher.trim(),
-        publicationYear: formData.publicationYear,
+        year: formData.year,
         pages: formData.pages,
         language: formData.language,
       };
@@ -699,7 +696,7 @@ const Publish = () => {
         sellerLocation: "",
         edition: "",
         publisher: "",
-        publicationYear: "",
+        year: "",
         pages: "",
         language: "english",
       });
@@ -1083,11 +1080,11 @@ const Publish = () => {
                       <div className="touch-area relative rounded-lg">
                         <input
                           type="number"
-                          name="publicationYear"
-                          value={formData.publicationYear}
+                          name="year"
+                          value={formData.year}
                           onChange={handleInputChange}
                           className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:scheme-dark focus:outline-none focus:ring-1 ${
-                            errors.publicationYear
+                            errors.year
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
                           }`}
@@ -1096,7 +1093,7 @@ const Publish = () => {
                           max={new Date().getFullYear()}
                         />
                       </div>
-                      {renderError("publicationYear")}
+                      {renderError("year")}
                     </div>
                   </div>
 
@@ -1398,7 +1395,7 @@ const Publish = () => {
                       {/* Additional Book Details */}
                       {(formData.isbn ||
                         formData.edition ||
-                        formData.publicationYear ||
+                        formData.year ||
                         formData.pages) && (
                         <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg">
                           <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-3">
@@ -1425,13 +1422,13 @@ const Publish = () => {
                                 </span>
                               </div>
                             )}
-                            {formData.publicationYear && (
+                            {formData.year && (
                               <div className="flex justify-between">
                                 <span className="text-gray-600 dark:text-gray-400">
                                   {t("Publication Year")}:
                                 </span>
                                 <span className="text-gray-900 dark:text-gray-200">
-                                  {formData.publicationYear}
+                                  {formData.year}
                                 </span>
                               </div>
                             )}

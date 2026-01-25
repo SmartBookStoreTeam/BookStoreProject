@@ -104,9 +104,7 @@ export const createBook = async (req, res, next) => {
       category,
 
       isbn,
-
-      edition: edition ? Number(edition) : 1,
-
+      edition: edition || "",
       price: Number(price),
 
       image: imageUpload.secure_url,
@@ -197,7 +195,8 @@ export const updateBook = async (req, res, next) => {
     fields.forEach((field) => {
 
       if (req.body[field] !== undefined) {
-        updateData[field] =  field === "edition" ? req.body[field] : req.body[field];
+        // Ensure edition is stored as a String (no transformation needed)
+        updateData[field] = req.body[field];
       }
     });
     if (req.files?.image?.[0]) {
