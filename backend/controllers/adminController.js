@@ -9,7 +9,7 @@ import { uploadToS3 } from "../utils/uploadToS3.js";
 
 // Initialize S3 Client
 const s3Client = new S3Client({ 
-  region: "us-east-1" // Ensure this matches your bucket region
+  region: "eu-north-1" // Ensure this matches your bucket region
 });
 
 // Helper to extract Cloudinary public_id from a URL
