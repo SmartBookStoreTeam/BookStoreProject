@@ -188,29 +188,16 @@ export const updateBook = async (req, res, next) => {
     const fields = [
 
       "title",
-
       "author",
-
       "description",
-
       "category",
-
       "price",
-
       "year",
-
       "isActive",
-
       "status",
-
       "isbn",
-
       "edition",
-
     ];
-
-
-
     fields.forEach((field) => {
 
       if (req.body[field] !== undefined) {
@@ -308,19 +295,12 @@ export const updateBook = async (req, res, next) => {
         runValidators: true,
 
       },
-
     );
-
-
 
     if (!updatedBook) {
 
       return res.status(404).json({ message: "Book not found" });
-
     }
-
-
-
     res.json({
 
       success: true,
@@ -548,18 +528,12 @@ export const deleteUser = async (req, res, next) => {
   try {
 
     const user = await User.findByIdAndDelete(req.params.id);
-
-
-
     if (!user) {
 
       res.status(404);
 
       throw new Error("User not found");
-
     }
-
-
 
     res.json({ message: "User removed successfully" });
 
