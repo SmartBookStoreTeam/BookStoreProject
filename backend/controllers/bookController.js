@@ -15,6 +15,9 @@ export const getBooks = async (req, res, next) => {
     if (req.query.author) {
       filter.author = { $regex: req.query.author, $options: "i" };
     }
+
+    if (req.query.isbn) filter.isbn = req.query.isbn;
+
     if (req.query.minPrice)
       filter.price = { ...filter.price, $gte: Number(req.query.minPrice) };
     if (req.query.maxPrice)
@@ -104,6 +107,7 @@ export const searchBooks = async (req, res, next) => {
       filter.$or = [
         { title: { $regex: regex } },
         { author: { $regex: regex } },
+        { isbn: { $regex: regex } },
         { category: { $in: categoryIds } }, // Also search by category name
       ];
     }
