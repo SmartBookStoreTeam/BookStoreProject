@@ -32,12 +32,12 @@ const LandingExplore = () => {
 
   return (
     <div className="bg-[#E9D5FF] dark:bg-gray-900 transition-colors duration-300">
-      <div className="w-full max-w-[1350px] mx-auto px-4 py-12">
+      <div className="w-full max-w-337.5 mx-auto px-4 py-12">
         <div className="flex items-center dark:bg-gray-900 justify-between md:flex-row flex-col-reverse gap-8 md:gap-0">
           <div className="w-full md:w-1/2">
             <h1
               dir={i18n.dir()}
-              className="touch-area text-center lg:whitespace-nowrap text-2xl md:text-3xl text-[#1C2024] dark:text-indigo-100 font-bold mb-6 transition-colors duration-300 min-h-[2.5rem]"
+              className="touch-area text-center lg:whitespace-nowrap text-2xl md:text-3xl text-[#1C2024] dark:text-indigo-100 font-bold mb-6 transition-colors duration-300 min-h-10"
             >
               {displayedText}
               <span className="animate-pulse">|</span>
