@@ -132,11 +132,9 @@ export const createBook = async (req, res, next) => {
         pages: pageCount,
 
       },
-
       previewMeta: previewKey
 
         ? {
-
             size: req.files.previewPdf[0].size,
 
             mime: req.files.previewPdf[0].mimetype,
@@ -375,11 +373,8 @@ export const deleteBook = async (req, res, next) => {
 // =======================
 
 // @desc    Get all users with orders count and total spent
-
 // @route   GET /api/admin/users
-
 // @access  Admin
-
 export const getAllUsers = async (req, res, next) => {
 
   try {
@@ -564,13 +559,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
     const category = req.query.category;
 
     const sort = req.query.sort || "-createdAt"; // example: "price" or "-price"
-
-
-
     const filter = {};
-
-
-
     if (q) {
 
       filter.$or = [
