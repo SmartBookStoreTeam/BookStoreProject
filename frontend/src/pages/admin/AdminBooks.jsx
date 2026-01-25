@@ -72,7 +72,7 @@ const AdminBooks = () => {
   return (
     <div className="space-y-6 relative">
       {/* ================= HEADER WITH STATS ================= */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 text-white">
+      <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 text-white">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Book Management</h1>
@@ -130,7 +130,7 @@ const AdminBooks = () => {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[200px]"
+            className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-50"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -187,7 +187,7 @@ const AdminBooks = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         {/* Book Cover Thumbnail */}
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                           {book.image ? (
                             <img
                               src={book.image}
@@ -195,14 +195,14 @@ const AdminBooks = () => {
                               className="h-16 w-12 object-cover rounded shadow-sm"
                             />
                           ) : (
-                            <div className="h-16 w-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded shadow-sm flex items-center justify-center">
+                            <div className="h-16 w-12 bg-linear-to-br from-blue-400 to-blue-600 rounded shadow-sm flex items-center justify-center">
                               <BookOpenIcon className="h-6 w-6 text-white" />
                             </div>
                           )}
                         </div>
                         {/* Book Info */}
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-gray-900 truncate hover:text-blue-600 cursor-pointer truncate max-w-[200px]">
+                          <div className="font-semibold text-gray-900 truncate hover:text-blue-600 cursor-pointer max-w-50">
                             {book.title}
                           </div>
                           <div className="text-sm text-gray-500 truncate mt-1 cursor-pointer">
@@ -293,7 +293,7 @@ const AdminBooks = () => {
               >
                 <div className="flex gap-3">
                   {/* Book Cover */}
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     {book.image ? (
                       <img
                         src={book.image}
@@ -301,7 +301,7 @@ const AdminBooks = () => {
                         className="h-16 w-12 object-cover rounded shadow-sm"
                       />
                     ) : (
-                      <div className="h-16 w-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded shadow-sm flex items-center justify-center">
+                      <div className="h-16 w-12 bg-linear-to-br from-blue-400 to-blue-600 rounded shadow-sm flex items-center justify-center">
                         <BookOpenIcon className="h-6 w-6 text-white" />
                       </div>
                     )}

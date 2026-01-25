@@ -102,7 +102,7 @@ const SalesChart = () => {
             >
               <div className="relative">
                 <div
-                  className="w-10 bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg transition-all duration-300 hover:opacity-80"
+                  className="w-10 bg-linear-to-t from-blue-500 to-blue-400 rounded-t-lg transition-all duration-300 hover:opacity-80"
                   style={{ height: `${Math.max(height, 5)}%` }}
                 >
                   <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
