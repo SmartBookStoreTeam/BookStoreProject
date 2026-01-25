@@ -169,7 +169,7 @@ export const updateBook = async (req, res, next) => {
 // @route   DELETE /api/admin/books/:id
 export const deleteBook = async (req, res, next) => {
   try {
-    const book = await Book.findById(req.params.id);
+    const book = await Book.findById(req.params.id).select("+pdf +previewPdf");
 
     if (!book) {
       return res.status(404).json({ success: false, message: "Book not found" });
