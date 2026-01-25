@@ -1,0 +1,29 @@
+# dependencies
+node_modules
+
+# env & secrets
+.env
+.env.*
+
+# git
+.git
+.gitignore
+
+# logs
+*.log
+npm-debug.log
+yarn-error.log
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+
+# docker files (not needed inside image)
+docker-compose.yml
+
+# frontend / build leftovers (if any)
+dist
+build
+
+# docs
+README.md
