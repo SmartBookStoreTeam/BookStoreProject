@@ -59,7 +59,7 @@ const Popular = () => {
       id="popular"
       className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8"
     >
-      <div className="w-full max-w-[1350px] mx-auto px-4 relative">
+      <div className="w-full max-w-337.5 mx-auto px-4 relative">
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {t("Most Popular Books")}
         </h1>

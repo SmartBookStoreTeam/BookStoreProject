@@ -121,7 +121,7 @@ const AuthorProfile = () => {
       />
 
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-4">
+        <div className="w-full max-w-337.5 mx-auto px-4 py-4">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
@@ -184,7 +184,7 @@ const AuthorProfile = () => {
                       className="relative w-full block touch-area cursor-pointer group overflow-hidden rounded-2xl"
                     >
                       <motion.img
-                        className="w-full h-[300px] sm:h-[250px] lg:h-[300px] object-cover"
+                        className="w-full h-75 sm:h-62.5 lg:h-75 object-cover"
                         src={bookImage}
                         alt={book.title}
                         whileHover={{ scale: 1.1 }}
@@ -243,7 +243,7 @@ const AuthorProfile = () => {
 
                     <p
                       dir="auto"
-                      className="touch-area text-xs text-center truncate max-w-[250px] text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300"
+                      className="touch-area text-xs text-center truncate max-w-62.5 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300"
                     >
                       {book.desc ||
                         book.description ||

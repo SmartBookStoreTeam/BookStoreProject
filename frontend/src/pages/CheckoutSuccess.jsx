@@ -46,9 +46,9 @@ const CheckoutSuccess = () => {
   return (
     <div
       dir={i18n.dir()}
-      className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 pt-10 pb-12 overflow-x-hidden"
+      className="min-h-screen bg-linear-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 pt-10 pb-12 overflow-x-hidden"
     >
-      <div className="w-full max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-337.5 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Success Icon*/}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full mb-6">
@@ -68,7 +68,7 @@ const CheckoutSuccess = () => {
             {/* Email Confirmation */}
             <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 mb-4">
               <div className="flex items-start gap-3">
-                <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                 <div>
                   <p className="font-semibold text-blue-900 dark:text-blue-200 mb-1">
                     {t("Download link sent!")}
@@ -84,7 +84,7 @@ const CheckoutSuccess = () => {
             {/* Link Validity Notice */}
             <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
                 <p className="text-sm text-yellow-800 dark:text-yellow-300">
                   {t("Download link is valid for 48 hours")}
                 </p>
@@ -104,11 +104,11 @@ const CheckoutSuccess = () => {
               {books.map((book, index) => (
                 <div
                   key={book.id || index}
-                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl hover:shadow-md transition-shadow"
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-linear-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl hover:shadow-md transition-shadow"
                 >
                   {/* Book Image and Info */}
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <img
                         src={
                           book.img ||
@@ -137,11 +137,11 @@ const CheckoutSuccess = () => {
                   </div>
 
                   {/* View and Download Buttons*/}
-                  <div className="flex gap-2 w-full sm:w-auto sm:flex-col sm:flex-shrink-0">
+                  <div className="flex gap-2 w-full sm:w-auto sm:flex-col sm:shrink-0">
                     <Link
                       to={`/pdf-viewer/${book._id || book.id}`}
                       state={{ pdfUrl: book.pdf, bookTitle: book.title }}
-                      className="touch-area flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-all text-sm font-medium shadow-sm hover:shadow-md sm:min-w-[130px]"
+                      className="touch-area flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-all text-sm font-medium shadow-sm hover:shadow-md sm:min-w-32.5"
                       title={t("View PDF")}
                     >
                       <Eye className="w-4 h-4" />
