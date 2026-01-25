@@ -52,5 +52,5 @@ jobs:
             docker run -d \
               --name backend \
               -p 80:5000 \
-              --restart always \
+              --env-file .env \
               ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
