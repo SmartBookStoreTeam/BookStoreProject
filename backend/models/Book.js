@@ -84,11 +84,11 @@ const bookSchema = new mongoose.Schema(
     pdf: {
       type: String,
       required: [true, "Book PDF file is required"],
-      // select: false,
+      select: false,
     },
     previewPdf: {
       type: String, // S3 key for preview file
-      // select: false,
+      select: false,
     },
 
     fileMeta: {

@@ -311,7 +311,7 @@ const Header = () => {
                                 <div className="flex-1 pr-6">
                                   <p className="text-sm text-indigo-950 dark:text-indigo-200">
                                     {i18n.language === "ar"
-                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملف الشخصي.`
+                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
                                       : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
                                   </p>
                                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -649,7 +649,7 @@ const Header = () => {
                           {notifications.map((notification) => (
                             <div
                               key={notification.id}
-                              className={`p-4 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition cursor-pointer ${
+                              className={`touch-area p-4 active:bg-zinc-300 dark:active:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition cursor-pointer ${
                                 !notification.read
                                   ? "bg-indigo-50 dark:bg-indigo-900/20"
                                   : ""
@@ -665,7 +665,7 @@ const Header = () => {
                                 <div className="flex-1">
                                   <p className="text-sm text-indigo-950 dark:text-indigo-200">
                                     {i18n.language === "ar"
-                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملف الشخصي.`
+                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
                                       : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
                                   </p>
                                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
