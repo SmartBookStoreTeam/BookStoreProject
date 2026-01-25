@@ -15,7 +15,8 @@ import { uploadToS3 } from "../utils/uploadToS3.js";
 
 export const createBook = async (req, res, next) => {
   try {
-    const { title, author, description, category, price, year } = req.body;
+    const { title, author, description, category, price, year, isbn, edition } =
+      req.body;
 
     if (!title || !author || !description || !category || !price) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -70,6 +71,8 @@ export const createBook = async (req, res, next) => {
       description,
       year,
       category,
+      isbn,
+      edition: edition ? Number(edition) : 1,
       price: Number(price),
       image: imageUpload.secure_url,
 
@@ -118,10 +121,16 @@ export const updateBook = async (req, res, next) => {
       "year",
       "isActive",
       "status",
+      "isbn",
+      "edition",
     ];
 
     fields.forEach((field) => {
-      if (req.body[field] !== undefined) updateData[field] = req.body[field];
+      if (req.body[field] !== undefined) {
+        // Ensure edition is stored as a Number
+        updateData[field] =
+          field === "edition" ? Number(req.body[field]) : req.body[field];
+      }
     });
 
     if (req.files?.image?.[0]) {

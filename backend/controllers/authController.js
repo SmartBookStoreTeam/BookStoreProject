@@ -22,7 +22,7 @@ export const registerUser = async (req, res, next) => {
 
     // Generate 6-digit verification code
     const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
 
     const user = await User.create({
@@ -183,6 +183,50 @@ export const googleAuth = async (req, res, next) => {
         avatar: user.avatar,
       },
       token: generateToken(user._id),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -----------------------------------------
+// PUT /api/auth/me
+// Update logged-in user profile
+// -----------------------------------------
+export const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update basic fields
+    user.name = req.body.name || user.name;
+    user.avatar = req.body.avatar || user.avatar;
+
+    // Optional: Handle Email changes
+    if (req.body.email && req.body.email !== user.email) {
+      const emailExists = await User.findOne({ email: req.body.email });
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      user.email = req.body.email;
+      // If email changes, you might want to require re-verification
+      // user.isVerified = false;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        avatar: updatedUser.avatar,
+      },
     });
   } catch (error) {
     next(error);
