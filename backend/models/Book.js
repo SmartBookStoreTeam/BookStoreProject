@@ -45,9 +45,8 @@ const bookSchema = new mongoose.Schema(
     },
 
     edition: {
-      type: Number,
-      min: [1, "Edition must be at least 1"],
-      default: 1,
+      type: String,
+      trim: true,
     },
     description: {
       type: String,
