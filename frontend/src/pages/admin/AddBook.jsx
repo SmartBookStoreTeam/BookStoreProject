@@ -88,8 +88,8 @@ const AddBook = () => {
               <BookOpenIcon className="h-5 w-5 mr-2 text-blue-600" />
               Book Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="col-span-2 md:col-span-1">
+            <div className="flex flex-col space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Title <span className="text-red-500">*</span>
                 </label>
@@ -101,7 +101,7 @@ const AddBook = () => {
                 />
               </div>
 
-              <div className="col-span-2 md:col-span-1">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Author <span className="text-red-500">*</span>
                 </label>
@@ -214,7 +214,7 @@ const AddBook = () => {
             <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Files & Media
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors bg-gray-50">
                 <label className="block cursor-pointer">
                   <div className="text-sm font-medium text-gray-700 mb-2">
