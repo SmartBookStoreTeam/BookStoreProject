@@ -197,19 +197,9 @@ export const updateBook = async (req, res, next) => {
     fields.forEach((field) => {
 
       if (req.body[field] !== undefined) {
-
-        // Ensure edition is stored as a Number
-
-        updateData[field] =
-
-          field === "edition" ? Number(req.body[field]) : req.body[field];
-
+        updateData[field] =  field === "edition" ? req.body[field] : req.body[field];
       }
-
     });
-
-
-
     if (req.files?.image?.[0]) {
 
       const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
