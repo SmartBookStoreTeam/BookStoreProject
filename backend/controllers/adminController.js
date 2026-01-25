@@ -8,18 +8,18 @@ import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 
 // Initialize S3 Client
-const s3Client = new S3Client({ 
-  region: "eu-north-1" // Ensure this matches your bucket region
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
 });
 
 // Helper to extract Cloudinary public_id from a URL
 const getPublicIdFromUrl = (url) => {
   if (!url) return null;
-  const parts = url.split('/');
-  const uploadIndex = parts.indexOf('upload');
+  const parts = url.split("/");
+  const uploadIndex = parts.indexOf("upload");
   if (uploadIndex === -1) return null;
-  const publicIdWithExt = parts.slice(uploadIndex + 2).join('/');
-  return publicIdWithExt.split('.')[0];
+  const publicIdWithExt = parts.slice(uploadIndex + 2).join("/");
+  return publicIdWithExt.split(".")[0];
 };
 
 // =======================
@@ -29,7 +29,8 @@ const getPublicIdFromUrl = (url) => {
 // @desc    Create a new book
 export const createBook = async (req, res, next) => {
   try {
-    const { title, author, description, category, price, year, isbn, edition } = req.body;
+    const { title, author, description, category, price, year, isbn, edition } =
+      req.body;
 
     if (!title || !author || !description || !category || !price) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -119,12 +120,22 @@ export const createBook = async (req, res, next) => {
   }
 };
 
-
 // @desc    Update a book
 export const updateBook = async (req, res, next) => {
   try {
     const updateData = {};
-    const fields = ["title", "author", "description", "category", "price", "year", "isActive", "status", "isbn", "edition"];
+    const fields = [
+      "title",
+      "author",
+      "description",
+      "category",
+      "price",
+      "year",
+      "isActive",
+      "status",
+      "isbn",
+      "edition",
+    ];
 
     fields.forEach((field) => {
       if (req.body[field] !== undefined) {
@@ -165,14 +176,23 @@ export const updateBook = async (req, res, next) => {
       };
     }
 
-    const updatedBook = await Book.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-      runValidators: true,
+    const updatedBook = await Book.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (!updatedBook)
+      return res.status(404).json({ message: "Book not found" });
+
+    res.json({
+      success: true,
+      message: "Book updated successfully",
+      updatedBook,
     });
-
-    if (!updatedBook) return res.status(404).json({ message: "Book not found" });
-
-    res.json({ success: true, message: "Book updated successfully", updatedBook });
   } catch (error) {
     next(error);
   }
@@ -185,7 +205,9 @@ export const deleteBook = async (req, res, next) => {
     const book = await Book.findById(req.params.id).select("+pdf +previewPdf");
 
     if (!book) {
-      return res.status(404).json({ success: false, message: "Book not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found" });
     }
 
     // 1. Delete Cover Image from Cloudinary
@@ -199,24 +221,30 @@ export const deleteBook = async (req, res, next) => {
     // 2. Delete PDF and Metadata from S3
     if (book.pdf) {
       // Delete the main PDF
-      await s3Client.send(new DeleteObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: book.pdf,
-      }));
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: book.pdf,
+        }),
+      );
 
       // Delete the Knowledge Base metadata file
-      await s3Client.send(new DeleteObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${book.pdf}.metadata.json`,
-      }));
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: `${book.pdf}.metadata.json`,
+        }),
+      );
     }
 
     // 3. Delete Preview PDF from S3 if it exists
     if (book.previewPdf) {
-      await s3Client.send(new DeleteObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: book.previewPdf,
-      }));
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: book.previewPdf,
+        }),
+      );
     }
 
     // 4. Remove from MongoDB
@@ -355,7 +383,10 @@ export const getAllBooksAdmin = async (req, res, next) => {
 export const getBookAdminById = async (req, res, next) => {
   try {
     const book = await Book.findById(req.params.id).select("+pdf -__v");
-    if (!book) return res.status(404).json({ success: false, message: "Book not found" });
+    if (!book)
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found" });
     res.json({ success: true, data: book });
   } catch (err) {
     next(err);
