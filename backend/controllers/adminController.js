@@ -22,49 +22,50 @@ export const createBook = async (req, res, next) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    if (!req.files?.image?.[0] || !req.files?.pdf?.[0]) {
+    const imageFile = req.files?.image?.[0];
+    const pdfFile = req.files?.pdf?.[0];
+    const previewFile = req.files?.previewPdf?.[0];
+
+    if (!imageFile || !pdfFile) {
       return res.status(400).json({ message: "Image and PDF are required" });
     }
 
-    const pdfBuffer = req.files.pdf[0].buffer;
-    const pdfDoc = await PDFDocument.load(pdfBuffer);
+    // 1) استخراج عدد الصفحات من الـ PDF الأصلي
+    const pdfDoc = await PDFDocument.load(pdfFile.buffer);
     const pageCount = pdfDoc.getPageCount();
 
-    // 2. رفع الصورة لـ Cloudinary
-    const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
+    // 2) رفع الصورة لـ Cloudinary
+    const imageUpload = await uploadToCloudinary(imageFile.buffer, {
       folder: "book-store/images",
     });
 
-    // 3. رفع ملف الـ PDF الأصلي لـ S3
+    // 3) رفع ملف الـ PDF الأصلي لـ S3 (كـ file object)
     const pdfUpload = await uploadToS3(
-      pdfBuffer,
-      req.files.pdf[0].originalname,
-      req.files.pdf[0].mimetype,
+      pdfFile.buffer,
+      pdfFile.originalname,
+      pdfFile.mimetype,
       { folder: "books", isPublic: false },
     );
 
-    // 4. معالجة ملف الـ Preview (اختياري)
+    // 4) رفع ملف الـ Preview (اختياري)
     let previewKey = null;
     let previewPages = null;
 
-    if (req.files?.previewPdf?.[0]) {
-      const previewBuffer = req.files.previewPdf[0].buffer;
-
-      // استخراج صفحات الـ preview بنفس الطريقة
-      const previewPdfDoc = await PDFDocument.load(previewBuffer);
-      previewPages = previewPdfDoc.getPageCount();
+    if (previewFile) {
+      const previewDoc = await PDFDocument.load(previewFile.buffer);
+      previewPages = previewDoc.getPageCount();
 
       const previewUpload = await uploadToS3(
-        previewBuffer,
-        req.files.previewPdf[0].originalname,
-        req.files.previewPdf[0].mimetype,
+        previewFile.buffer,
+        previewFile.originalname,
+        previewFile.mimetype,
         { folder: "previews", isPublic: false },
       );
+
       previewKey = previewUpload.key;
     }
 
-    // 5. حفظ في قاعدة البيانات
-
+    // 5) حفظ في قاعدة البيانات
     const book = await Book.create({
       title,
       author,
@@ -76,20 +77,20 @@ export const createBook = async (req, res, next) => {
       price: Number(price),
       image: imageUpload.secure_url,
 
-      pdf: pdfUpload.key, // Store the S3 key, not the URL
-
+      // IMPORTANT: pdf field مرة واحدة فقط
       pdf: pdfUpload.key,
       previewPdf: previewKey,
 
       fileMeta: {
-        size: req.files.pdf[0].size,
-        mime: req.files.pdf[0].mimetype,
+        size: pdfFile.size,
+        mime: pdfFile.mimetype,
         pages: pageCount,
       },
+
       previewMeta: previewKey
         ? {
-            size: req.files.previewPdf[0].size,
-            mime: req.files.previewPdf[0].mimetype,
+            size: previewFile.size,
+            mime: previewFile.mimetype,
             pages: previewPages,
           }
         : null,
@@ -105,6 +106,7 @@ export const createBook = async (req, res, next) => {
     next(err);
   }
 };
+
 // @desc    Update a book
 // @route   PUT /api/admin/books/:id
 // @access  Admin
