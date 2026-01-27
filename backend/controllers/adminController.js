@@ -1,8 +1,10 @@
 import { PDFDocument } from "pdf-lib";
+import { v4 as uuidv4 } from "uuid";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3"; // Added S3 imports
 import cloudinary from "cloudinary"; // Ensure cloudinary is imported
 import Book from "../models/Book.js";
 import User from "../models/User.js";
+import Category from "../models/Category.js";
 
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
@@ -11,6 +13,13 @@ import { uploadToS3 } from "../utils/uploadToS3.js";
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
 });
+
+// Helper Fun
+const slugify = (text) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
 // Helper to extract Cloudinary public_id from a URL
 const getPublicIdFromUrl = (url) => {
@@ -27,14 +36,12 @@ const getPublicIdFromUrl = (url) => {
 // =======================
 
 // @desc    Create a new book
+// @route   POST /api/admin/books
+// @access  Admin
 export const createBook = async (req, res, next) => {
   try {
     const { title, author, description, category, price, year, isbn, edition } =
       req.body;
-
-    if (!title || !author || !description || !category || !price) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
 
     const imageFile = req.files?.image?.[0];
     const pdfFile = req.files?.pdf?.[0];
@@ -44,42 +51,16 @@ export const createBook = async (req, res, next) => {
       return res.status(400).json({ message: "Image and PDF are required" });
     }
 
-    // 1) استخراج عدد الصفحات من الـ PDF الأصلي
+    // 1) pages count
     const pdfDoc = await PDFDocument.load(pdfFile.buffer);
     const pageCount = pdfDoc.getPageCount();
 
-    // 2) رفع الصورة لـ Cloudinary
+    // 2) upload image
     const imageUpload = await uploadToCloudinary(imageFile.buffer, {
       folder: "book-store/images",
     });
 
-    // 3) رفع ملف الـ PDF الأصلي لـ S3 (كـ file object)
-    const pdfUpload = await uploadToS3(
-      pdfFile.buffer,
-      pdfFile.originalname,
-      pdfFile.mimetype,
-      { folder: "books", isPublic: false },
-    );
-
-    // 4) رفع ملف الـ Preview (اختياري)
-    let previewKey = null;
-    let previewPages = null;
-
-    if (previewFile) {
-      const previewDoc = await PDFDocument.load(previewFile.buffer);
-      previewPages = previewDoc.getPageCount();
-
-      const previewUpload = await uploadToS3(
-        previewFile.buffer,
-        previewFile.originalname,
-        previewFile.mimetype,
-        { folder: "previews", isPublic: false },
-      );
-
-      previewKey = previewUpload.key;
-    }
-
-    // 5) حفظ في قاعدة البيانات
+    // 3) create book FIRST (because pdf required in schema)
     const book = await Book.create({
       title,
       author,
@@ -91,31 +72,105 @@ export const createBook = async (req, res, next) => {
       price: Number(price),
       image: imageUpload.secure_url,
 
-      // IMPORTANT: pdf field مرة واحدة فقط
-      pdf: pdfUpload.key,
-      previewPdf: previewKey,
-      fileMeta: {
-        size: pdfFile.size,
-        mime: pdfFile.mimetype,
-        pages: pageCount,
-      },
-
-      previewMeta: previewKey
-        ? {
-            size: previewFile.size,
-            mime: previewFile.mimetype,
-            pages: previewPages,
-          }
-        : null,
+      pdf: "temp", // مؤقت عشان يعدي validation
+      s3Folder: null, // هنملأه بعد شوية
+      aiMetaKey: null,
     });
+
+    // 4) readable + unique folder name
+    const shortId = book._id.toString().slice(-6);
+    const folderId = `${slugify(`${title}-${author}-${year || ""}`)}-${shortId}`;
+
+    // 5) upload main pdf => books/<folderId>/book.pdf
+    const pdfUpload = await uploadToS3(
+      pdfFile.buffer,
+      "book.pdf",
+      pdfFile.mimetype,
+      {
+        folder: "books",
+        subfolder: folderId,
+      },
+    );
+
+    // 6) upload preview (optional) => books/<folderId>/preview.pdf
+    let previewKey = null;
+    let previewPages = null;
+
+    if (previewFile) {
+      const previewDoc = await PDFDocument.load(previewFile.buffer);
+      previewPages = previewDoc.getPageCount();
+
+      const previewUpload = await uploadToS3(
+        previewFile.buffer,
+        "preview.pdf",
+        previewFile.mimetype,
+        { folder: "books", subfolder: folderId },
+      );
+
+      previewKey = previewUpload.key;
+    }
+
+    const categoryDoc = await Category.findById(category).select("name").lean();
+    const categoryName = categoryDoc?.name || null;
+
+    // 7) create meta.json
+    const aiMeta = {
+      bookId: String(book._id),
+      s3Folder: folderId,
+      title,
+      author,
+      description,
+      category: categoryName,
+      price: Number(price),
+      year,
+      isbn,
+      edition: edition || "",
+      pdfKey: pdfUpload.key,
+      previewPdfKey: previewKey,
+      pages: pageCount,
+    };
+
+    const metaUpload = await uploadToS3(
+      Buffer.from(JSON.stringify(aiMeta, null, 2)),
+      "meta.json",
+      "application/json",
+      { folder: "books", subfolder: folderId },
+    );
+
+    // 8) update book with real data
+    book.pdf = pdfUpload.key;
+    book.previewPdf = previewKey;
+
+    book.fileMeta = {
+      size: pdfFile.size,
+      mime: pdfFile.mimetype,
+      pages: pageCount,
+    };
+
+    book.previewMeta = previewKey
+      ? {
+          size: previewFile.size,
+          mime: previewFile.mimetype,
+          pages: previewPages,
+        }
+      : null;
+
+    // ✅ new fields
+    book.s3Folder = folderId;
+    book.aiMetaKey = metaUpload.key;
+
+    await book.save();
+
+    const populatedBook = await Book.findById(book._id)
+      .populate("category", "name")
+      .lean();
 
     res.status(201).json({
       success: true,
       message: "Book created successfully",
-      data: book,
+      data: populatedBook,
     });
   } catch (err) {
-    console.error("Error creating book:", err);
     next(err);
   }
 };
