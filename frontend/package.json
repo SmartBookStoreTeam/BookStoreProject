@@ -26,6 +26,7 @@
     "aws-sdk": "^1.18.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
+    "browser-image-compression": "^2.0.2",
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "express": "^5.2.1",

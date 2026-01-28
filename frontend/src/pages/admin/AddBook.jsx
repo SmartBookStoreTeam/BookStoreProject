@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { addBook } from "../../api/adminApi";
 import { getCategories } from "../../api/categoriesApi";
+import imageCompression from "browser-image-compression";
 import { BookOpenIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 const AddBook = () => {
@@ -42,8 +43,19 @@ const AddBook = () => {
 
       bookData.append("price", parseFloat(data.get("price") || 0));
 
-      if (data.get("image")?.size > 0)
-        bookData.append("image", data.get("image"));
+      if (data.get("image")?.size > 0) {
+        const imageFile = data.get("image");
+
+        const options = {
+          maxSizeMB: 1, // أقصى حجم 1MB
+          maxWidthOrHeight: 1600, // يقلل الأبعاد
+          useWebWorker: true,
+        };
+
+        const compressedImage = await imageCompression(imageFile, options);
+
+        bookData.append("image", compressedImage, compressedImage.name);
+      }
 
       if (data.get("pdf")?.size > 0) bookData.append("pdf", data.get("pdf"));
 
