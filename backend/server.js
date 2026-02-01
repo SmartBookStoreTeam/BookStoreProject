@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cors from "cors";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
+import { stripeWebhook } from "./controllers/paymentController.js";
 
 // Swagger
 import swaggerUi from "swagger-ui-express";
@@ -20,6 +21,7 @@ import adminCategoryRoutes from "./routes/adminCategoryRoutes.js";
 import previewRoutes from "./routes/previewRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -27,8 +29,19 @@ connectDB();
 const app = express();
 
 // JSON parser
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      // خزّن raw body فقط للـ webhook
+      if (req.originalUrl === "/api/payments/webhook") {
+        req.rawBody = buf;
+      }
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
+
+app.post("/api/payments/webhook", stripeWebhook);
 
 // CORS setup
 const allowedOrigins = [
@@ -37,7 +50,7 @@ const allowedOrigins = [
   "http://192.168.1.19:5173", // dev frontend
   // ضع هنا دومين الـ production بعد الرفع
   "https://d1r1pvso22xiyd.cloudfront.net",
-  "http://d1r1pvso22xiyd.cloudfront.net"
+  "http://d1r1pvso22xiyd.cloudfront.net",
 ];
 
 app.use(
@@ -52,9 +65,9 @@ app.use(
     //   }
     // },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ PATCH 
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ PATCH
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 // Test route
@@ -77,6 +90,7 @@ app.use("/api", downloadRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api", previewRoutes);
+app.use("/api/payments", paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 
