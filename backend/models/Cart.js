@@ -18,7 +18,7 @@ const cartItemSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const cartSchema = new mongoose.Schema(
@@ -28,18 +28,14 @@ const cartSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true,
-      index: true,
     },
     items: {
       type: [cartItemSchema],
       default: [],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
-// Index for faster queries
-cartSchema.index({ user: 1 });
 
 const Cart = mongoose.model("Cart", cartSchema);
 export default Cart;

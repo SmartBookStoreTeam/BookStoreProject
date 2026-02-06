@@ -73,10 +73,10 @@ export const verifyEmail = async (req, res, next) => {
     user.verificationCodeExpires = undefined;
 
     await user.save();
+    generateToken(res, user._id);
 
     res.json({
       message: "Email verified successfully",
-      token: generateToken(user._id),
       user: {
         _id: user._id,
         name: user.name,
@@ -123,6 +123,7 @@ export const loginUser = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
+    generateToken(res, user._id);
     res.json({
       message: "Login successful",
       user: {
@@ -132,7 +133,6 @@ export const loginUser = async (req, res, next) => {
         role: user.role,
         avatar: user.avatar,
       },
-      token: generateToken(user._id),
     });
   } catch (error) {
     next(error);
@@ -172,7 +172,8 @@ export const googleAuth = async (req, res, next) => {
       });
     }
 
-    // Return user + token
+    generateToken(res, user._id);
+    // Return user
     res.json({
       message: "Google authentication successful",
       user: {
@@ -182,7 +183,6 @@ export const googleAuth = async (req, res, next) => {
         role: user.role,
         avatar: user.avatar,
       },
-      token: generateToken(user._id),
     });
   } catch (error) {
     next(error);
@@ -253,8 +253,28 @@ export const getMe = async (req, res) => {
 export const deleteMe = async (req, res, next) => {
   try {
     await User.findByIdAndDelete(req.user.id);
+
+    res.cookie("jwt", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      expires: new Date(0),
+    });
+
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     next(error);
   }
+};
+
+// POST /api/auth/logout
+export const logoutUser = (req, res) => {
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    expires: new Date(0),
+  });
+
+  res.json({ message: "Logged out successfully" });
 };
