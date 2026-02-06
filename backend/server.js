@@ -78,6 +78,10 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("ok");
+});
+
 // Swagger route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
