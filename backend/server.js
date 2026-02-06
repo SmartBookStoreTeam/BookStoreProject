@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import { stripeWebhook } from "./controllers/paymentController.js";
 
@@ -39,6 +40,7 @@ app.use(
     },
   }),
 );
+
 app.use(express.urlencoded({ extended: true }));
 
 app.post("/api/payments/webhook", stripeWebhook);
@@ -53,6 +55,7 @@ const allowedOrigins = [
   "http://d1r1pvso22xiyd.cloudfront.net",
 ];
 
+app.use(cookieParser());
 app.use(
   cors({
     origin: true,
