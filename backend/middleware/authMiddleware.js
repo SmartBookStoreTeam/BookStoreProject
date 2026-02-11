@@ -2,24 +2,27 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
-  let token;
+  try {
+    // لو cookie-parser مش متثبت/متفعل هتبقى undefined
+    const token = req.cookies?.jwt;
 
-  if (req.headers.authorization?.startsWith("Bearer")) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      req.user = await User.findById(decoded.id).select("-password");
-
-      return next();
-    } catch (error) {
-      return res.status(401).json({ message: "Not authorized" });
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized, token missing" });
     }
-  }
 
-  if (!token) {
-    return res.status(401).json({ message: "No token, authorization denied" });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.userId).select("-password");
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "Not authorized, user not found" });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: "Not authorized, token invalid" });
   }
 };
 
@@ -28,4 +31,3 @@ export const admin = (req, res, next) => {
   if (req.user?.role === "admin") return next();
   return res.status(403).json({ message: "Admin access only" });
 };
-
