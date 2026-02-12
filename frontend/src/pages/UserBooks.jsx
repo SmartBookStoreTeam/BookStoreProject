@@ -51,7 +51,7 @@ const UserBooks = () => {
         <div className="w-full max-w-337.5 mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
-              {t("Community Books")}
+              {t("our Community")}
             </h1>
             <span className="text-gray-600 dark:text-gray-400">
               {userBooks.length} {t("books listed")}

@@ -54,6 +54,6 @@ export const navLinks = [
  { label: "Home", to: "/", icon: "Home" },
  { label: "Explore", to: "/explore", icon: "Compass" },
  { label: "Shop", to: "/shop", icon: "Store" },
- { label: "Community Books", to: "/user-books", icon: "Users" },
+ { label: "Community", to: "/about", icon: "Users" },
  { label: "Publish Your Book", to: "/publish", icon: "Upload" }
 ];

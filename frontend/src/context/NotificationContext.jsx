@@ -24,8 +24,9 @@ export const NotificationProvider = ({ children }) => {
 
   // Storage keys for persistence
   const getStorageKey = (userId, key) => `notifications_${userId}_${key}`;
-  const getDeletedNotificationsKey = (userId) => getStorageKey(userId, 'deleted');
-  const getReadNotificationsKey = (userId) => getStorageKey(userId, 'read');
+  const getDeletedNotificationsKey = (userId) =>
+    getStorageKey(userId, "deleted");
+  const getReadNotificationsKey = (userId) => getStorageKey(userId, "read");
 
   // Get deleted notifications from localStorage
   const getDeletedNotifications = (userId) => {
@@ -50,18 +51,24 @@ export const NotificationProvider = ({ children }) => {
   // Save deleted notifications to localStorage
   const saveDeletedNotifications = (userId, deletedIds) => {
     try {
-      localStorage.setItem(getDeletedNotificationsKey(userId), JSON.stringify(deletedIds));
+      localStorage.setItem(
+        getDeletedNotificationsKey(userId),
+        JSON.stringify(deletedIds),
+      );
     } catch (error) {
-      console.warn('Failed to save deleted notifications:', error);
+      console.warn("Failed to save deleted notifications:", error);
     }
   };
 
   // Save read notifications to localStorage
   const saveReadNotifications = (userId, readIds) => {
     try {
-      localStorage.setItem(getReadNotificationsKey(userId), JSON.stringify(readIds));
+      localStorage.setItem(
+        getReadNotificationsKey(userId),
+        JSON.stringify(readIds),
+      );
     } catch (error) {
-      console.warn('Failed to save read notifications:', error);
+      console.warn("Failed to save read notifications:", error);
     }
   };
 
@@ -179,10 +186,13 @@ export const NotificationProvider = ({ children }) => {
       // Filter out deleted notifications and mark read ones
       setNotifications((prev) => {
         return prev
-          .filter(notification => !deletedNotifications.includes(notification.id))
-          .map(notification => ({
+          .filter(
+            (notification) => !deletedNotifications.includes(notification.id),
+          )
+          .map((notification) => ({
             ...notification,
-            read: notification.read || readNotifications.includes(notification.id)
+            read:
+              notification.read || readNotifications.includes(notification.id),
           }));
       });
     } else {
@@ -194,7 +204,7 @@ export const NotificationProvider = ({ children }) => {
         clearInterval(pollingIntervalRef.current);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Poll for approved orders every 30 seconds
@@ -249,9 +259,11 @@ export const NotificationProvider = ({ children }) => {
 
     // Save all current notifications as read in localStorage
     if (user) {
-      const currentNotificationIds = notifications.map(n => n.id);
+      const currentNotificationIds = notifications.map((n) => n.id);
       const readNotifications = getReadNotifications(user._id);
-      const updatedRead = [...new Set([...readNotifications, ...currentNotificationIds])];
+      const updatedRead = [
+        ...new Set([...readNotifications, ...currentNotificationIds]),
+      ];
       saveReadNotifications(user._id, updatedRead);
     }
   };
