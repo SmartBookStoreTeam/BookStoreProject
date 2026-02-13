@@ -1,5 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { createContext, useContext, useState } from "react";
 import api from "../api/api";
+import * as authApi from "../api/authApi";
 
 const AuthContext = createContext();
 
@@ -101,12 +103,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /* ---------- update user ---------- */
+  const updateUser = async (name, email) => {
+    try {
+      const response = await authApi.updateProfile({ name, email });
+      if (response.user) {
+        setUser(response.user);
+        localStorage.setItem("user", JSON.stringify(response.user));
+      }
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || "Update failed",
+      };
+    }
+  };
+
   /* ---------- logout ---------- */
-  const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setUser(null);
-    setToken(null);
+  const logout = async () => {
+    try {
+      // Call backend to clear cookie
+      await authApi.logout();
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      // Always clear frontend state
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      setUser(null);
+      setToken(null);
+    }
   };
 
   return (
@@ -119,6 +146,7 @@ export const AuthProvider = ({ children }) => {
         register,
         googleLogin,
         verifyEmail,
+        updateUser,
       }}
     >
       {children}
@@ -127,4 +155,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 /* ---------- hook ---------- */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

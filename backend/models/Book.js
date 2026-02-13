@@ -101,6 +101,8 @@ const bookSchema = new mongoose.Schema(
       pages: Number,
       mime: String,
     },
+    s3Folder: { type: String, index: true, default: null },
+    aiMetaKey: { type: String, default: null },
     // ⭐ rating الاحترافي: Avg + Count
     ratingAvg: {
       type: Number,

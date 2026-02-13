@@ -18,7 +18,8 @@ export const getMyLibrary = async (req, res, next) => {
     })
       .populate({
         path: "book",
-        select: "title author price image pdf description category ratingAvg ratingCount sales isActive",
+        select:
+          "title author price image pdf description category ratingAvg ratingCount sales isActive",
       })
       .sort({ purchasedAt: -1 });
 
@@ -29,7 +30,7 @@ export const getMyLibrary = async (req, res, next) => {
         _id: item.book._id,
         title: item.book.title,
         author: item.book.author,
-        price: item.book.priceSnapshot || item.book.price,
+        price: item.book.price,
         image: item.book.image,
         img: item.book.image,
         images: item.book.image ? [item.book.image] : [],

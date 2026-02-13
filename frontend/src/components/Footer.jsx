@@ -72,7 +72,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start">
                 <span className="min-w-20">{t("Address")}:</span>
-                <span dir="ltr">MMEC, Mullana - 133207</span>
+                <span dir="ltr">FCI-ZU, Zagazig University</span>
               </li>
             </ul>
           </div>

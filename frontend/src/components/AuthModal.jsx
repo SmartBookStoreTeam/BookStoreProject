@@ -7,7 +7,7 @@ const AuthModal = ({ isOpen, onClose, title, icon }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const handleLoginClick = () => {
-    navigate("/user-login", { state: { from: location } });
+    navigate("/login", { state: { from: location } });
   };
   const handleSignupClick = () => {
     navigate("/register", { state: { from: location } });
@@ -31,7 +31,9 @@ const AuthModal = ({ isOpen, onClose, title, icon }) => {
             {t("Authentication Required")}
           </h2>
 
-          <p className="touch-area text-gray-600 dark:text-gray-300 mb-8">{t(title)}</p>
+          <p className="touch-area text-gray-600 dark:text-gray-300 mb-8">
+            {t(title)}
+          </p>
 
           <div className="flex flex-col gap-3">
             <button

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import {X} from "lucide-react"
+import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const VerifyEmail = () => {
@@ -44,8 +44,12 @@ const VerifyEmail = () => {
         className="bg-white dark:bg-zinc-800 p-8 rounded-xl shadow-lg w-full max-w-sm"
       >
         <div className="flex justify-end mb-4">
-          <button className="touch-area text-sm text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-gray-100/10 p-1 rounded-full transition-colors cursor-pointer" type="button" onClick={() => navigate("/register")}>
-            <X/>
+          <button
+            className="touch-area text-sm text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-gray-100/10 p-1 rounded-full transition-colors cursor-pointer"
+            type="button"
+            onClick={() => navigate("/register")}
+          >
+            <X />
           </button>
         </div>
         <h2
@@ -79,7 +83,7 @@ const VerifyEmail = () => {
         />
 
         <button
-        dir="auto"
+          dir="auto"
           type="submit"
           disabled={loading}
           className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"

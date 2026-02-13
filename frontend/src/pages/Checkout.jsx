@@ -11,7 +11,7 @@ import AuthModal from "../components/AuthModal";
 import { ArrowLeft, Loader, ShoppingCart } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { createOrder } from "../api/ordersApi";
+import { createCheckoutSession } from "../api/paymentApi";
 
 const Checkout = () => {
   const { t, i18n } = useTranslation();
@@ -90,62 +90,20 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Calculate totals
-      const subtotal = currentBooks.reduce((sum, book) => {
-        const price =
-          typeof book.price === "number"
-            ? book.price
-            : parseFloat(book.price || 0);
-        return sum + price; // Quantity is always 1 for digital products
-      }, 0);
+      // Prepare items for Stripe checkout (simplified format)
+      const items = currentBooks.map((book) => ({
+        bookId: book._id || book.id,
+        quantity: 1, // Always 1 for digital books
+      }));
 
-      // Prepare order data
-      const orderData = {
-        items: currentBooks.map((book) => ({
-          book: book._id || book.id, // Ensure real ID
-          titleSnapshot: book.title,
-          priceSnapshot:
-            typeof book.price === "number"
-              ? book.price
-              : parseFloat(book.price || 0),
-          quantity: 1,
-        })),
-        subtotal: subtotal,
-        total: subtotal, // Add tax logic here if needed
-        currency: "egp", // or dynamic currency
-        paymentMethod: selectedMethod,
-      };
+      // Call Stripe checkout API
+      const response = await createCheckoutSession(items);
 
-      // Call API
-      const response = await createOrder(orderData);
-
-      if (response.success) {
-        // Navigate to success page with books and customer info
-        navigate("/checkout/success", {
-          state: {
-            books: currentBooks,
-            customerInfo,
-            paymentMethod: selectedMethod,
-            orderId: response.data._id,
-          },
-        });
-
-        toast.success(t("Payment successful!"), {
-          duration: 5000,
-          style: {
-            background: "#333",
-            color: "#fff",
-            direction: i18n.dir(),
-            width: "fit-content",
-            maxWidth: "90vw",
-            minWidth: "200px",
-            padding: "12px 16px",
-            textAlign: "center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          },
-        });
+      if (response.success && response.data?.url) {
+        // Redirect to Stripe checkout page
+        window.location.href = response.data.url;
+      } else {
+        throw new Error("Failed to create checkout session");
       }
     } catch (error) {
       console.error("Checkout error:", error);
