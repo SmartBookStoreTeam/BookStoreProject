@@ -8,6 +8,7 @@ import Publish from "./pages/Publish";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import NotFound from "./pages/NotFound";
 import UserBooks from "./pages/UserBooks";
 import BookDetailsPage from "./pages/BookDetails";
@@ -33,12 +34,12 @@ import { NotificationProvider } from "./context/NotificationContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import Register from "./pages/Register";
-import AdminLogin from "./pages/AdminLogin";
 import UserLogin from "./pages/UserLogin";
 import PdfViewer from "./pages/PdfViewer";
 import { useTheme } from "./hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import VerifyEmail from "./pages/VerifyEmail";
+import AboutUs from "./pages/AboutUs";
 
 function App() {
   useScrollToTop();
@@ -58,59 +59,64 @@ function App() {
           <LoadingProvider>
             <NotificationProvider>
               <Toaster position="top-center" />
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="explore" element={<Explore />} />
-                <Route path="shop" element={<Shop />} />
-                <Route path="book/:id" element={<BookDetailsPage />} />
-                <Route path="publish" element={<Publish />} />
-                <Route path="cart" element={<Cart />} />
-                <Route path="checkout" element={<Checkout />} />
-                <Route path="checkout/success" element={<CheckoutSuccess />} />
-                <Route path="user-books" element={<UserBooks />} />
-                <Route path="author/:name" element={<AuthorProfile />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Home />} />
+                  <Route path="explore" element={<Explore />} />
+                  <Route path="shop" element={<Shop />} />
+                  <Route path="book/:id" element={<BookDetailsPage />} />
+                  <Route path="publish" element={<Publish />} />
+                  <Route path="cart" element={<Cart />} />
+                  <Route path="checkout" element={<Checkout />} />
+                  <Route
+                    path="checkout/success"
+                    element={<CheckoutSuccess />}
+                  />
+                  <Route path="payment/success" element={<CheckoutSuccess />} />
+                  <Route path="payment/cancel" element={<PaymentCancel />} />
+                  <Route path="user-books" element={<UserBooks />} />
+                  <Route path="author/:name" element={<AuthorProfile />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="community" element={<AboutUs />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
 
-              {/* PDF Viewer - Full Screen (Outside Layout) */}
-              <Route
-                path="pdf-viewer/:bookId"
-                element={
-                  <UserProtectedRoute>
-                    <PdfViewer />
-                  </UserProtectedRoute>
-                }
-              />
+                {/* PDF Viewer - Full Screen (Outside Layout) */}
+                <Route
+                  path="pdf-viewer/:bookId"
+                  element={
+                    <UserProtectedRoute>
+                      <PdfViewer />
+                    </UserProtectedRoute>
+                  }
+                />
 
-              {/* Auth Routes */}
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<AdminLogin />} />
-              <Route path="/user-login" element={<UserLogin />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
+                {/* Auth Routes */}
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<UserLogin />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
 
-              {/* Admin Routes - Protected */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="books" element={<AdminBooks />} />
-                <Route path="books/add" element={<AddBook />} />
-                <Route path="books/edit/:id" element={<EditBook />} />
-                <Route path="orders" element={<AdminOrders />} />
-                <Route path="customers" element={<AdminCustomers />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="books/:id" element={<AdminBookDetails />} />
-              </Route>
-            </Routes>
+                {/* Admin Routes - Protected */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="books" element={<AdminBooks />} />
+                  <Route path="books/add" element={<AddBook />} />
+                  <Route path="books/edit/:id" element={<EditBook />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="customers" element={<AdminCustomers />} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="books/:id" element={<AdminBookDetails />} />
+                </Route>
+              </Routes>
             </NotificationProvider>
           </LoadingProvider>
         </NavigationProvider>
