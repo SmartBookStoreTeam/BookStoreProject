@@ -3,6 +3,7 @@ import { BookHeart, Users, Target, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
+import Team from "../components/Team";
 
 const AboutUs = () => {
   const { t, i18n } = useTranslation();
@@ -213,6 +214,9 @@ const AboutUs = () => {
             </Link>
           </div>
         </div>
+
+        {/* Team Section */}
+        <Team />
       </div>
     </div>
   );
