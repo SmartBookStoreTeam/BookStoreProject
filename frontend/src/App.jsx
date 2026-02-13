@@ -78,7 +78,7 @@ function App() {
                   <Route path="user-books" element={<UserBooks />} />
                   <Route path="author/:name" element={<AuthorProfile />} />
                   <Route path="profile" element={<Profile />} />
-                  <Route path="about" element={<AboutUs />} />
+                  <Route path="community" element={<AboutUs />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
 
