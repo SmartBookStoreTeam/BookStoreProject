@@ -17,6 +17,7 @@ import {
   X,
   ArrowLeft,
   Download,
+  BadgeCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -24,7 +25,7 @@ import { getImageSrc } from "../utils/imageUtils";
 import UserAvatar from "../components/UserAvatar";
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { userBooks, removeUserBook, cartItems, purchasedBooks } = useCart();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -35,6 +36,7 @@ const Profile = () => {
   });
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -102,18 +104,46 @@ const Profile = () => {
     },
   ];
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-    // Implement API call to update user info
-    toast.success(t("Profile updated successfully!"), {
-      duration: 1500,
-      style: {
-        background: "#333",
-        color: "#fff",
-        direction: i18n.dir(),
-      },
-    });
-    setShowEditModal(false);
+    setLoading(true);
+
+    try {
+      const result = await updateUser(editForm.name, editForm.email);
+
+      if (result.success) {
+        toast.success(t("Profile updated successfully!"), {
+          duration: 1500,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+        setShowEditModal(false);
+      } else {
+        toast.error(result.error || t("Failed to update profile"), {
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast.error(t("An error occurred"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -194,8 +224,11 @@ const Profile = () => {
 
             {/* User Info */}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center justify-center sm:justify-start gap-2">
                 {user.name}
+                {user.role === "admin" && (
+                  <BadgeCheck className="w-7 h-7 text-white fill-blue-500" />
+                )}
               </h1>
               <div className="flex flex-col sm:flex-row items-center gap-4 text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
@@ -538,7 +571,7 @@ const Profile = () => {
               </h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="touch-area text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
+                className="touch-area p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-600 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -589,9 +622,10 @@ const Profile = () => {
                 </button>
                 <button
                   type="submit"
-                  className="touch-area flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition-colors cursor-pointer"
+                  disabled={loading}
+                  className="touch-area flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white py-2 rounded-lg transition-colors cursor-pointer"
                 >
-                  {t("Save Changes")}
+                  {loading ? t("Saving...") : t("Save Changes")}
                 </button>
               </div>
             </form>

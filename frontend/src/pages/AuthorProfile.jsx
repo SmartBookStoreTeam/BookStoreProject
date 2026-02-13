@@ -1,7 +1,14 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCart } from "../hooks/useCart";
-import { ShoppingCart, Star, User, ArrowLeft, BookOpen } from "lucide-react";
+import {
+  ShoppingCart,
+  Star,
+  User,
+  ArrowLeft,
+  BookOpen,
+  CheckCircle,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -17,7 +24,7 @@ import { getImageSrc } from "../utils/imageUtils";
 const AuthorProfile = () => {
   const { name } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks } = useCart();
+  const { addToCart, userBooks, purchasedBooks } = useCart();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -62,7 +69,7 @@ const AuthorProfile = () => {
         );
 
         // Combine both sources
-        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];    
+        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];
 
         setAuthorBooks(combinedBooks);
       } catch (error) {
@@ -258,18 +265,34 @@ const AuthorProfile = () => {
                       >
                         {t("Details")}
                       </Link>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(book);
-                        }}
-                        className="flex-1 touch-area cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
-                      >
-                        <FaCartPlus className="w-4 h-4" />
-                        <span className="text-xs whitespace-nowrap">
-                          {t("Add to Cart")}
-                        </span>
-                      </button>
+
+                      {/* Check if book is already purchased */}
+                      {purchasedBooks?.some(
+                        (pb) => pb._id === book._id || pb.id === book.id,
+                      ) ? (
+                        <button
+                          disabled
+                          className="flex-1 touch-area bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-xs whitespace-nowrap">
+                            {t("Purchased")}
+                          </span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(book);
+                          }}
+                          className="flex-1 touch-area cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                        >
+                          <FaCartPlus className="w-4 h-4" />
+                          <span className="text-xs whitespace-nowrap">
+                            {t("Add to Cart")}
+                          </span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
