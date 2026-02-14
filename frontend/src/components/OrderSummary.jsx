@@ -104,16 +104,6 @@ const OrderSummary = ({ books, onRemoveBook }) => {
           </span>
         </div>
       </div>
-
-      {/* Important Note */}
-      <div className="mt-6 p-4 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl">
-        <p className="text-sm text-blue-900 dark:text-blue-200 text-balance flex items-start gap-2">
-          <span className="text-lg">📧</span>
-          <span>
-            {t("After payment, download links will be sent to your email")}
-          </span>
-        </p>
-      </div>
     </div>
   );
 };

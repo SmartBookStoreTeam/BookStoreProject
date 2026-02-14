@@ -1,15 +1,22 @@
 // Carousel.jsx
 import { Link } from "react-router-dom";
-import { Star, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Star,
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+} from "lucide-react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useCart } from "../hooks/useCart";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import AuthModal from "./AuthModal";
-import { FaCartPlus } from "react-icons/fa";
+import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Carousel = ({ books, carouselId = "default" }) => {
   // Check if mobile on initial render
@@ -39,10 +46,12 @@ const Carousel = ({ books, carouselId = "default" }) => {
   const touchEndX = useRef(0);
   const touchStartY = useRef(0);
 
-  const { addToCart, isBookPurchased } = useCart();
+  const { addToCart, cartItems, isBookPurchased } = useCart();
+
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isInView, setIsInView] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const updateBooksPerView = () => {
@@ -184,9 +193,25 @@ const Carousel = ({ books, carouselId = "default" }) => {
     );
   }, [currentIndex, carouselId]);
 
+  // Helper function to check if a specific book is in cart
+  const isBookInCart = (bookToCheck) => {
+    if (!bookToCheck || !cartItems) return false;
+    return cartItems.some(
+      (item) =>
+        String(item._id || item.id) ===
+        String(bookToCheck._id || bookToCheck.id),
+    );
+  };
+
   const handleAddToCart = (book) => {
     if (!user) {
       setShowAuthModal(true);
+      return;
+    }
+
+    // Check if this specific book is already in cart
+    if (isBookInCart(book)) {
+      navigate("/checkout", { state: { books: cartItems } });
       return;
     }
     addToCart(book);
@@ -493,10 +518,29 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         }}
                         className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
                       >
-                        <FaCartPlus className="w-4 h-4" />
-                        <span className="text-xs whitespace-nowrap">
-                          {t("Add to Cart")}
-                        </span>
+                        {isBookInCart(book) ? (
+                          <>
+                            <FaShoppingCart className="w-4 h-4" />
+                            <span className="text-xs whitespace-nowrap">
+                              {t("Go to Checkout")}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <FaCartPlus className="w-4 h-4" />
+                            <span className="text-xs whitespace-nowrap">
+                              {t("Add to Cart")}
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                    {isBookPurchased(book._id || book.id) && (
+                      <button
+                        disabled
+                        className="flex-1 touch-area bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                      >
+                        <CheckCircle className="w-4 h-4" />
                       </button>
                     )}
                   </div>
