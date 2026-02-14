@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Search, Filter, Star, Grid, List } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Search, Filter, Star, Grid, List, CheckCircle } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { getBooks, searchBooks } from "../api/booksApi";
 import { assets } from "../assets/assets";
@@ -9,7 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import Loading from "../components/Loading";
 import { useTranslation } from "react-i18next";
 import AuthModal from "../components/AuthModal";
-import { FaCartPlus } from "react-icons/fa";
+import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -107,7 +107,7 @@ const sortMap = {
 };
 
 const Shop = () => {
-  const { addToCart, userBooks, isBookPurchased } = useCart();
+  const { addToCart, userBooks, cartItems, isBookPurchased } = useCart();
   const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,6 +132,7 @@ const Shop = () => {
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { setIsLoading } = useGlobalLoading();
+  const navigate = useNavigate();
 
   // read search from URL once
   useEffect(() => {
@@ -226,6 +227,16 @@ const Shop = () => {
     userBooks.length,
   ]);
 
+  // Helper function to check if a specific book is in cart
+  const isBookInCart = (bookToCheck) => {
+    if (!bookToCheck || !cartItems) return false;
+    return cartItems.some(
+      (item) =>
+        String(item._id || item.id) ===
+        String(bookToCheck._id || bookToCheck.id),
+    );
+  };
+
   // shown list
   const storeBooks = apiBooks.length ? apiBooks : mockBooks;
 
@@ -289,6 +300,13 @@ const Shop = () => {
       setShowAuthModal(true);
       return;
     }
+
+    // Check if this specific book is already in cart
+    if (isBookInCart(book)) {
+      navigate("/checkout", { state: { books: cartItems } });
+      return;
+    }
+
     addToCart(book);
     toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
       duration: 1500,
@@ -631,8 +649,29 @@ const Shop = () => {
                           }}
                           className="touch-area flex-1 cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300"
                         >
-                          <FaCartPlus size={14} />
-                          <span className="text-xs">{t("Add to Cart")}</span>
+                          {isBookInCart(book) ? (
+                            <>
+                              <FaShoppingCart className="w-4 h-4" />
+                              <span className="text-xs whitespace-nowrap">
+                                {t("Go to Checkout")}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <FaCartPlus size={14} />
+                              <span className="text-xs">
+                                {t("Add to Cart")}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                      {isBookPurchased(book._id || book.id) && (
+                        <button
+                          disabled
+                          className="flex-1 touch-area bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                        >
+                          <CheckCircle className="w-4 h-4" />
                         </button>
                       )}
                     </div>

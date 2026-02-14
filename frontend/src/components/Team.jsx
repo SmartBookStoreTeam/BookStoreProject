@@ -59,7 +59,7 @@ export default function Team() {
               >
                 <div
                   key={index}
-                  className="group bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 dark:border-zinc-700 overflow-hidden relative cursor-pointer"
+                  className="touch-area group bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 dark:border-zinc-700 overflow-hidden relative cursor-pointer"
                 >
                   {/* Gradient background on hover */}
                   <div
@@ -86,12 +86,12 @@ export default function Team() {
                     </div>
 
                     {/* Name */}
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-                      {member.name}
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors duration-300">
+                     {member.name}
                     </h3>
 
                     {/* GitHub username with icon */}
-                    <div className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                    <div className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors duration-200">
                       {/* GitHub SVG Icon */}
                       <svg
                         className="w-5 h-5"

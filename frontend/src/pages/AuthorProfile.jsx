@@ -272,12 +272,9 @@ const AuthorProfile = () => {
                       ) ? (
                         <button
                           disabled
-                          className="flex-1 touch-area bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                          className="flex-1 touch-area bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
                         >
                           <CheckCircle className="w-4 h-4" />
-                          <span className="text-xs whitespace-nowrap">
-                            {t("Purchased")}
-                          </span>
                         </button>
                       ) : (
                         <button
