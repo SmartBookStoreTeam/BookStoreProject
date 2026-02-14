@@ -318,29 +318,32 @@ const Profile = () => {
                   >
                     {/* Book Image with Overlay */}
                     <div className="relative overflow-hidden">
-                      <div className="touch-area relative aspect-3/4 overflow-hidden">
+                      <Link
+                        to={`/book/${book._id || book.id}`}
+                        className="touch-area relative aspect-3/4 overflow-hidden block cursor-pointer group"
+                      >
                         <img
                           src={imageSrc}
                           alt={book.title}
-                          className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-50"
+                          className="w-full h-full object-cover brightness-50 transition-transform duration-300 group-hover:scale-110"
                         />
 
                         {/* Title and Author */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer z-10">
+                        <div className="absolute inset-0 flex flex-col justify-end p-4 cursor-pointer z-10 transition-all duration-300 group-hover:bg-black/20">
                           <h3
                             dir="auto"
-                            className="font-bold text-lg text-white line-clamp-2 mb-1 drop-shadow-md"
+                            className="font-bold text-lg text-white line-clamp-2 mb-1 drop-shadow-lg"
                           >
                             {book.title}
                           </h3>
                           <p
                             dir="auto"
-                            className="text-sm text-gray-200 drop-shadow-md"
+                            className="text-sm text-gray-200 drop-shadow-lg"
                           >
                             {book.author}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                     </div>
 
                     <div className="p-5 relative z-20">
@@ -354,15 +357,49 @@ const Profile = () => {
                           <Eye size={16} />
                           {t("View")}
                         </Link>
-                        <a
-                          dir={i18n.dir()}
-                          href={book.pdf || "#"}
-                          download
+                        <button
+                          onClick={async () => {
+                            try {
+                              const { downloadBook } =
+                                await import("../api/booksApi");
+                              const response = await downloadBook(
+                                book._id || book.id,
+                              );
+                              if (response.success && response.data?.url) {
+                                // Create a temporary link and trigger download
+                                const link = document.createElement("a");
+                                link.href = response.data.url;
+                                link.download = `${book.title}.pdf`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              } else {
+                                toast.error(t("Failed to download book"), {
+                                  duration: 2000,
+                                  style: {
+                                    background: "#333",
+                                    color: "#fff",
+                                    direction: i18n.dir(),
+                                  },
+                                });
+                              }
+                            } catch (error) {
+                              console.error("Download error:", error);
+                              toast.error(t("Failed to download book"), {
+                                duration: 2000,
+                                style: {
+                                  background: "#333",
+                                  color: "#fff",
+                                  direction: i18n.dir(),
+                                },
+                              });
+                            }
+                          }}
                           className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                           title={t("Download PDF")}
                         >
                           <Download className="" size={16} />
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>

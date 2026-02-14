@@ -236,3 +236,15 @@ export const getTopBooks = async (limit = 10) => {
     };
   }
 };
+
+// Download book PDF
+export const downloadBook = async (bookId) => {
+  try {
+    const res = await api.get(`/books/${bookId}/download`);
+    return res.data; // { success, data: { url, type } }
+  } catch (error) {
+    console.error("Error downloading book:", error);
+    throw error;
+  }
+};
+
