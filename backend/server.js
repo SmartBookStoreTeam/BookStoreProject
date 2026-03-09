@@ -47,12 +47,13 @@ app.post("/api/payments/webhook", stripeWebhook);
 
 // CORS setup
 const allowedOrigins = [
-  "http://localhost:5173", // dev frontend
-  "http://localhost:5174", // ممكن تستخدمه كمان
-  "http://192.168.1.19:5173", // dev frontend
-  // ضع هنا دومين الـ production بعد الرفع
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://192.168.1.19:5173",
   "https://d1r1pvso22xiyd.cloudfront.net",
   "http://d1r1pvso22xiyd.cloudfront.net",
+  "http://d3bwgf4wkm0gnh.cloudfront.net",
+  "https://d3bwgf4wkm0gnh.cloudfront.net", // ✅ new CloudFront
 ];
 
 app.use(cookieParser());
