@@ -29,40 +29,51 @@ connectDB();
 
 const app = express();
 
-// ✅ Stripe webhook must come FIRST before any body parsers
-app.post(
-  "/api/payments/webhook",
-  express.raw({ type: "application/json" }),
-  stripeWebhook,
+// JSON parser
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      // خزّن raw body فقط للـ webhook
+      if (req.originalUrl === "/api/payments/webhook") {
+        req.rawBody = buf;
+      }
+    },
+  }),
 );
 
-// ✅ Skip body parsers for multipart/form-data (multer handles those)
-app.use((req, res, next) => {
-  if (req.headers["content-type"]?.includes("multipart/form-data")) {
-    return next();
-  }
-  express.json()(req, res, next);
-});
+app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  if (req.headers["content-type"]?.includes("multipart/form-data")) {
-    return next();
-  }
-  express.urlencoded({ extended: true })(req, res, next);
-});
+app.post("/api/payments/webhook", stripeWebhook);
 
 // CORS setup
+const allowedOrigins = [
+  "http://localhost:5173", // dev frontend
+  "http://localhost:5174", // ممكن تستخدمه كمان
+  "http://192.168.1.19:5173", // dev frontend
+  // ضع هنا دومين الـ production بعد الرفع
+  "https://d1r1pvso22xiyd.cloudfront.net",
+  "http://d1r1pvso22xiyd.cloudfront.net",
+];
+
 app.use(cookieParser());
 app.use(
   cors({
     origin: true,
+    //   function (origin, callback) {
+    //   if (!origin) return callback(null, true);
+    //   if (allowedOrigins.includes(origin)) {
+    //     callback(null, true);
+    //   } else {
+    //     callback(new Error("Not allowed by CORS"));
+    //   }
+    // },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ PATCH
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
-// Test routes
+// Test route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
@@ -71,7 +82,7 @@ app.get("/health", (req, res) => {
   res.status(200).send("ok");
 });
 
-// Swagger
+// Swagger route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
