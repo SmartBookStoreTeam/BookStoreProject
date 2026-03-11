@@ -29,52 +29,40 @@ connectDB();
 
 const app = express();
 
-// JSON parser
-app.use(
-  express.json({
-    verify: (req, res, buf) => {
-      // خزّن raw body فقط للـ webhook
-      if (req.originalUrl === "/api/payments/webhook") {
-        req.rawBody = buf;
-      }
-    },
-  }),
+// ✅ Stripe webhook must come FIRST before any body parsers
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhook,
 );
 
-app.use(express.urlencoded({ extended: true }));
+// ✅ Skip body parsers for multipart/form-data (multer handles those)
+app.use((req, res, next) => {
+  if (req.headers["content-type"]?.includes("multipart/form-data")) {
+    return next();
+  }
+  express.json()(req, res, next);
+});
 
-app.post("/api/payments/webhook", stripeWebhook);
+app.use((req, res, next) => {
+  if (req.headers["content-type"]?.includes("multipart/form-data")) {
+    return next();
+  }
+  express.urlencoded({ extended: true })(req, res, next);
+});
 
 // CORS setup
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://192.168.1.19:5173",
-  "https://d1r1pvso22xiyd.cloudfront.net",
-  "http://d1r1pvso22xiyd.cloudfront.net",
-  "http://d3bwgf4wkm0gnh.cloudfront.net",
-  "https://d3bwgf4wkm0gnh.cloudfront.net", // ✅ new CloudFront
-];
-
 app.use(cookieParser());
 app.use(
   cors({
     origin: true,
-    //   function (origin, callback) {
-    //   if (!origin) return callback(null, true);
-    //   if (allowedOrigins.includes(origin)) {
-    //     callback(null, true);
-    //   } else {
-    //     callback(new Error("Not allowed by CORS"));
-    //   }
-    // },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ PATCH
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
-// Test route
+// Test routes
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
@@ -83,7 +71,7 @@ app.get("/health", (req, res) => {
   res.status(200).send("ok");
 });
 
-// Swagger route
+// Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
