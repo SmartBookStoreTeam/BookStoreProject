@@ -4,7 +4,6 @@ import connectDB from "./config/db.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
-import { stripeWebhook } from "./controllers/paymentController.js";
 
 // Swagger
 import swaggerUi from "swagger-ui-express";
@@ -29,51 +28,32 @@ connectDB();
 
 const app = express();
 
-// JSON parser
-app.use(
-  express.json({
-    verify: (req, res, buf) => {
-      // خزّن raw body فقط للـ webhook
-      if (req.originalUrl === "/api/payments/webhook") {
-        req.rawBody = buf;
-      }
-    },
-  }),
-);
-
+// ✅ Regular JSON parser — no raw body needed for Paymob
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.post("/api/payments/webhook", stripeWebhook);
 
 // CORS setup
 const allowedOrigins = [
-  "http://localhost:5173", // dev frontend
-  "http://localhost:5174", // ممكن تستخدمه كمان
-  "http://192.168.1.19:5173", // dev frontend
-  // ضع هنا دومين الـ production بعد الرفع
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://192.168.1.19:5173",
   "https://d1r1pvso22xiyd.cloudfront.net",
   "http://d1r1pvso22xiyd.cloudfront.net",
+  "http://d3bwgf4wkm0gnh.cloudfront.net",
+  "https://d3bwgf4wkm0gnh.cloudfront.net", // ✅ new CloudFront
 ];
 
 app.use(cookieParser());
 app.use(
   cors({
     origin: true,
-    //   function (origin, callback) {
-    //   if (!origin) return callback(null, true);
-    //   if (allowedOrigins.includes(origin)) {
-    //     callback(null, true);
-    //   } else {
-    //     callback(new Error("Not allowed by CORS"));
-    //   }
-    // },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ PATCH
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
-// Test route
+// Test routes
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
@@ -82,7 +62,7 @@ app.get("/health", (req, res) => {
   res.status(200).send("ok");
 });
 
-// Swagger route
+// Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
@@ -99,13 +79,11 @@ app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api", previewRoutes);
 app.use("/api/payments", paymentRoutes);
 
-const PORT = process.env.PORT || 5000;
-
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
