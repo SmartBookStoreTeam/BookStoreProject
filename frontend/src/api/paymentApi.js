@@ -1,9 +1,9 @@
 import api from "./api";
 
 /**
- * Create Stripe checkout session
+ * Create Paymob checkout session
  * @param {Array} items - Array of { bookId, quantity }
- * @returns {Promise} - { success: true, data: { orderId, url } }
+ * @returns {Promise} - { success: true, data: { orderId, iframeUrl } }
  */
 export const createCheckoutSession = async (items) => {
   const res = await api.post("/payments/checkout", { items });

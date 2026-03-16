@@ -101,11 +101,6 @@ const Footer = () => {
                 src={assets.meeza}
                 alt="Meeza"
               />
-              <img
-                className="w-9 h-8 object-contain rounded bg-white"
-                src={assets.cash}
-                alt="Vodafone Cash"
-              />
             </div>
 
             {/* Social Media (Optional) */}

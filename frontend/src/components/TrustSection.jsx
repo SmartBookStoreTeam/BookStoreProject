@@ -35,7 +35,7 @@ const TrustSection = () => {
               {t("Instant Delivery")}
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              {t("PDF via Email or PDF Viewer")}
+              {t("PDF via PDF Viewer or download PDF")}
             </p>
           </div>
         </div>
@@ -80,11 +80,6 @@ const TrustSection = () => {
             src={assets.meeza}
             alt="Meeza"
             className="w-11 h-8 object-contain rounded bg-white"
-          />
-          <img
-            src={assets.cash}
-            alt="Vodafone Cash"
-            className="w-9 h-8 object-contain rounded bg-white"
           />
         </div>
       </div>

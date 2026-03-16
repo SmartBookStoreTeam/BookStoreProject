@@ -191,7 +191,7 @@ const AuthorProfile = () => {
                       className="relative w-full block touch-area cursor-pointer group overflow-hidden rounded-2xl"
                     >
                       <motion.img
-                        className="w-full h-75 sm:h-62.5 lg:h-75 object-cover"
+                        className="w-full h-75 sm:h-62.5 lg:h-75 object-contain rounded-2xl bg-white dark:bg-zinc-800"
                         src={bookImage}
                         alt={book.title}
                         whileHover={{ scale: 1.1 }}
