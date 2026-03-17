@@ -4,7 +4,6 @@ import connectDB from "./config/db.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
-import { stripeWebhook } from "./controllers/paymentController.js";
 
 // Swagger
 import swaggerUi from "swagger-ui-express";
@@ -29,27 +28,9 @@ connectDB();
 
 const app = express();
 
-// ✅ Stripe webhook must come FIRST before any body parsers
-app.post(
-  "/api/payments/webhook",
-  express.raw({ type: "application/json" }),
-  stripeWebhook,
-);
-
-// ✅ Skip body parsers for multipart/form-data (multer handles those)
-app.use((req, res, next) => {
-  if (req.headers["content-type"]?.includes("multipart/form-data")) {
-    return next();
-  }
-  express.json()(req, res, next);
-});
-
-app.use((req, res, next) => {
-  if (req.headers["content-type"]?.includes("multipart/form-data")) {
-    return next();
-  }
-  express.urlencoded({ extended: true })(req, res, next);
-});
+// ✅ Regular JSON parser — no raw body needed for Paymob
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // CORS setup
 const allowedOrigins = [
@@ -65,14 +46,7 @@ const allowedOrigins = [
 app.use(cookieParser());
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -105,13 +79,11 @@ app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api", previewRoutes);
 app.use("/api/payments", paymentRoutes);
 
-const PORT = process.env.PORT || 5000;
-
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

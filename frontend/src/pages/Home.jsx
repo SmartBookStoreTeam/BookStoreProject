@@ -1,7 +1,7 @@
 import SellerBooks from "../components/SellerBooks";
 import FavoriteBooks from "../components/FavoriteBooks";
 import Landing from "../components/Landing";
-import NationalBook from "../components/NationalBook";
+import DiscountOffer from "../components/DiscountOffer";
 import Releases from "../components/Releases";
 import { useTranslation } from "react-i18next";
 import { ChevronUp, ChevronDown } from "lucide-react";
@@ -129,7 +129,7 @@ const Home = () => {
         </div>
         <SellerBooks />
         <FavoriteBooks />
-        <NationalBook />
+        <DiscountOffer />
         {/* <UserBooks /> */}
         <Releases />
       </div>

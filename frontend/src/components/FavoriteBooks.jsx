@@ -92,13 +92,7 @@ const FavoriteBooks = () => {
                 </div>
               </div>
             </div>
-
-            <Link
-              to={"/explore"}
-              className="touch-area inline-block bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 cursor-pointer text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg dark:shadow-indigo-900/50 hover:shadow-xl"
-            >
-              {t("Explore Now")}
-            </Link>
+          <Link to="/explore" className="touch-area bg-indigo-500 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-500 cursor-pointer text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg dark:shadow-indigo-900/50 hover:shadow-xl">{t("Explore Now")}</Link>
           </div>
         </div>
       </div>

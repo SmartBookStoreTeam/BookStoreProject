@@ -17,6 +17,7 @@ import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { getMyOrders } from "../api/ordersApi";
 
 const Carousel = ({ books, carouselId = "default" }) => {
   // Check if mobile on initial render
@@ -52,6 +53,25 @@ const Carousel = ({ books, carouselId = "default" }) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isInView, setIsInView] = useState(false);
   const navigate = useNavigate();
+
+  const [isFirstOrder, setIsFirstOrder] = useState(false);
+
+  useEffect(() => {
+    const checkFirstOrder = async () => {
+      if (user) {
+        try {
+          const res = await getMyOrders();
+          const hasOrders = Array.isArray(res?.data) && res.data.length > 0;
+          setIsFirstOrder(!hasOrders);
+        } catch {
+          setIsFirstOrder(false);
+        }
+      } else {
+        setIsFirstOrder(false);
+      }
+    };
+    checkFirstOrder();
+  }, [user]);
 
   useEffect(() => {
     const updateBooksPerView = () => {
@@ -420,9 +440,9 @@ const Carousel = ({ books, carouselId = "default" }) => {
                       }
                     }}
                   >
-                    <div className="relative w-full h-75 sm:h-62.5 lg:h-75 rounded-2xl overflow-hidden">
+                    <div className="relative w-full aspect-[5/4] rounded-lg overflow-hidden">
                       <motion.img
-                        className="w-full h-full object-cover rounded-2xl select-none"
+                        className="w-full h-full object-contain rounded-lg select-none"
                         src={
                           book.image ||
                           book.img ||
@@ -432,8 +452,8 @@ const Carousel = ({ books, carouselId = "default" }) => {
                         }
                         alt={book.desc || book.description || book.title}
                         draggable="false"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 1.1 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 1.05 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
                         onContextMenu={(e) => {
                           const isMobile =
@@ -443,12 +463,26 @@ const Carousel = ({ books, carouselId = "default" }) => {
                       />
                     </div>
                     {!isBookPurchased(book._id || book.id) && (
-                      <span
-                        dir={i18n.dir()}
-                        className="absolute text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 left-2 bottom-2 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none"
-                      >
-                        {book.price} {t("EGP")}
-                      </span>
+                      <div className="absolute left-2 bottom-2 z-30 pointer-events-none flex flex-col gap-1">
+                        {isFirstOrder && (
+                          <span className="bg-green-500 text-white font-bold rounded-[5px] px-2 py-0.5 text-xs shadow-sm self-start">
+                            -50%
+                          </span>
+                        )}
+                        <span
+                          dir={i18n.dir()}
+                          className="text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 self-start"
+                        >
+                          {isFirstOrder ? (
+                            <>
+                              <span className="line-through text-gray-400 text-[11px] mr-1">{book.price}</span>
+                              {(book.price * 0.5).toFixed(2)} {t("EGP")}
+                            </>
+                          ) : (
+                            <>{book.price} {t("EGP")}</>
+                          )}
+                        </span>
+                      </div>
                     )}
                   </Link>
                   {/* Book Info */}
