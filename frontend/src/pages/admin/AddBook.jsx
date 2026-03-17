@@ -53,8 +53,8 @@ const AddBook = () => {
         };
 
         const compressedImage = await imageCompression(imageFile, options);
-
-        bookData.append("image", compressedImage, compressedImage.name);
+        const compressedFile = new File([compressedImage], imageFile.name, { type: imageFile.type });
+        bookData.append("image", compressedFile, compressedFile.name);
       }
 
       if (data.get("pdf")?.size > 0) bookData.append("pdf", data.get("pdf"));

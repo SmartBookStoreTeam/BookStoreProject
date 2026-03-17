@@ -38,6 +38,8 @@ const allowedOrigins = [
   "http://192.168.1.19:5173",
   "https://d1r1pvso22xiyd.cloudfront.net",
   "http://d1r1pvso22xiyd.cloudfront.net",
+  "http://d3bwgf4wkm0gnh.cloudfront.net",
+  "https://d3bwgf4wkm0gnh.cloudfront.net", // ✅ new CloudFront
 ];
 
 app.use(cookieParser());

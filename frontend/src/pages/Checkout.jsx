@@ -162,11 +162,6 @@ const Checkout = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3 text-balance">
             {t("Complete Your Purchase")}
           </h1>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 text-balance max-w-2xl mx-auto">
-            {t(
-              "Download link will be sent to your email immediately after payment",
-            )}
-          </p>
         </div>
 
         {/* Main Content */}

@@ -70,10 +70,6 @@ const CustomerInfoForm = ({ customerInfo, setCustomerInfo }) => {
               <span>{t("Please enter a valid email address")}</span>
             </div>
           )}
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-            <span>📧</span>
-            <span>{t("Download link will be sent to this email")}</span>
-          </p>
         </div>
 
         {/* Name Field*/}
