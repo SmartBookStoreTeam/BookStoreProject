@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Bell,
 } from "lucide-react";
+import { FaMoon } from "react-icons/fa";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -24,6 +25,7 @@ import { useGlobalLoading } from "../context/LoadingContext";
 import { useNotifications } from "../context/NotificationContext";
 
 import UserAvatar from "../components/UserAvatar";
+import { getIslamicOccasion } from "../utils/islamicOccasion";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
@@ -31,6 +33,32 @@ const Header = () => {
   const { requestNavigation } = useNavigation();
   const { isLoading } = useGlobalLoading();
   const [isPulsing, setIsPulsing] = useState(false);
+  const [egyptTime, setEgyptTime] = useState("");
+
+  // Update Egypt Time
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const options = {
+        timeZone: "Africa/Cairo",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      };
+      setEgyptTime(
+        new Intl.DateTimeFormat(
+          i18n.language === "ar" ? "ar-EG" : "en-US",
+          options,
+        ).format(now),
+      );
+    };
+
+    updateTime(); // Initial call
+    const timer = setInterval(updateTime, 1000); // Update every second
+
+    return () => clearInterval(timer);
+  }, [i18n.language]);
 
   // Pulsing effect when loading takes too long
   useEffect(() => {
@@ -176,23 +204,72 @@ const Header = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const occasion = getIslamicOccasion();
+
   return (
-    <header className="fixed top-0 left-0 w-full bg-zinc-200 dark:bg-zinc-900 shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700">
-      <div className="w-full max-w-367.5 mx-auto px-4">
-        <div className="flex items-center justify-between py-4">
+    <header
+      className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700 transition-colors duration-300 bg-indigo-900/90 dark:bg-indigo-950/50 border-indigo-800 text-white`}
+    >
+        <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <pattern
+              id="pattern-triangles"
+              x="0"
+              y="0"
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M20 0 L40 40 L0 40 Z"
+                fill="currentColor"
+                opacity="0.6"
+              />
+              <path d="M0 0 L20 40 L40 0 Z" fill="currentColor" opacity="0.3" />
+            </pattern>
+            <rect
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="url(#pattern-triangles)"
+            />
+          </svg>
+        </div>
+      <div className="w-full max-w-367.5 mx-auto px-4 relative z-10">
+        <div className="flex items-center justify-between py-4 relative z-10">
           {/* Logo */}
           <Link
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/")}
-            className="touch-area flex items-center gap-3 text-gray-900 dark:text-indigo-200 text-2xl font-bold tracking-tight"
+            className={`touch-area relative flex items-center gap-3 text-2xl font-bold tracking-tight text-white`}
             onContextMenu={handleContextMenu}
           >
+            {/* Occasion Logo Decor */}
+            {occasion === "ramadan" && (
+              <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
+                {<FaMoon className="dark:text-gray-500" />}
+              </span>
+            )}
+            {(occasion === "eid_fitr" || occasion === "eid_adha") && (
+              <>
+              <span className="absolute -top-3.5 -left-3 text-[1.4rem] rotate-12 drop-shadow-sm pointer-events-none">
+                🎉
+              </span>
+               <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
+                {<FaMoon className="dark:text-gray-500" />}
+              </span>
+              </>
+            )}
             <span>Bookfly</span>
           </Link>
 
           {/* Desktop Links */}
           <nav className="hidden md:flex items-center gap-8">
-            <ul className="flex gap-4 md:gap-3 lg:gap-6 text-indigo-950 dark:text-zinc-200 font-medium">
+            <ul
+              className={`flex gap-4 md:gap-3 lg:gap-6 font-medium text-white/80`}
+            >
               {links.map(({ label, to, icon }) => (
                 <li key={to} className="relative">
                   <NavLink
@@ -200,13 +277,13 @@ const Header = () => {
                     onClick={(e) => handleSafeNavigation(e, to)}
                     className={({ isActive }) =>
                       `flex items-center gap-2 relative pb-1 after:absolute after:left-0 after:bottom-0 
-                  after:h-0.5 after:w-full after:bg-indigo-500 
+                  after:h-0.5 after:w-full after:bg-white 
                   after:transition-transform after:duration-300 after:scale-x-0 
                   hover:after:scale-x-100 after:origin-right hover:after:origin-left
                   ${
                     isActive
-                      ? "text-indigo-500 dark:text-indigo-400 font-semibold after:scale-x-100"
-                      : "hover:text-indigo-600 dark:hover:text-indigo-400"
+                      ? `text-white font-semibold after:scale-x-100`
+                      : "hover:text-indigo-400"
                   }`
                     }
                     onContextMenu={handleContextMenu}
@@ -221,6 +298,12 @@ const Header = () => {
 
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center gap-5 shrink-0">
+            {/* Egypt Time */}
+            <div
+              className={`hidden flex items-center gap-2 font-medium bg-zinc-300/50 dark:bg-zinc-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm ${occasion ? "text-white/90" : "text-indigo-950 dark:text-zinc-200"}`}
+            >
+              <span dir="ltr">{egyptTime}</span>
+            </div>
             {/* Notifications */}
             {user && (
               <div className="relative" ref={notificationsRef}>
@@ -232,11 +315,13 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className="relative p-2 rounded-full bg-zinc-300 dark:bg-zinc-700 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
+                  className={`relative p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 text-white hover:bg-white/30`}
                 >
                   <Bell size={24} />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                    <span
+                      className={`absolute -top-1 -right-1 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center bg-red-500`}
+                    >
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -353,10 +438,12 @@ const Header = () => {
             >
               <ShoppingCart
                 size={24}
-                className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
+                className={`transition cursor-pointer text-white hover:text-white/80`}
               />
               {getCartItemsCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                <span
+                  className={`absolute -top-2 -right-2 text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center bg-white text-indigo-900`}
+                >
                   {getCartItemsCount()}
                 </span>
               )}
@@ -369,8 +456,8 @@ const Header = () => {
             >
               <button
                 onClick={toggleSettings}
-                className={`p-2 rounded-full bg-zinc-300 dark:bg-zinc-700 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer ${
-                  openSettings ? "rotate-180 dark:text-indigo-400" : "rotate-0"
+                className={`p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 text-white hover:bg-white/30 ${
+                  openSettings ? "rotate-180" : "rotate-0"
                 }`}
               >
                 <Settings size={20} />
@@ -514,7 +601,7 @@ const Header = () => {
               <Link
                 to="/register"
                 onClick={(e) => handleSafeNavigation(e, "/register")}
-                className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+                className={`flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 transition ${occasion ? "text-white hover:text-white/80 focus:ring-white" : "text-indigo-950 dark:text-indigo-200 focus:ring-indigo-500 hover:text-indigo-500 dark:hover:text-indigo-400"}`}
                 onContextMenu={handleContextMenu}
               >
                 <User size={24} />
@@ -536,7 +623,7 @@ const Header = () => {
 
                 <button
                   onClick={toggleDropdown}
-                  className="flex items-center gap-3 text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
+                  className={`flex items-center gap-3 transition cursor-pointer text-white hover:text-white/80`}
                 >
                   {firstName}
                 </button>
@@ -586,11 +673,13 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className="touch-area relative p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
+                  className={`touch-area relative p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 text-white hover:bg-white/30 active:bg-white/40`}
                 >
                   <Bell size={24} />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                    <span
+                      className={`absolute -top-1 -right-1 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center bg-red-500`}
+                    >
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -706,7 +795,7 @@ const Header = () => {
             >
               <ShoppingCart
                 size={24}
-                className="text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
+                className="text-white/80 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
               />
               {getCartItemsCount() > 0 && (
                 <span className="absolute -top-2 -right-2 bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
@@ -719,7 +808,7 @@ const Header = () => {
             <button
               ref={menuRef}
               onClick={toggleMenu}
-              className="touch-area text-indigo-950 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition"
+              className={`touch-area transition text-white hover:text-white/80`}
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -742,6 +831,14 @@ const Header = () => {
           >
             <span>Bookfly</span>
           </Link>
+
+          {/* Mobile Egypt Time */}
+          <div className="hidden items-center justify-center gap-2 font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-200 px-4 py-2 rounded-lg mb-6">
+            <span dir="ltr" className="text-lg">
+              {egyptTime}
+            </span>
+            <span className="text-sm ml-1 opacity-70">{t("Cairo Time")}</span>
+          </div>
 
           <ul className="flex flex-col gap-4 text-indigo-950 dark:text-zinc-200 font-medium">
             {links.map(({ label, to, icon }) => (

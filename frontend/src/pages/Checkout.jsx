@@ -12,6 +12,7 @@ import { ArrowLeft, Loader, ShoppingCart } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { createCheckoutSession } from "../api/paymentApi";
+import { getMyOrders } from "../api/ordersApi";
 
 const Checkout = () => {
   const { t, i18n } = useTranslation();
@@ -35,6 +36,27 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isFirstOrder, setIsFirstOrder] = useState(false);
+
+  // Check if this is the user's first order
+  useEffect(() => {
+    const checkFirstOrder = async () => {
+      if (user) {
+        try {
+          const res = await getMyOrders();
+          // Filter to only count approved orders (or all orders depending on logic)
+          // We will count any order, or maybe just approved ones.
+          // Let's count all orders. If they have no orders, it's their first.
+          const hasOrders = Array.isArray(res?.data) && res.data.length > 0;
+          setIsFirstOrder(!hasOrders);
+        } catch (error) {
+          console.error("Failed to fetch user orders:", error);
+          setIsFirstOrder(false); // Default to no discount on error
+        }
+      }
+    };
+    checkFirstOrder();
+  }, [user]);
 
   // Redirect if no books - run only once
   useEffect(() => {
@@ -90,18 +112,17 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Prepare items for Stripe checkout (simplified format)
       const items = currentBooks.map((book) => ({
         bookId: book._id || book.id,
         quantity: 1, // Always 1 for digital books
       }));
 
-      // Call Stripe checkout API
+      // Call Paymob checkout API
       const response = await createCheckoutSession(items);
 
-      if (response.success && response.data?.url) {
-        // Redirect to Stripe checkout page
-        window.location.href = response.data.url;
+      if (response.success && response.data?.iframeUrl) {
+        // Redirect to Paymob iframe payment page
+        window.location.href = response.data.iframeUrl;
       } else {
         throw new Error("Failed to create checkout session");
       }
@@ -188,6 +209,7 @@ const Checkout = () => {
               <OrderSummary
                 books={currentBooks}
                 onRemoveBook={handleRemoveBook}
+                isFirstOrder={isFirstOrder}
               />
 
               {/* Checkout Button */}

@@ -14,6 +14,7 @@ import { useGlobalLoading } from "../context/LoadingContext";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { getImageSrc } from "../utils/imageUtils";
+import { getMyOrders } from "../api/ordersApi";
 
 // Mock data fallback
 const mockBooks = [
@@ -152,6 +153,25 @@ const Shop = () => {
     setIsLoading(loading);
     return () => setIsLoading(false);
   }, [loading, setIsLoading]);
+
+  const [isFirstOrder, setIsFirstOrder] = useState(false);
+
+  useEffect(() => {
+    const checkFirstOrder = async () => {
+      if (user) {
+        try {
+          const res = await getMyOrders();
+          const hasOrders = Array.isArray(res?.data) && res.data.length > 0;
+          setIsFirstOrder(!hasOrders);
+        } catch {
+          setIsFirstOrder(false);
+        }
+      } else {
+        setIsFirstOrder(false);
+      }
+    };
+    checkFirstOrder();
+  }, [user]);
 
   const getCategoryId = (book) =>
     typeof book.category === "string" ? book.category : book.category?._id;
@@ -537,8 +557,8 @@ const Shop = () => {
                     <div
                       className={
                         viewMode === "grid"
-                          ? "touch-area relative w-full h-75 rounded-2xl overflow-hidden"
-                          : "touch-area relative w-full h-40 rounded-2xl overflow-hidden"
+                          ? "touch-area relative w-full aspect-[5/4] rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800"
+                          : "touch-area relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-700"
                       }
                     >
                       <motion.img
@@ -555,7 +575,7 @@ const Shop = () => {
                               "/placeholder-book.jpg"
                         }
                         alt={book.title}
-                        className="w-full h-full object-cover rounded-2xl select-none"
+                        className={`w-full h-full ${viewMode === "grid" ? "object-contain" : "object-cover"} rounded-lg select-none`}
                         draggable="false"
                         whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
                         whileTap={{ scale: 1.05, filter: "brightness(1.1)" }}
@@ -569,12 +589,26 @@ const Shop = () => {
 
                       {/* Price */}
                       {!isBookPurchased(book._id || book.id) && (
-                        <span
-                          dir={i18n.dir()}
-                          className="absolute left-2 bottom-2 text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 z-30 pointer-events-none"
-                        >
-                          {book.price} {t("EGP")}
-                        </span>
+                        <div className="absolute left-2 bottom-2 z-30 pointer-events-none flex flex-col gap-1">
+                          {isFirstOrder && (
+                            <span className="bg-green-500 text-white font-bold rounded-[5px] px-2 py-0.5 text-xs shadow-sm self-start">
+                              -50%
+                            </span>
+                          )}
+                          <span
+                            dir={i18n.dir()}
+                            className="text-indigo-600 dark:text-indigo-300 font-bold rounded-[5px] bg-white dark:bg-zinc-900 px-2 py-0.5 text-sm shadow-sm dark:shadow-zinc-800 self-start"
+                          >
+                            {isFirstOrder ? (
+                              <>
+                                <span className="line-through text-gray-400 text-[11px] mr-1">{book.price}</span>
+                                {(book.price * 0.5).toFixed(2)} {t("EGP")}
+                              </>
+                            ) : (
+                              <>{book.price} {t("EGP")}</>
+                            )}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </Link>

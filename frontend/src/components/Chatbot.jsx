@@ -85,19 +85,25 @@ const Chatbot = () => {
 
   /* delay text appearance after button appears */
   useEffect(() => {
-    let textTimer;
+    let showTimer;
+    let hideTimer;
 
     if (showLabel) {
-      // Show text 1 second after button appears
-      textTimer = setTimeout(() => {
+      // Show text after button appears
+      showTimer = setTimeout(() => {
         setShowText(true);
+        // Hide it after 30 seconds
+        hideTimer = setTimeout(() => {
+          setShowText(false);
+        }, 10000);
       }, 500);
     } else {
       setShowText(false);
     }
 
     return () => {
-      if (textTimer) clearTimeout(textTimer);
+      if (showTimer) clearTimeout(showTimer);
+      if (hideTimer) clearTimeout(hideTimer);
     };
   }, [showLabel]);
 

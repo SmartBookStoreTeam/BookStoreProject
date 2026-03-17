@@ -2,15 +2,23 @@ import { useTranslation } from "react-i18next";
 import { ShoppingBag, X } from "lucide-react";
 import { getImageSrc } from "../utils/imageUtils";
 
-const OrderSummary = ({ books, onRemoveBook }) => {
+const OrderSummary = ({ books, onRemoveBook, isFirstOrder }) => {
   const { t, i18n } = useTranslation();
 
   if (!books || books.length === 0) {
     return null;
   }
 
-  // Calculate total
-  const total = books.reduce((sum, book) => sum + (book.price || 0), 0);
+  // Calculate total with 50% discount on the FIRST book if isFirstOrder is true
+  const subtotal = books.reduce((sum, book) => sum + (book.price || 0), 0);
+  let discount = 0;
+  
+  if (isFirstOrder && books.length > 0) {
+    // 50% off the first book in the array
+    discount = (books[0].price || 0) * 0.5;
+  }
+  
+  const total = subtotal - discount;
 
   return (
     <div
@@ -89,18 +97,30 @@ const OrderSummary = ({ books, onRemoveBook }) => {
       <div className="pt-4 border-t-2 border-gray-200 dark:border-zinc-700">
         <div className="flex justify-between items-center mb-3">
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            {t("Items")} ({books.length})
+            {t("Subtotal")} ({books.length} {t("Items")})
           </span>
-          <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {total} {t("EGP")}
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {subtotal.toFixed(2)} {t("EGP")}
           </span>
         </div>
-        <div className="flex justify-between items-center p-4 bg-linear-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl">
+
+        {isFirstOrder && discount > 0 && (
+          <div className="flex justify-between items-center mb-3 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
+            <span className="text-sm font-medium">
+              {t("First Order Discount (50% off 1 book)")}
+            </span>
+            <span className="text-sm font-bold">
+              -{discount.toFixed(2)} {t("EGP")}
+            </span>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center p-4 bg-linear-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl mt-2">
           <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {t("Total")}
           </span>
           <span className="text-2xl font-bold bg-linear-to-r from-indigo-600 to-blue-600 dark:from-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
-            {total} {t("EGP")}
+            {total.toFixed(2)} {t("EGP")}
           </span>
         </div>
       </div>

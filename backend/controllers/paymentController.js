@@ -1,22 +1,28 @@
-import Stripe from "stripe";
 import Order from "../models/Order.js";
 import Book from "../models/Book.js";
 import LibraryItem from "../models/LibraryItem.js";
 import dotenv from "dotenv";
+import {
+  getAuthToken,
+  registerPaymobOrder,
+  getPaymentKey,
+  PAYMOB_IFRAME_ID,
+} from "../config/paymob.js";
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
+/**
+ * POST /api/payments/checkout
+ * Creates an order in DB, registers it with Paymob, returns iframe URL
+ */
 export const createCheckoutSession = async (req, res, next) => {
   try {
     const { items } = req.body;
-    // items: [{ bookId, quantity }]
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Order items are required" });
     }
 
-    // 1) جِب الكتب من DB (ولا تعتمد على السعر من الفرونت)
+    // 1) Fetch books from DB — never trust prices from frontend
     const bookIds = items.map((i) => i.bookId);
     const books = await Book.find({
       _id: { $in: bookIds },
@@ -28,11 +34,10 @@ export const createCheckoutSession = async (req, res, next) => {
       return res.status(400).json({ message: "Some books are not available" });
     }
 
-    // 2) بناء Order snapshots + totals
+    // 2) Build order items + totals
     const orderItems = items.map((i) => {
       const book = books.find((b) => String(b._id) === String(i.bookId));
       const qty = Math.max(1, Number(i.quantity || 1));
-
       return {
         book: book._id,
         titleSnapshot: book.title,
@@ -45,9 +50,9 @@ export const createCheckoutSession = async (req, res, next) => {
       (acc, it) => acc + it.priceSnapshot * it.quantity,
       0,
     );
-    const total = subtotal; // لو عندك ضريبة/خصم ضيفهم هنا
+    const total = subtotal;
 
-    // 3) إنشاء Order عندك (requested) + paymentProvider stripe
+    // 3) Create order in DB with status "requested"
     const order = await Order.create({
       user: req.user._id,
       items: orderItems,
@@ -55,40 +60,63 @@ export const createCheckoutSession = async (req, res, next) => {
       subtotal,
       total,
       status: "requested",
-      paymentProvider: "stripe",
+      paymentProvider: "paymob",
     });
 
-    // 4) line_items لـ Stripe
-    const line_items = orderItems.map((it) => ({
+    // 4) Paymob Step 1 — get auth token
+    const authToken = await getAuthToken();
+
+    // 5) Paymob Step 2 — register order with Paymob
+    const amountCents = Math.round(total * 100);
+
+    const paymobItems = orderItems.map((it) => ({
+      name: it.titleSnapshot,
+      amount_cents: Math.round(it.priceSnapshot * 100),
+      description: it.titleSnapshot,
       quantity: it.quantity,
-      price_data: {
-        currency: "egp",
-        product_data: { name: it.titleSnapshot },
-        unit_amount: Math.round(it.priceSnapshot * 100),
-      },
     }));
 
-    // 5) إنشاء Checkout Session مع metadata فيها orderId
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items,
-      success_url: `${process.env.FRONTEND_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment/cancel?order_id=${order._id}`,
-      metadata: {
-        orderId: order._id.toString(),
-        userId: req.user._id.toString(),
-      },
+    const paymobOrder = await registerPaymobOrder(authToken, {
+      amountCents,
+      items: paymobItems,
     });
 
-    // 6) حفظ sessionId داخل order.stripe
-    order.stripe.checkoutSessionId = session.id;
+    // 6) Paymob Step 3 — get payment key
+    const user = req.user;
+    const billingData = {
+      first_name: user.name?.split(" ")[0] || "Guest",
+      last_name: user.name?.split(" ")[1] || "User",
+      email: user.email || "guest@example.com",
+      phone_number: user.phone || "01000000000",
+      apartment: "NA",
+      floor: "NA",
+      street: "NA",
+      building: "NA",
+      shipping_method: "NA",
+      postal_code: "NA",
+      city: "Cairo",
+      country: "EG",
+      state: "Cairo",
+    };
+
+    const paymentKey = await getPaymentKey(authToken, {
+      amountCents,
+      paymobOrderId: paymobOrder.id,
+      billingData,
+    });
+
+    // 7) Save Paymob order ID in our DB order
+    order.paymob.orderId = String(paymobOrder.id);
     await order.save();
+
+    // 8) Return iframe URL to frontend
+    const iframeUrl = `https://accept.paymob.com/api/acceptance/iframes/${PAYMOB_IFRAME_ID}?payment_token=${paymentKey}`;
 
     return res.status(200).json({
       success: true,
       data: {
         orderId: order._id,
-        url: session.url,
+        iframeUrl,
       },
     });
   } catch (err) {
@@ -97,84 +125,87 @@ export const createCheckoutSession = async (req, res, next) => {
 };
 
 /**
- * Stripe Webhook
- * POST /api/payments/webhook  (RAW BODY)
+ * POST /api/payments/webhook
+ * Paymob calls this after payment — verified by HMAC middleware
  */
-export const stripeWebhook = async (req, res) => {
+export const paymobWebhook = async (req, res) => {
   try {
-    const sig = req.headers["stripe-signature"];
-    const event = stripe.webhooks.constructEvent(
-      req.rawBody,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET,
-    );
+    // GET request sends data as query params, POST sends JSON body
+    const isGet = req.method === "GET";
 
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
+    const success = isGet
+      ? req.query.success === "true"
+      : req.body?.obj?.success === true;
+    const paymobOrderId = isGet
+      ? String(req.query.order)
+      : String(req.body?.obj?.order?.id);
+    const transactionId = isGet
+      ? String(req.query.id)
+      : String(req.body?.obj?.id);
 
-      const orderId = session.metadata?.orderId;
-      const userId = session.metadata?.userId;
+    console.log("📦 Webhook received:", {
+      method: req.method,
+      success,
+      paymobOrderId,
+      transactionId,
+    });
 
-      if (!orderId) return res.json({ received: true });
+    if (!success) return res.json({ received: true });
+    if (!paymobOrderId) return res.json({ received: true });
 
-      const order = await Order.findById(orderId);
-      if (!order) return res.json({ received: true });
-
-      // (اختياري) تأكد user مطابق
-      if (userId && String(order.user) !== String(userId)) {
-        console.log("⚠️ User mismatch for order:", orderId);
-        return res.json({ received: true });
-      }
-
-      if (order.status !== "approved") {
-        order.status = "approved";
-        order.approvedAt = new Date();
-        order.paymentProvider = "stripe";
-
-        order.stripe.checkoutSessionId =
-          session.id || order.stripe.checkoutSessionId;
-        order.stripe.paymentIntentId =
-          session.payment_intent || order.stripe.paymentIntentId;
-        order.stripe.customerId = session.customer || order.stripe.customerId;
-
-        await order.save();
-
-        // ✅ Add/activate Library items (required: order)
-        await Promise.all(
-          order.items.map((it) =>
-            LibraryItem.updateOne(
-              { user: order.user, book: it.book },
-              {
-                $set: {
-                  accessStatus: "active",
-                  order: order._id,
-                },
-                $setOnInsert: {
-                  purchasedAt: new Date(),
-                },
-              },
-              { upsert: true },
-            ),
-          ),
-        );
-
-        // ✅ (optional) update sales
-        await Promise.all(
-          order.items.map((it) =>
-            Book.updateOne({ _id: it.book }, { $inc: { sales: it.quantity } }),
-          ),
-        );
-      }
+    // Find our order by Paymob's order ID
+    const order = await Order.findOne({ "paymob.orderId": paymobOrderId });
+    if (!order) {
+      console.error("❌ Order not found for paymobOrderId:", paymobOrderId);
+      return res.json({ received: true });
     }
 
+    // Avoid processing the same webhook twice
+    if (order.status === "approved") return res.json({ received: true });
+
+    // Update order status
+    order.status = "approved";
+    order.approvedAt = new Date();
+    order.paymob.transactionId = transactionId;
+    await order.save();
+
+    // ✅ Add books to user's library
+    await Promise.all(
+      order.items.map((it) =>
+        LibraryItem.updateOne(
+          { user: order.user, book: it.book },
+          {
+            $set: {
+              accessStatus: "active",
+              order: order._id,
+            },
+            $setOnInsert: {
+              purchasedAt: new Date(),
+            },
+          },
+          { upsert: true },
+        ),
+      ),
+    );
+
+    // ✅ Update book sales count
+    await Promise.all(
+      order.items.map((it) =>
+        Book.updateOne({ _id: it.book }, { $inc: { sales: it.quantity } }),
+      ),
+    );
+
+    console.log("✅ Paymob payment approved for order:", order._id);
     return res.json({ received: true });
   } catch (err) {
-    console.error("❌ Webhook Error:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error("❌ Paymob Webhook Error:", err.message);
+    return res.status(400).json({ message: "Webhook processing failed" });
   }
 };
 
-// (اختياري) cancel endpoint من عندك
+/**
+ * POST /api/payments/cancel/:orderId
+ */
 export const cancelOrder = async (req, res, next) => {
   try {
     const { orderId } = req.params;

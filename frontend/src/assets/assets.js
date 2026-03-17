@@ -11,7 +11,7 @@ import book4 from "./book4.png";
 
 import groupBooks from "./book-group.jpg";
 
-import award from "./award.png";
+import offer from "./offer.png";
 
 import releaseBook1 from "./newReleases1.jpg";
 import releaseBook2 from "./newReleases2.jpg";
@@ -37,7 +37,7 @@ export const assets = {
  book3,
  book4,
  groupBooks,
- award,
+offer,
  releaseBook1,
  releaseBook2,
  releaseBook3,
@@ -55,5 +55,5 @@ export const navLinks = [
  { label: "Explore", to: "/explore", icon: "Compass" },
  { label: "Shop", to: "/shop", icon: "Store" },
  { label: "Community", to: "/community", icon: "Users" },
- { label: "Publish Your Book", to: "/publish", icon: "Upload" }
+//  { label: "Publish Your Book", to: "/publish", icon: "Upload" }
 ];

@@ -40,6 +40,7 @@ import { useTheme } from "./hooks/useTheme";
 import { useTranslation } from "react-i18next";
 import VerifyEmail from "./pages/VerifyEmail";
 import AboutUs from "./pages/AboutUs";
+import OccasionModal from "./components/OccasionModal";
 
 function App() {
   useScrollToTop();
@@ -59,6 +60,7 @@ function App() {
           <LoadingProvider>
             <NotificationProvider>
               <Toaster position="top-center" />
+              <OccasionModal />
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Layout />}>
@@ -73,6 +75,7 @@ function App() {
                     path="checkout/success"
                     element={<CheckoutSuccess />}
                   />
+                  <Route path="checkout-success" element={<CheckoutSuccess />} />
                   <Route path="payment/success" element={<CheckoutSuccess />} />
                   <Route path="payment/cancel" element={<PaymentCancel />} />
                   <Route path="user-books" element={<UserBooks />} />

@@ -11,20 +11,6 @@ const PaymentMethods = ({ selectedMethod, setSelectedMethod }) => {
       icon: CreditCard,
       description: "Visa, Mastercard, American Express, Meeza",
     },
-    {
-      id: "vodafone",
-      name: "Vodafone Cash",
-      icon: Wallet,
-      description: "We will contact you to complete payment",
-      tooltip: "Payment instructions will be sent via WhatsApp",
-    },
-    {
-      id: "instapay",
-      name: "Instapay",
-      icon: Wallet,
-      description: "We will contact you to complete payment",
-      tooltip: "Payment instructions will be sent via WhatsApp",
-    },
   ];
 
   return (

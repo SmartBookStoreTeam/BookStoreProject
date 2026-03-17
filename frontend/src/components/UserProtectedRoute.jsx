@@ -14,3 +14,4 @@ const UserProtectedRoute = ({ children }) => {
 };
 
 export default UserProtectedRoute;
+
