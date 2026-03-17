@@ -22,17 +22,16 @@ import previewRoutes from "./routes/previewRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import couponRoutes from "./routes/couponRoutes.js"; // ✅ new
 
 dotenv.config();
 connectDB();
 
 const app = express();
 
-// ✅ Regular JSON parser — no raw body needed for Paymob
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS setup
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
@@ -76,6 +75,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api", previewRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/coupons", couponRoutes); // ✅ user: apply coupon
+app.use("/api/admin/coupons", couponRoutes); // ✅ admin: manage coupons
 
 // Error handlers
 app.use(notFound);
@@ -85,3 +86,24 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
+// ```
+
+// ---
+
+// ## ✅ Coupon system is done! Quick test checklist:
+// ```
+// ☐ Create a coupon via Postman:
+//   POST /api/admin/coupons
+//   { "discountPercent": 20, "expiresAt": "2026-12-31" }
+
+// ☐ Apply coupon before checkout:
+//   POST /api/coupons/apply
+//   { "code": "BOOK-XXXX-XXXX" }
+
+// ☐ Use coupon in checkout:
+//   POST /api/payments/checkout
+//   { "items": [...], "couponCode": "BOOK-XXXX-XXXX" }
+
+// ☐ Check order in MongoDB — coupon object should be filled
+// ☐ Try using same coupon again — should get "already used" error
+// ☐ Check coupon usedBy array in MongoDB after payment
