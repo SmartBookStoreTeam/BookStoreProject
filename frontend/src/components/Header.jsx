@@ -228,12 +228,58 @@ const Header = () => {
               />
               <path d="M0 0 L20 40 L40 0 Z" fill="currentColor" opacity="0.3" />
             </pattern>
+            <pattern
+              id="pattern-books"
+              x="0"
+              y="0"
+              width="120"
+              height="45"
+              patternUnits="userSpaceOnUse"
+            >
+              <g fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4" strokeLinecap="round" strokeLinejoin="round">
+                 {/* Subtle Shelf Line */}
+                 <line x1="0" y1="38" x2="120" y2="38" strokeWidth="1" opacity="0.2" />
+                 
+                 {/* Standing Books */}
+                 <rect x="6" y="14" width="8" height="24" rx="1" />
+                 <line x1="10" y1="16" x2="10" y2="36" opacity="0.4" />
+                 
+                 <rect x="16" y="20" width="6" height="18" rx="1" />
+                 
+                 {/* Leaning Book */}
+                 <g transform="translate(26, 38) rotate(18) translate(-26, -38)">
+                   <rect x="26" y="14" width="9" height="24" rx="1" />
+                   <line x1="30" y1="16" x2="30" y2="36" opacity="0.4" />
+                 </g>
+
+                 {/* Stacked Horizontal Books */}
+                 <rect x="44" y="30" width="22" height="8" rx="1" />
+                 <line x1="46" y1="34" x2="64" y2="34" opacity="0.3" />
+                 
+                 <rect x="47" y="22" width="16" height="8" rx="1" />
+                 <line x1="49" y1="26" x2="61" y2="26" opacity="0.3" />
+
+                 {/* Large Tome */}
+                 <rect x="72" y="10" width="12" height="28" rx="1.5" />
+                 <path d="M 75 10 V 38 M 81 10 V 38" opacity="0.3" />
+                 
+                 {/* Small Leaning Book */}
+                 <g transform="translate(94, 38) rotate(-14) translate(-94, -38)">
+                   <rect x="88" y="20" width="7" height="18" rx="1" />
+                 </g>
+                 
+                 {/* Open Book */}
+                 <path d="M 102 30 Q 106 26 110 30 V 38 Q 106 34 102 38 Z" fill="currentColor" fillOpacity="0.05" />
+                 <path d="M 110 30 Q 114 26 118 30 V 38 Q 114 34 110 38 Z" fill="currentColor" fillOpacity="0.05" />
+                 <line x1="110" y1="30" x2="110" y2="38" opacity="0.5" />
+              </g>
+            </pattern>
             <rect
               x="0"
               y="0"
               width="100%"
               height="100%"
-              fill="url(#pattern-triangles)"
+              fill={occasion ? "url(#pattern-triangles)" : "url(#pattern-books)"}
             />
           </svg>
         </div>
@@ -246,19 +292,54 @@ const Header = () => {
             className={`touch-area relative flex items-center gap-3 text-2xl font-bold tracking-tight text-white`}
             onContextMenu={handleContextMenu}
           >
-            {/* Occasion Logo Decor */}
-            {occasion === "ramadan" && (
-              <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
-                {<FaMoon className="dark:text-gray-500" />}
-              </span>
-            )}
-            {(occasion === "eid_fitr" || occasion === "eid_adha") && (
+{/* Occasion Logo Decor */}
+{occasion === "ramadan" && (
+  <>
+    <span className="absolute -top-4.5 -left-3 w-8 h-8 pointer-events-none">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 100 125"
+        className="w-full h-full fill-current"
+      >
+        <g>
+          <path d="M29.015,40.857L40.36,88.04h20.53l10.985-47.183H29.015z M49.381,80.678h-8.377l-7.667-32.932h16.044V80.678z M59.722,80.678h-8.377V47.746H67.39L59.722,80.678z" />
+        </g>
+        <polygon points="93.57,27.739 93.57,27.864 93.256,27.676" />
+        <polygon points="38.379,19.607 62.511,19.607 75.657,39.417 29.015,39.417 25.773,39.417" />
+        <polygon points="69.714,93.63 31.536,93.63 40.353,89.481 60.897,89.481" />
+        <circle
+          cx="50.265"
+          cy="13.124"
+          r="6.483"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+      </svg>
+    </span>
+
+    <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
+      <FaMoon className="text-white/80" />
+    </span>
+  </>
+)}
+            {(occasion === "eid_fitr") && (
               <>
               <span className="absolute -top-3.5 -left-3 text-[1.4rem] rotate-12 drop-shadow-sm pointer-events-none">
                 🎉
               </span>
                <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
-                {<FaMoon className="dark:text-gray-500" />}
+                🎊
+              </span>
+              </>
+            )}
+            {(occasion === "eid_adha") && (
+              <>
+              <span className="absolute -top-3.5 -left-3 text-[1.4rem] rotate-12 drop-shadow-sm pointer-events-none">
+                🎉
+              </span>
+               <span className="absolute -top-3.5 -right-3 text-xl animate-swing origin-bottom drop-shadow-sm pointer-events-none">
+                🐑
               </span>
               </>
             )}
@@ -632,14 +713,14 @@ const Header = () => {
                 {openDropdown && (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute right-0 top-12 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50"
+                    className="absolute right-0 top-13 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50"
                   >
                     <Link
                       to="/profile"
                       onClick={(e) => {
                         handleSafeNavigation(e, "/profile", closeDropdown);
                       }}
-                      className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 dark:text-white"
+                      className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 text-black dark:text-indigo-200 dark:text-white"
                       onContextMenu={handleContextMenu}
                     >
                       {t("Profile")}
