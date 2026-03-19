@@ -15,6 +15,9 @@ import { useGlobalLoading } from "../context/LoadingContext";
 import { motion } from "framer-motion";
 import { getImageSrc } from "../utils/imageUtils";
 import { getMyOrders } from "../api/ordersApi";
+import { FastAverageColor } from "fast-average-color";
+
+const fac = new FastAverageColor();
 
 // Mock data fallback
 const mockBooks = [
@@ -134,6 +137,7 @@ const Shop = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { setIsLoading } = useGlobalLoading();
   const navigate = useNavigate();
+  const [cardColors, setCardColors] = useState({});
 
   // read search from URL once
   useEffect(() => {
@@ -536,14 +540,25 @@ const Shop = () => {
                   : "space-y-6"
               }
             >
-              {shownBooks.map((book) => (
-                <div
+              {shownBooks.map((book) => {
+                const dominantColor = cardColors[book._id || book.id];
+                return (
+                <motion.div
                   key={book._id || book.id}
                   className={
                     viewMode === "grid"
-                      ? "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex flex-col"
-                      : "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden hover:shadow-md dark:hover:shadow-zinc-900 transition-all duration-300 flex"
+                      ? "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden flex flex-col"
+                      : "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden flex"
                   }
+                  whileHover={dominantColor ? {
+                    scale: 1.02,
+                    borderColor: `${dominantColor.hex}80`,
+                    boxShadow: `0 20px 25px -5px ${dominantColor.hex}40, inset 0 -40px 60px -20px ${dominantColor.hex}1A`,
+                  } : { 
+                    scale: 1.02, 
+                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" 
+                  }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                 >
                   {/* Image */}
                   <Link
@@ -577,6 +592,19 @@ const Shop = () => {
                         alt={book.title}
                         className={`w-full h-full ${viewMode === "grid" ? "object-contain" : "object-cover"} rounded-lg select-none`}
                         draggable="false"
+                        crossOrigin="anonymous"
+                        onLoad={(e) => {
+                          const bookId = book._id || book.id;
+                          if (!cardColors[bookId]) {
+                            fac.getColorAsync(e.target, { algorithm: 'dominant' })
+                              .then((color) => {
+                                setCardColors(prev => ({ ...prev, [bookId]: color }));
+                              })
+                              .catch((err) => {
+                                console.error("FastAverageColor error:", err);
+                              });
+                          }
+                        }}
                         whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
                         whileTap={{ scale: 1.05, filter: "brightness(1.1)" }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
@@ -601,11 +629,15 @@ const Shop = () => {
                           >
                             {isFirstOrder ? (
                               <>
-                                <span className="line-through text-gray-400 text-[11px] mr-1">{book.price}</span>
+                                <span className="line-through text-gray-400 text-[11px] mr-1">
+                                  {book.price}
+                                </span>
                                 {(book.price * 0.5).toFixed(2)} {t("EGP")}
                               </>
                             ) : (
-                              <>{book.price} {t("EGP")}</>
+                              <>
+                                {book.price} {t("EGP")}
+                              </>
                             )}
                           </span>
                         </div>
@@ -710,8 +742,8 @@ const Shop = () => {
                       )}
                     </div>
                   </div>
-                </div>
-              ))}
+                </motion.div>
+              )})}
             </div>
           )}
 
