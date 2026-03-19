@@ -30,6 +30,7 @@
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "fast-average-color": "^9.5.0",
     "framer-motion": "^12.23.24",
     "i18next": "^25.7.3",
     "jsonwebtoken": "^9.0.2",

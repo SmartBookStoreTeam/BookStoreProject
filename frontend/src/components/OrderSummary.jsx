@@ -2,23 +2,34 @@ import { useTranslation } from "react-i18next";
 import { ShoppingBag, X } from "lucide-react";
 import { getImageSrc } from "../utils/imageUtils";
 
-const OrderSummary = ({ books, onRemoveBook, isFirstOrder }) => {
+const OrderSummary = ({
+  books,
+  onRemoveBook,
+  isFirstOrder,
+  coupon, // { code, discountPercent }
+  onRemoveCoupon,
+}) => {
   const { t, i18n } = useTranslation();
 
   if (!books || books.length === 0) {
     return null;
   }
 
-  // Calculate total with 50% discount on the FIRST book if isFirstOrder is true
+  // Totals
   const subtotal = books.reduce((sum, book) => sum + (book.price || 0), 0);
-  let discount = 0;
-  
-  if (isFirstOrder && books.length > 0) {
-    // 50% off the first book in the array
-    discount = (books[0].price || 0) * 0.5;
+  const couponPercent =
+    typeof coupon?.discountPercent === "number" ? coupon.discountPercent : 0;
+  const couponDiscount =
+    couponPercent > 0 ? (subtotal * couponPercent) / 100 : 0;
+
+  // UI-only first-order discount (only when no coupon is applied)
+  let firstOrderDiscount = 0;
+  if (!coupon?.code && isFirstOrder && books.length > 0) {
+    firstOrderDiscount = (books[0].price || 0) * 0.5;
   }
-  
-  const total = subtotal - discount;
+
+  const discount = couponDiscount > 0 ? couponDiscount : firstOrderDiscount;
+  const total = Math.max(0, subtotal - discount);
 
   return (
     <div
@@ -104,15 +115,36 @@ const OrderSummary = ({ books, onRemoveBook, isFirstOrder }) => {
           </span>
         </div>
 
-        {isFirstOrder && discount > 0 && (
+        {coupon?.code && couponDiscount > 0 && (
+          <div className="flex justify-between items-center mb-3 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
+            <span className="text-sm font-medium">
+              {t("Coupon")} ({coupon.code}) • {couponPercent}%
+            </span>
+            <span className="text-sm font-bold">
+              -{couponDiscount.toFixed(2)} {t("EGP")}
+            </span>
+          </div>
+        )}
+
+        {!coupon?.code && isFirstOrder && firstOrderDiscount > 0 && (
           <div className="flex justify-between items-center mb-3 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
             <span className="text-sm font-medium">
               {t("First Order Discount (50% off 1 book)")}
             </span>
             <span className="text-sm font-bold">
-              -{discount.toFixed(2)} {t("EGP")}
+              -{firstOrderDiscount.toFixed(2)} {t("EGP")}
             </span>
           </div>
+        )}
+
+        {coupon?.code && onRemoveCoupon && (
+          <button
+            type="button"
+            onClick={onRemoveCoupon}
+            className="touch-area w-full mb-3 text-sm font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+          >
+            {t("Remove coupon")}
+          </button>
         )}
 
         <div className="flex justify-between items-center p-4 bg-linear-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-xl mt-2">

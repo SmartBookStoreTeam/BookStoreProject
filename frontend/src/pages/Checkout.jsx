@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 
 import { createCheckoutSession } from "../api/paymentApi";
 import { getMyOrders } from "../api/ordersApi";
+import { applyCoupon } from "../api/couponsApi";
 
 const Checkout = () => {
   const { t, i18n } = useTranslation();
@@ -37,6 +38,10 @@ const Checkout = () => {
   const [errors, setErrors] = useState({});
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isFirstOrder, setIsFirstOrder] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponStatus, setCouponStatus] = useState("idle"); // idle | applying | applied | error
+  const [couponData, setCouponData] = useState(null); // { code, discountPercent }
+  const [couponError, setCouponError] = useState("");
 
   // Check if this is the user's first order
   useEffect(() => {
@@ -118,7 +123,10 @@ const Checkout = () => {
       }));
 
       // Call Paymob checkout API
-      const response = await createCheckoutSession(items);
+      const response = await createCheckoutSession(
+        items,
+        couponData?.code || null,
+      );
 
       if (response.success && response.data?.iframeUrl) {
         // Redirect to Paymob iframe payment page
@@ -160,6 +168,44 @@ const Checkout = () => {
   const isFormValid = customerInfo.email && isEmailValid(customerInfo.email);
   // Button is enabled for non-logged-in users (to show auth modal) or when form is valid for logged-in users
   const isButtonDisabled = loading || (user && !isFormValid);
+
+  const handleApplyCoupon = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    const code = couponCode.trim();
+    if (!code) return;
+
+    setCouponError("");
+    setCouponStatus("applying");
+    try {
+      const res = await applyCoupon(code);
+      const data = res?.data;
+      if (!res?.success || !data?.code || typeof data?.discountPercent !== "number") {
+        throw new Error("Invalid coupon response");
+      }
+      setCouponData({ code: data.code, discountPercent: data.discountPercent });
+      setCouponStatus("applied");
+      toast.success(t("Coupon applied"), { duration: 1500 });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        t("Failed to apply coupon");
+      setCouponData(null);
+      setCouponStatus("error");
+      setCouponError(t(msg));
+      toast.error(t(msg), { duration: 2500 });
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponData(null);
+    setCouponStatus("idle");
+    setCouponError("");
+    setCouponCode("");
+  };
 
   return (
     <div
@@ -209,8 +255,61 @@ const Checkout = () => {
               <OrderSummary
                 books={currentBooks}
                 onRemoveBook={handleRemoveBook}
-                isFirstOrder={isFirstOrder}
+                isFirstOrder={couponData ? false : isFirstOrder}
+                coupon={couponData}
+                onRemoveCoupon={handleRemoveCoupon}
               />
+
+              {/* Coupon UI */}
+              <div className="mt-4 bg-white dark:bg-zinc-800 rounded-2xl p-5 shadow-xl border border-gray-100 dark:border-zinc-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100">
+                    {t("Have a coupon?")}
+                  </h3>
+                  {couponData?.code && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="touch-area text-sm font-semibold text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                    >
+                      {t("Remove")}
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    disabled={couponStatus === "applying" || Boolean(couponData)}
+                    placeholder={t("Enter coupon code")}
+                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={
+                      couponStatus === "applying" ||
+                      Boolean(couponData) ||
+                      couponCode.trim().length === 0
+                    }
+                    className="touch-area px-4 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-zinc-700 dark:disabled:text-zinc-400 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    {couponStatus === "applying" ? t("Applying...") : t("Apply")}
+                  </button>
+                </div>
+
+                {couponError && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                    {couponError}
+                  </p>
+                )}
+                {couponData?.code && (
+                  <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                    {t("Applied")}: {couponData.code} ({couponData.discountPercent}%)
+                  </p>
+                )}
+              </div>
 
               {/* Checkout Button */}
               <button
