@@ -295,7 +295,7 @@ const Header = () => {
 {/* Occasion Logo Decor */}
 {occasion === "ramadan" && (
   <>
-    <span className="absolute -top-4.5 -left-3 w-8 h-8 rotate-12 text-white/80 drop-shadow-sm pointer-events-none">
+    <span className="absolute -top-4.5 -left-3 w-8 h-8 pointer-events-none">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 100 125"
@@ -329,7 +329,7 @@ const Header = () => {
                 🎉
               </span>
                <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
-                {<FaMoon className="dark:text-gray-500" />}
+                🎊
               </span>
               </>
             )}
