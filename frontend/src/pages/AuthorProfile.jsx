@@ -24,7 +24,7 @@ import { getImageSrc } from "../utils/imageUtils";
 const AuthorProfile = () => {
   const { name } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks, purchasedBooks } = useCart();
+  const { addToCart, userBooks, purchasedBooks, cartItems } = useCart();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -85,11 +85,22 @@ const AuthorProfile = () => {
     }
   }, [name, userBooks]);
 
+  // Check if book is already in cart
+  const isBookInCart = (bookId) => {
+    return cartItems?.some((item) => String(item._id || item.id) === String(bookId));
+  };
+
   const handleAddToCart = (book) => {
-    if (!user) {
-      setShowAuthModal(true);
+    // If book is already in cart, the button acts as "Go to Checkout"
+    if (isBookInCart(book._id || book.id)) {
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
+      navigate("/checkout", { state: { books: cartItems } });
       return;
     }
+
     addToCart(book);
     toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
       duration: 1500,
@@ -286,7 +297,7 @@ const AuthorProfile = () => {
                         >
                           <FaCartPlus className="w-4 h-4" />
                           <span className="text-xs whitespace-nowrap">
-                            {t("Add to Cart")}
+                            {isBookInCart(book._id || book.id) ? t("Go to Checkout") : t("Add to Cart")}
                           </span>
                         </button>
                       )}

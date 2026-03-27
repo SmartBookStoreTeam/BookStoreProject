@@ -12,12 +12,18 @@ import {
   Minimize,
   Download as DownloadIcon,
   Printer as PrintIcon,
+  BookOpen,
+  Columns,
+  Square,
+  Globe,
+  Loader,
 } from "lucide-react";
 import {
   Worker,
   Viewer,
   ScrollMode,
   SpecialZoomLevel,
+  ViewMode,
 } from "@react-pdf-viewer/core";
 import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import toast from "react-hot-toast";
@@ -27,11 +33,15 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import api from "../api/api";
 import Loading from "../components/Loading";
 import RateModal from "../components/RateModal";
+import AuthModal from "../components/AuthModal";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { useAuth } from "../context/AuthContext";
 import "../pdfViewerFullscreen.css";
 import { getImageSrc } from "../utils/imageUtils";
+
+// Number of pages a guest / logged-in unpurchased user can view freely
+const PREVIEW_PAGE_LIMIT = 5;
 
 const PdfViewer = () => {
   const { bookId } = useParams();
@@ -44,12 +54,67 @@ const PdfViewer = () => {
   const [showHeader, setShowHeader] = useState(false);
   const { addToCart, cartItems, isBookPurchased } = useCart();
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
 
   // State for page tracking
   const [currentPage, setCurrentPage] = useState(1);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
+
+  const [translationPopup, setTranslationPopup] = useState({
+    visible: false,
+    text: "",
+    x: 0,
+    y: 0,
+    status: "idle",
+    translatedText: "",
+  });
+
+  // Default to dual page in landscape, single page in portrait
+  const [viewMode, setViewMode] = useState(() => {
+    const isPortrait = window.innerHeight >= window.innerWidth;
+    return isPortrait ? ViewMode.SinglePage : ViewMode.DualPage;
+  });
+
+  const lastOrientationRef = useRef(window.innerHeight >= window.innerWidth);
+
+  useEffect(() => {
+    let timeoutId;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const isCurrentlyPortrait = window.innerHeight >= window.innerWidth;
+        const wasPortrait = lastOrientationRef.current;
+
+        if (wasPortrait !== isCurrentlyPortrait) {
+          const targetMode = isCurrentlyPortrait ? ViewMode.SinglePage : ViewMode.DualPage;
+          if (viewerApiRef.current) {
+            viewerApiRef.current.switchViewMode(targetMode);
+          }
+          setViewMode(targetMode);
+        }
+        lastOrientationRef.current = isCurrentlyPortrait;
+      }, 100);
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, []);
+
+  const handleToggleViewMode = () => {
+    const nextMode = viewMode === ViewMode.SinglePage ? ViewMode.DualPage : ViewMode.SinglePage;
+    if (viewerApiRef.current) {
+      viewerApiRef.current.switchViewMode(nextMode);
+    }
+    setViewMode(nextMode);
+  };
 
   // Initialize page navigation plugin
   const pageNavigationPluginInstance = pageNavigationPlugin();
@@ -104,20 +169,12 @@ const PdfViewer = () => {
                 </div>
                 <div className="px-1">
                   <button
-                    onClick={() => setShowAddToCartModal(true)}
-                    className="rpv-core__minimal-button"
-                    aria-label="Download"
-                  >
-                    <DownloadIcon size={20} />
-                  </button>
-                </div>
-                <div className="px-1">
-                  <button
-                    onClick={() => setShowAddToCartModal(true)}
+                    onClick={handleToggleViewMode}
                     className="p-2 rounded-md text-white hover:bg-white/10 cursor-pointer"
-                    aria-label="Print"
+                    aria-label={viewMode === ViewMode.SinglePage ? t("Show Two Pages") : t("Show Single Page")}
+                    title={viewMode === ViewMode.SinglePage ? t("Show Two Pages") : t("Show Single Page")}
                   >
-                    <PrintIcon size={20} />
+                    {viewMode === ViewMode.SinglePage ? <Columns size={20} /> : <Square size={20} />}
                   </button>
                 </div>
               </div>
@@ -128,20 +185,39 @@ const PdfViewer = () => {
     },
   });
 
-  // Appends header to the third page and jump back to page 2
+  // Show appropriate modal when page limit is reached
   useEffect(() => {
-    // Don't show modal if book is purchased
     const isPurchased = book && isBookPurchased(book._id || book.id);
-    if (currentPage >= 3 && !isPurchased) {
-      setShowAddToCartModal(true);
-      // Jump back to page 2 (index 1) when modal appears
-      if (jumpToPage) {
-        jumpToPage(1); // 0-indexed, so 1 = page 2
+    if (currentPage > PREVIEW_PAGE_LIMIT && !isPurchased) {
+      if (jumpToPage) jumpToPage(PREVIEW_PAGE_LIMIT - 1); // 0-indexed, enforce blocking
+
+      if (!user) {
+        setShowAuthModal(true);
+      } else {
+        setShowAddToCartModal(true);
       }
     }
-  }, [currentPage, jumpToPage, book, isBookPurchased]);
+  }, [currentPage, jumpToPage, book, isBookPurchased, user]);
 
   const viewerRef = useRef(null);
+  const blurLogicRef = useRef();
+  blurLogicRef.current = (pageIndex) => {
+    const isPurchased = book && isBookPurchased(book._id || book.id);
+    return !isPurchased && pageIndex >= PREVIEW_PAGE_LIMIT;
+  };
+
+  const viewerApiRef = useRef(null);
+  const apiPlugin = useRef({
+    install: (pluginFunctions) => {
+      viewerApiRef.current = pluginFunctions;
+    },
+    renderPageLayer: (renderProps) => {
+      const isBlurred = blurLogicRef.current(renderProps.pageIndex);
+      return isBlurred ? (
+        <div className="absolute inset-0 z-20 backdrop-blur-[12px] bg-zinc-900/10" />
+      ) : <></>;
+    }
+  }).current;
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -170,16 +246,113 @@ const PdfViewer = () => {
       document.removeEventListener("fullscreenchange", handleFullScreenChange);
   }, []);
 
+  // Force re-calculate zoom when fullscreen or viewMode changes
+  useEffect(() => {
+    let timeoutId;
+    const applyZoom = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (viewerApiRef.current) {
+          // Make both single and dual page modes fill the screen width
+          viewerApiRef.current.zoom(SpecialZoomLevel.PageWidth);
+        }
+      }, 150);
+    };
+
+    applyZoom();
+
+    window.addEventListener("resize", applyZoom);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("resize", applyZoom);
+    };
+  }, [isFullScreen, viewMode]);
+
+  // Handle Text Selection for Translation
+  useEffect(() => {
+    const handleMouseUp = (e) => {
+      const popupEl = document.getElementById("translation-popup");
+      if (popupEl && popupEl.contains(e.target)) return;
+
+      setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+
+        if (text && text.length > 0) {
+          try {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            
+            // Calculate coordinates relative to the PDF viewer container
+            const viewerRect = viewerRef.current 
+              ? viewerRef.current.getBoundingClientRect() 
+              : { left: 0, top: 0, width: 0, height: 0 };
+            
+            setTranslationPopup({
+              visible: true,
+              text,
+              x: rect.left - viewerRect.left + rect.width / 2,
+              y: rect.top - viewerRect.top - 10,
+              status: "idle",
+              translatedText: "",
+            });
+          } catch (err) {
+            console.error("Error getting selection", err);
+          }
+        } else {
+           setTranslationPopup(prev => prev.visible ? { ...prev, visible: false } : prev);
+        }
+      }, 50);
+    };
+
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  const handleTranslate = async (e) => {
+    e.stopPropagation();
+    if (!translationPopup.text) return;
+    setTranslationPopup(prev => ({ ...prev, status: "loading" }));
+
+    try {
+      // Using Google Translate public api (free, reliable, accurate)
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(translationPopup.text)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const result = data[0].map((item) => item[0]).join("");
+      
+      setTranslationPopup(prev => ({ 
+        ...prev, 
+        status: "success", 
+        translatedText: result 
+      }));
+    } catch (error) {
+      console.error("Translation error:", error);
+      setTranslationPopup(prev => ({ 
+        ...prev, 
+        status: "error", 
+        translatedText: t("Translation failed") 
+      }));
+    }
+  };
+
+  // Update page title
+  useEffect(() => {
+    if (book?.title) document.title = `${book.title} : ${t("Bookfly Store")}`;
+    return () => {
+      document.title = t("Bookfly Store - Buy your favorite books online");
+    };
+  }, [book, t]);
+
   useEffect(() => {
     const fetchBook = async () => {
       try {
         setLoading(true);
 
         const response = await api.get(`/books/${bookId}`);
-        // API returns { success, data: book }
         const bookData = response.data?.data || response.data;
 
-        // Get signed URL for the PDF from S3
+        // Fetch the signed S3 preview URL (public route — works for guests too)
         if (bookData?.pdf) {
           try {
             const pdfResponse = await api.get(`/books/${bookId}/preview`);
@@ -200,9 +373,7 @@ const PdfViewer = () => {
       }
     };
 
-    if (bookId) {
-      fetchBook();
-    }
+    if (bookId) fetchBook();
   }, [bookId, t]);
 
   // Check if book is already in cart
@@ -220,6 +391,10 @@ const PdfViewer = () => {
   const handleAddToCart = (bookToAdd) => {
     // If already in cart, navigate to checkout
     if (isBookInCart) {
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
       navigate("/checkout", { state: { books: cartItems } });
       return;
     }
@@ -347,12 +522,12 @@ const PdfViewer = () => {
     return "ltr";
   };
   return (
-    <div className="h-screen overflow-hidden flex flex-col bg-indigo-800 dark:bg-zinc-800">
+    <div className="h-[100dvh] w-full overflow-hidden flex flex-col bg-zinc-900">
       {/* Simple Header - Hidden in full screen */}
       {!isFullScreen && (
         <header
           dir="rtl"
-          className="fixed top-0 left-0 right-0 z-50 bg-zinc-800 border-b border-gray-700"
+          className="relative flex-none w-full z-50 bg-zinc-800 border-b border-gray-700"
         >
           <div className="flex items-center py-1 px-2 md:py-2 md:px-3">
             {/* Close Button - Shows Rate Modal */}
@@ -488,9 +663,7 @@ const PdfViewer = () => {
 
       {/* PDF Content */}
       <div
-        className={`flex-1 w-full overflow-hidden bg-zinc-900 relative ${
-          isFullScreen ? "" : "pt-8 md:pt-10"
-        }`}
+        className="flex-1 min-h-0 w-full overflow-hidden bg-zinc-900 relative flex flex-col"
         ref={viewerRef}
       >
         {/* Rate Modal - Moved inside for Fullscreen visibility */}
@@ -500,7 +673,17 @@ const PdfViewer = () => {
           onSubmit={handleRateSubmit}
           bookTitle={book?.title || ""}
         />
-        {/* Add to Cart Modal */}
+        {/* Auth Modal — shown to guests who reach the page limit */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          title="Please login or create an account to continue reading"
+          icon={
+            <BookOpen className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400" />
+          }
+        />
+
+        {/* Add to Cart Modal — shown to logged-in users who haven't purchased */}
         {showAddToCartModal && (
           <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-zinc-700 transform transition-all scale-100 opacity-100">
@@ -544,14 +727,7 @@ const PdfViewer = () => {
 
         {book.pdf ? (
           <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-            <div
-              className={`w-full h-full relative ${isFullScreen ? "" : "pt-[10px]"}`}
-              style={
-                isFullScreen
-                  ? { padding: 0, margin: 0, width: "100vw", height: "100vh" }
-                  : {}
-              }
-            >
+            <div className="absolute inset-0 flex flex-col">
               {isFullScreen && (
                 <button
                   onClick={toggleFullScreen}
@@ -568,18 +744,16 @@ const PdfViewer = () => {
                 </div>
               )}
               {/* Add blur effect when modal is shown on page 3 */}
-              <div
-                className={`w-full h-full transition-all duration-300 ${
-                  showAddToCartModal ? "blur-md" : ""
-                }`}
-              >
+              <div className="flex-1 min-h-0 relative w-full transition-all duration-300">
                 <Viewer
                   fileUrl={book.pdfUrl || getImageSrc(book.pdf)}
                   plugins={[
                     defaultLayoutPluginInstance,
                     pageNavigationPluginInstance,
+                    apiPlugin,
                   ]}
                   defaultScale={SpecialZoomLevel.PageWidth}
+                  viewMode={viewMode}
                   theme={{
                     theme: "dark",
                   }}
@@ -604,6 +778,74 @@ const PdfViewer = () => {
             className="flex flex-col items-center gap-6 text-gray-300 p-16 bg-zinc-800 border border-zinc-700/30 rounded-2xl"
           >
             <p>{t("No PDF file found for this book")}</p>
+          </div>
+        )}
+
+        {/* Translation Popup Overlay - restricted inside PDF scope */}
+        {translationPopup.visible && (
+          <div
+            id="translation-popup"
+            className={
+              translationPopup.status === "idle"
+                ? "absolute z-[70] transform -translate-x-1/2 -translate-y-full pb-3 shadow-2xl transition-all duration-300 pointer-events-auto"
+                : "absolute inset-0 z-[80] flex items-center justify-center bg-black/60 pointer-events-auto animate-in fade-in duration-200"
+            }
+            style={
+              translationPopup.status === "idle"
+                ? { left: `${translationPopup.x}px`, top: `${translationPopup.y}px` }
+                : {}
+            }
+            onMouseDown={
+              translationPopup.status === "idle" ? (e) => e.stopPropagation() : undefined
+            }
+            onClick={
+              translationPopup.status !== "idle" ? () => setTranslationPopup(prev => ({ ...prev, visible: false })) : undefined
+            }
+          >
+            {translationPopup.status === "idle" ? (
+              <button
+                onClick={handleTranslate}
+                className="cursor-pointer touch-area bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-full shadow-lg flex items-center justify-center transform hover:scale-105 active:scale-95 transition-all outline-none border-2 border-indigo-300 dark:border-indigo-800"
+                title={t("Translate selected text")}
+              >
+                <Globe size={22} />
+              </button>
+            ) : (
+              <div 
+                className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 p-5 md:p-6 rounded-2xl shadow-2xl w-11/12 max-w-lg relative animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setTranslationPopup(prev => ({ ...prev, visible: false }))}
+                  className="cursor-pointer absolute top-4 left-3 p-2 mb-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white rounded-md dark:hover:bg-white/10 transition-colors"
+                  title={t("Close translation")}
+                >
+                  <X size={20} />
+                </button>
+                
+                <div dir="rtl" className="flex flex-col gap-4 mt-6">
+                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-base font-semibold mb-2">
+                    <Globe size={20}/>
+                    <span>{t("Translation")}</span>
+                  </div>
+                  
+                  {translationPopup.status === "loading" ? (
+                    <div dir={i18n.dir()} className="text-gray-600 dark:text-gray-300 flex items-center gap-3 py-6 justify-center">
+                      <Loader size={26} className="animate-spin text-indigo-500" />
+                      <span className="text-base font-medium">{t("Translating...")}</span>
+                    </div>
+                  ) : translationPopup.status === "success" ? (
+                    <p className="text-gray-900 dark:text-white text-base md:text-lg leading-relaxed max-h-[60vh] overflow-y-auto fancy-scrollbar select-text pb-2">
+                      {translationPopup.translatedText}
+                    </p>
+                  ) : (
+                    <p className="text-red-500 dark:text-red-400 text-base font-medium py-4 text-center">
+                      {translationPopup.translatedText}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

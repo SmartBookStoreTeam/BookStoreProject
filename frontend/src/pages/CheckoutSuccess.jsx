@@ -26,8 +26,16 @@ const CheckoutSuccess = () => {
     setLoading(false);
 
     if (isSuccess) {
-      clearCart();
-      fetchPurchasedBooks();
+      // Sequential: clear cart first (removes from API + state), then refresh library.
+      // Awaiting inside useEffect requires an async IIFE.
+      (async () => {
+        try {
+          await clearCart();
+        } catch {
+          // non-critical — cart will also be cleared server-side by webhook
+        }
+        fetchPurchasedBooks();
+      })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

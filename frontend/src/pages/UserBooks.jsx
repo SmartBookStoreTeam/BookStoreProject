@@ -8,18 +8,31 @@ import { useAuth } from "../context/AuthContext";
 import AuthModal from "../components/AuthModal";
 import { FaCartPlus } from "react-icons/fa";
 import { getImageSrc } from "../utils/imageUtils";
+import { useNavigate } from "react-router-dom";
 
 const UserBooks = () => {
-  const { userBooks, removeUserBook, addToCart } = useCart();
+  const { userBooks, removeUserBook, addToCart, cartItems } = useCart();
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
+  // Check if book is already in cart
+  const isBookInCart = (bookId) => {
+    return cartItems?.some((item) => String(item._id || item.id) === String(bookId));
+  };
+
   const handleAddToCart = (book) => {
-    if (!user) {
-      setShowAuthModal(true);
+    // If book is already in cart, the button acts as "Go to Checkout"
+    if (isBookInCart(book._id || book.id)) {
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
+      navigate("/checkout", { state: { books: cartItems } });
       return;
     }
+
     addToCart(book);
     toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
       duration: 1500,
@@ -177,7 +190,7 @@ const UserBooks = () => {
                       >
                         <FaCartPlus className="w-4 h-4" />
                         <span className="text-xs whitespace-nowrap">
-                          {t("Add to Cart")}
+                          {isBookInCart(book._id || book.id) ? t("Go to Checkout") : t("Add to Cart")}
                         </span>
                       </button>
                     </div>

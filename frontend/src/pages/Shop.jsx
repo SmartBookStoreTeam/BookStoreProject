@@ -15,6 +15,7 @@ import { useGlobalLoading } from "../context/LoadingContext";
 import { motion } from "framer-motion";
 import { getImageSrc } from "../utils/imageUtils";
 import { getMyOrders } from "../api/ordersApi";
+
 import { FastAverageColor } from "fast-average-color";
 
 const fac = new FastAverageColor();
@@ -111,7 +112,7 @@ const sortMap = {
 };
 
 const Shop = () => {
-  const { addToCart, userBooks, cartItems, isBookPurchased } = useCart();
+  const { addToCart, userBooks, cartItems, isBookPurchased, purchasedBooks } = useCart();
   const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -165,25 +166,39 @@ const Shop = () => {
       if (user) {
         try {
           const res = await getMyOrders();
-          const hasOrders = Array.isArray(res?.data) && res.data.length > 0;
-          setIsFirstOrder(!hasOrders);
+          // getMyOrders returns the array directly (not wrapped in {data:[]})
+          const hasOrders = Array.isArray(res) && res.length > 0;
+          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
         } catch {
           setIsFirstOrder(false);
         }
       } else {
-        setIsFirstOrder(false);
+        setIsFirstOrder(true);
       }
     };
     checkFirstOrder();
-  }, [user]);
+  }, [user, purchasedBooks]);
 
-  const getCategoryId = (book) =>
-    typeof book.category === "string" ? book.category : book.category?._id;
 
-  const getCategoryName = (book) =>
-    typeof book.category === "string"
+  // Get first category ID for filtering (supports both old single and new array)
+  const getCategoryId = (book) => {
+    if (Array.isArray(book.categories) && book.categories.length > 0) {
+      const c = book.categories[0];
+      return typeof c === "object" ? c._id : c;
+    }
+    return typeof book.category === "string" ? book.category : book.category?._id;
+  };
+
+  const getCategoryName = (book) => {
+    if (Array.isArray(book.categories) && book.categories.length > 0) {
+      const c = book.categories[0];
+      return typeof c === "object" ? c.name : c;
+    }
+    return typeof book.category === "string"
       ? book.category
       : book.category?.name || "Unknown";
+  };
 
   // reset page when filters change
   useEffect(() => {
@@ -320,13 +335,12 @@ const Shop = () => {
   ];
 
   const handleAddToCart = (book) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
     // Check if this specific book is already in cart
     if (isBookInCart(book)) {
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
       navigate("/checkout", { state: { books: cartItems } });
       return;
     }
@@ -635,9 +649,7 @@ const Shop = () => {
                                 {(book.price * 0.5).toFixed(2)} {t("EGP")}
                               </>
                             ) : (
-                              <>
-                                {book.price} {t("EGP")}
-                              </>
+                              <>{book.price} {t("EGP")}</>
                             )}
                           </span>
                         </div>

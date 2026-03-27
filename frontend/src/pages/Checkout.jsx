@@ -20,7 +20,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { cartItems } = useCart();
+  const { cartItems, purchasedBooks } = useCart();
 
   // Initialize books once from location or cart
   const initialBooks = location.state?.books || cartItems;
@@ -49,19 +49,19 @@ const Checkout = () => {
       if (user) {
         try {
           const res = await getMyOrders();
-          // Filter to only count approved orders (or all orders depending on logic)
-          // We will count any order, or maybe just approved ones.
-          // Let's count all orders. If they have no orders, it's their first.
-          const hasOrders = Array.isArray(res?.data) && res.data.length > 0;
-          setIsFirstOrder(!hasOrders);
-        } catch (error) {
-          console.error("Failed to fetch user orders:", error);
-          setIsFirstOrder(false); // Default to no discount on error
+          // getMyOrders returns the array directly (not wrapped in {data:[]})
+          const hasOrders = Array.isArray(res) && res.length > 0;
+          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
+        } catch {
+          setIsFirstOrder(false);
         }
+      } else {
+        setIsFirstOrder(false);
       }
     };
     checkFirstOrder();
-  }, [user]);
+  }, [user, purchasedBooks]);
 
   // Redirect if no books - run only once
   useEffect(() => {
@@ -123,9 +123,11 @@ const Checkout = () => {
       }));
 
       // Call Paymob checkout API
+      // Pass isFirstOrder so backend can apply the 50% first-order discount
       const response = await createCheckoutSession(
         items,
         couponData?.code || null,
+        !couponData && isFirstOrder,
       );
 
       if (response.success && response.data?.iframeUrl) {
@@ -277,13 +279,13 @@ const Checkout = () => {
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                     disabled={couponStatus === "applying" || Boolean(couponData)}
                     placeholder={t("Enter coupon code")}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
+                    className="w-full flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
                   />
                   <button
                     type="button"
@@ -293,7 +295,7 @@ const Checkout = () => {
                       Boolean(couponData) ||
                       couponCode.trim().length === 0
                     }
-                    className="touch-area px-4 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-zinc-700 dark:disabled:text-zinc-400 cursor-pointer disabled:cursor-not-allowed"
+                    className="touch-area w-full sm:w-auto px-6 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-zinc-700 dark:disabled:text-zinc-400 cursor-pointer disabled:cursor-not-allowed transition-colors"
                   >
                     {couponStatus === "applying" ? t("Applying...") : t("Apply")}
                   </button>
