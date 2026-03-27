@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
 // Swagger
@@ -20,48 +21,46 @@ import adminCategoryRoutes from "./routes/adminCategoryRoutes.js";
 import previewRoutes from "./routes/previewRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import couponRoutes from "./routes/couponRoutes.js";
+import bookRequestRoutes from "./routes/bookRequestRoutes.js";
+import adminBookRequestRoutes from "./routes/adminBookRequestRoutes.js";
 
 dotenv.config();
 connectDB();
 
 const app = express();
 
-// JSON parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS setup
 const allowedOrigins = [
-  "http://localhost:5173", // dev frontend
-  "http://localhost:5174", // ممكن تستخدمه كمان
-  "http://192.168.1.19:5173", // dev frontend
-  // ضع هنا دومين الـ production بعد الرفع
-  "https://d1r1pvso22xiyd.cloudfront.net",
-  "http://d1r1pvso22xiyd.cloudfront.net"
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://192.168.1.19:5173",
+  "https://dn7prippnkodg.cloudfront.net",
 ];
 
+app.use(cookieParser());
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // ✅ PATCH 
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
-// Test route
+// Test routes
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// Swagger route
+app.get("/health", (req, res) => {
+  res.status(200).send("ok");
+});
+
+// Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
@@ -76,14 +75,17 @@ app.use("/api", downloadRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api", previewRoutes);
-
-const PORT = process.env.PORT || 5000;
+app.use("/api/payments", paymentRoutes);
+app.use("/api/coupons", couponRoutes); // user: apply coupon
+app.use("/api/admin/coupons", couponRoutes); // admin: manage coupons
+app.use("/api/book-requests", bookRequestRoutes); // users
+app.use("/api/admin/book-requests", adminBookRequestRoutes); // admin
 
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

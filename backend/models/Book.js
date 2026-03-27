@@ -56,11 +56,13 @@ const bookSchema = new mongoose.Schema(
     year: {
       type: String,
     },
-    // ✅ category ObjectId
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "Book category is required"],
+    // ✅ categories — supports multiple categories
+    categories: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+      validate: {
+        validator: (v) => Array.isArray(v) && v.length > 0,
+        message: "At least one category is required",
+      },
       index: true,
     },
 
@@ -101,6 +103,8 @@ const bookSchema = new mongoose.Schema(
       pages: Number,
       mime: String,
     },
+    s3Folder: { type: String, index: true, default: null },
+    aiMetaKey: { type: String, default: null },
     // ⭐ rating الاحترافي: Avg + Count
     ratingAvg: {
       type: Number,
@@ -141,10 +145,14 @@ const bookSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["available", "unavailable"],
-      default: "published",
+      default: "available",
       index: true,
     },
-
+    sourceRequest: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BookRequest",
+      default: null,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -165,7 +173,7 @@ bookSchema.index({
   description: "text",
   isbn: "text",
 });
-bookSchema.index({ category: 1, price: 1 });
+bookSchema.index({ categories: 1, price: 1 });
 bookSchema.index({ status: 1, isActive: 1, createdAt: -1 });
 
 //  uniqueness before save and auto slugs generation

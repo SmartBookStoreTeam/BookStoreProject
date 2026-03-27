@@ -2,17 +2,27 @@ import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema(
   {
-    book: { type: mongoose.Schema.Types.ObjectId, ref: "Book", required: true, index: true },
+    book: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Book",
+      required: true,
+      index: true,
+    },
     titleSnapshot: { type: String, required: true },
     priceSnapshot: { type: Number, required: true, min: 0 },
     quantity: { type: Number, default: 1, min: 1 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const orderSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
 
     items: {
       type: [orderItemSchema],
@@ -26,7 +36,13 @@ const orderSchema = new mongoose.Schema(
     subtotal: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
 
-    // Temporary statuses until Stripe is integrated
+    // ✅ Coupon discount details
+    coupon: {
+      code: { type: String, default: null },
+      discountPercent: { type: Number, default: 0 },
+      discountAmount: { type: Number, default: 0 },
+    },
+
     status: {
       type: String,
       enum: ["requested", "approved", "rejected", "canceled"],
@@ -40,15 +56,13 @@ const orderSchema = new mongoose.Schema(
 
     adminNote: { type: String, trim: true, maxlength: 500 },
 
-    // Keep a placeholder for future Stripe integration without schema breaking
-    paymentProvider: { type: String, default: "manual", index: true },
-    stripe: {
-      checkoutSessionId: { type: String, index: true },
-      paymentIntentId: { type: String, index: true },
-      customerId: { type: String, index: true },
+    paymentProvider: { type: String, default: "paymob", index: true },
+    paymob: {
+      orderId: { type: String, index: true },
+      transactionId: { type: String, index: true },
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 orderSchema.index({ createdAt: -1 });
