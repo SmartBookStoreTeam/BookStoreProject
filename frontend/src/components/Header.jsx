@@ -209,7 +209,7 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700 transition-colors duration-300 bg-indigo-900/90 dark:bg-indigo-950/50 border-indigo-800 text-white`}
+      className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700/10 transition-colors duration-300 bg-indigo-900/90 dark:bg-indigo-950/50 border-indigo-800 text-white`}
     >
         <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -682,7 +682,7 @@ const Header = () => {
               <Link
                 to="/register"
                 onClick={(e) => handleSafeNavigation(e, "/register")}
-                className={`flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 transition ${occasion ? "text-white hover:text-white/80 focus:ring-white" : "text-indigo-950 dark:text-indigo-200 focus:ring-indigo-500 hover:text-indigo-500 dark:hover:text-indigo-400"}`}
+                className={`flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 transition text-white hover:text-white/80 focus:ring-white`}
                 onContextMenu={handleContextMenu}
               >
                 <User size={24} />

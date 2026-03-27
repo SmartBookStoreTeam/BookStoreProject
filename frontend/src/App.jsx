@@ -35,6 +35,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import Register from "./pages/Register";
 import UserLogin from "./pages/UserLogin";
+import GuestRoute from "./components/GuestRoute";
 import PdfViewer from "./pages/PdfViewer";
 import { useTheme } from "./hooks/useTheme";
 import { useTranslation } from "react-i18next";
@@ -88,17 +89,34 @@ function App() {
                 {/* PDF Viewer - Full Screen (Outside Layout) */}
                 <Route
                   path="pdf-viewer/:bookId"
-                  element={
-                    <UserProtectedRoute>
-                      <PdfViewer />
-                    </UserProtectedRoute>
-                  }
+                  element={<PdfViewer />}
                 />
 
                 {/* Auth Routes */}
-                <Route path="/register" element={<Register />} />
-                <Route path="/login" element={<UserLogin />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route
+                  path="/register"
+                  element={
+                    <GuestRoute>
+                      <Register />
+                    </GuestRoute>
+                  }
+                />
+                <Route
+                  path="/login"
+                  element={
+                    <GuestRoute>
+                      <UserLogin />
+                    </GuestRoute>
+                  }
+                />
+                <Route
+                  path="/verify-email"
+                  element={
+                    <GuestRoute>
+                      <VerifyEmail />
+                    </GuestRoute>
+                  }
+                />
 
                 {/* Admin Routes - Protected */}
                 <Route

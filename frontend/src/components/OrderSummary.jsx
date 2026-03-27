@@ -22,10 +22,11 @@ const OrderSummary = ({
   const couponDiscount =
     couponPercent > 0 ? (subtotal * couponPercent) / 100 : 0;
 
-  // UI-only first-order discount (only when no coupon is applied)
+  // First-order discount: 50% off cheapest book (only when no coupon applied)
   let firstOrderDiscount = 0;
   if (!coupon?.code && isFirstOrder && books.length > 0) {
-    firstOrderDiscount = (books[0].price || 0) * 0.5;
+    const cheapest = Math.min(...books.map((b) => b.price || 0));
+    firstOrderDiscount = cheapest * 0.5;
   }
 
   const discount = couponDiscount > 0 ? couponDiscount : firstOrderDiscount;
@@ -115,6 +116,17 @@ const OrderSummary = ({
           </span>
         </div>
 
+        {!coupon?.code && isFirstOrder && firstOrderDiscount > 0 && (
+          <div className="flex justify-between items-center mb-3 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
+            <span className="text-sm font-medium">
+              🎉 {t("First Order Discount (50% off 1 book)")}
+            </span>
+            <span className="text-sm font-bold">
+              -{firstOrderDiscount.toFixed(2)} {t("EGP")}
+            </span>
+          </div>
+        )}
+
         {coupon?.code && couponDiscount > 0 && (
           <div className="flex justify-between items-center mb-3 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
             <span className="text-sm font-medium">
@@ -126,16 +138,6 @@ const OrderSummary = ({
           </div>
         )}
 
-        {!coupon?.code && isFirstOrder && firstOrderDiscount > 0 && (
-          <div className="flex justify-between items-center mb-3 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg">
-            <span className="text-sm font-medium">
-              {t("First Order Discount (50% off 1 book)")}
-            </span>
-            <span className="text-sm font-bold">
-              -{firstOrderDiscount.toFixed(2)} {t("EGP")}
-            </span>
-          </div>
-        )}
 
         {coupon?.code && onRemoveCoupon && (
           <button
