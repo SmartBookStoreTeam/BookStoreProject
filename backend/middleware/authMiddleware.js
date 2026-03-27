@@ -31,3 +31,14 @@ export const admin = (req, res, next) => {
   if (req.user?.role === "admin") return next();
   return res.status(403).json({ message: "Admin access only" });
 };
+
+export const authorize =
+  (...roles) =>
+  (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        message: `Access denied. Required role: ${roles.join(" or ")}`,
+      });
+    }
+    next();
+  };
