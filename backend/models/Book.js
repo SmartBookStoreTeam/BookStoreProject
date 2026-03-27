@@ -56,13 +56,11 @@ const bookSchema = new mongoose.Schema(
     year: {
       type: String,
     },
-    // ✅ categories — supports multiple categories
-    categories: {
-      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
-      validate: {
-        validator: (v) => Array.isArray(v) && v.length > 0,
-        message: "At least one category is required",
-      },
+    // ✅ category ObjectId
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: [true, "Book category is required"],
       index: true,
     },
 
@@ -173,7 +171,7 @@ bookSchema.index({
   description: "text",
   isbn: "text",
 });
-bookSchema.index({ categories: 1, price: 1 });
+bookSchema.index({ category: 1, price: 1 });
 bookSchema.index({ status: 1, isActive: 1, createdAt: -1 });
 
 //  uniqueness before save and auto slugs generation

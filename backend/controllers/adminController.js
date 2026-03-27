@@ -40,7 +40,7 @@ const getPublicIdFromUrl = (url) => {
 // @access  Admin
 export const createBook = async (req, res, next) => {
   try {
-    const { title, author, description, categories, price, year, isbn, edition } =
+    const { title, author, description, category, price, year, isbn, edition } =
       req.body;
 
     const imageFile = req.files?.image?.[0];
@@ -66,11 +66,7 @@ export const createBook = async (req, res, next) => {
       author,
       description,
       year,
-      categories: Array.isArray(categories)
-        ? categories
-        : categories
-          ? [categories]
-          : [],
+      category,
       isbn,
       edition: edition || "",
       price: Number(price),
@@ -114,9 +110,7 @@ export const createBook = async (req, res, next) => {
       previewKey = previewUpload.key;
     }
 
-    // For meta.json, use the name of the first category
-    const firstCatId = Array.isArray(categories) ? categories[0] : categories;
-    const categoryDoc = await Category.findById(firstCatId).select("name").lean();
+    const categoryDoc = await Category.findById(category).select("name").lean();
     const categoryName = categoryDoc?.name || null;
 
     // 7) create meta.json
@@ -168,7 +162,7 @@ export const createBook = async (req, res, next) => {
     await book.save();
 
     const populatedBook = await Book.findById(book._id)
-      .populate("categories", "name")
+      .populate("category", "name")
       .lean();
 
     res.status(201).json({
@@ -189,7 +183,7 @@ export const updateBook = async (req, res, next) => {
       "title",
       "author",
       "description",
-      "categories",
+      "category",
       "price",
       "year",
       "isActive",
@@ -200,13 +194,8 @@ export const updateBook = async (req, res, next) => {
 
     fields.forEach((field) => {
       if (req.body[field] !== undefined) {
-        if (field === "categories") {
-          // Accept array or single string from form-data
-          const val = req.body[field];
-          updateData[field] = Array.isArray(val) ? val : [val];
-        } else {
-          updateData[field] = req.body[field];
-        }
+        // Ensure edition is stored as a String (no transformation needed)
+        updateData[field] = req.body[field];
       }
     });
 
@@ -426,12 +415,12 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
     if (isActive === "true") filter.isActive = true;
     if (isActive === "false") filter.isActive = false;
-    if (category) filter.categories = category;
+    if (category) filter.category = category;
 
     const total = await Book.countDocuments(filter);
     const books = await Book.find(filter)
       .select("-reviews -__v")
-      .populate("categories", "name slug")
+      .populate("category", "name slug")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
@@ -448,9 +437,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
 export const getBookAdminById = async (req, res, next) => {
   try {
-    const book = await Book.findById(req.params.id)
-      .populate("categories", "name slug")
-      .select("+pdf -__v");
+    const book = await Book.findById(req.params.id).select("+pdf -__v");
     if (!book)
       return res
         .status(404)
