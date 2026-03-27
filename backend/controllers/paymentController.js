@@ -1,6 +1,7 @@
 import Order from "../models/Order.js";
 import Book from "../models/Book.js";
 import LibraryItem from "../models/LibraryItem.js";
+import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import dotenv from "dotenv";
 import {
@@ -17,7 +18,7 @@ dotenv.config();
  */
 export const createCheckoutSession = async (req, res, next) => {
   try {
-    const { items, couponCode } = req.body;
+    const { items, couponCode, isFirstOrder } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: "Order items are required" });
@@ -57,6 +58,7 @@ export const createCheckoutSession = async (req, res, next) => {
     let discountAmount = 0;
     let appliedCouponCode = null;
     let couponDoc = null;
+    let discountLabel = null; // for order record
 
     if (couponCode) {
       couponDoc = await Coupon.findOne({
@@ -93,6 +95,25 @@ export const createCheckoutSession = async (req, res, next) => {
       discountPercent = couponDoc.discountPercent;
       discountAmount = Math.round((subtotal * discountPercent) / 100);
       appliedCouponCode = couponDoc.code;
+      discountLabel = "coupon";
+    } else if (isFirstOrder) {
+      // 3b) First-order discount: 50% off the cheapest book
+      // Verify server-side: user must have NO approved orders
+      const existingOrdersCount = await Order.countDocuments({
+        user: req.user._id,
+        status: "approved",
+      });
+
+      if (existingOrdersCount === 0) {
+        // Find the cheapest item in this order
+        const cheapestItem = orderItems.reduce((min, it) =>
+          it.priceSnapshot < min.priceSnapshot ? it : min,
+        );
+        discountAmount = Math.round(cheapestItem.priceSnapshot * 0.5 * 100) / 100;
+        discountPercent = Math.round((discountAmount / subtotal) * 100);
+        appliedCouponCode = "FIRST_ORDER";
+        discountLabel = "first_order";
+      }
     }
 
     const total = Math.max(0, subtotal - discountAmount);
@@ -119,12 +140,58 @@ export const createCheckoutSession = async (req, res, next) => {
     // 6) Paymob Step 2 — register order with Paymob
     const amountCents = Math.round(total * 100);
 
-    const paymobItems = orderItems.map((it) => ({
-      name: it.titleSnapshot,
-      amount_cents: Math.round(it.priceSnapshot * 100),
-      description: it.titleSnapshot,
-      quantity: it.quantity,
-    }));
+    // Distribute discount proportionally across items so sum(items) == amountCents
+    // This prevents any mismatch between item totals and order total in Paymob
+    const paymobItems = (() => {
+      if (discountAmount <= 0) {
+        // No discount — use full prices
+        return orderItems.map((it) => ({
+          name: it.titleSnapshot,
+          amount_cents: Math.round(it.priceSnapshot * it.quantity * 100),
+          description: it.titleSnapshot,
+          quantity: 1,
+        }));
+      }
+
+      // First-order discount: subtract from the cheapest item only
+      if (discountLabel === "first_order") {
+        let appliedOnce = false;
+        const cheapestPrice = orderItems.reduce(
+          (min, it) => Math.min(min, it.priceSnapshot),
+          Infinity,
+        );
+        return orderItems.map((it) => {
+          let itemCents = Math.round(it.priceSnapshot * it.quantity * 100);
+          if (!appliedOnce && it.priceSnapshot === cheapestPrice) {
+            itemCents = Math.max(0, itemCents - Math.round(discountAmount * 100));
+            appliedOnce = true;
+          }
+          return {
+            name: it.titleSnapshot,
+            amount_cents: itemCents,
+            description: it.titleSnapshot,
+            quantity: 1,
+          };
+        });
+      }
+
+      // Coupon discount: distribute proportionally, fix rounding on last item
+      let remainingDiscount = Math.round(discountAmount * 100); // in cents
+      return orderItems.map((it, idx) => {
+        const fullCents = Math.round(it.priceSnapshot * it.quantity * 100);
+        const isLast = idx === orderItems.length - 1;
+        const share = isLast
+          ? remainingDiscount
+          : Math.round((fullCents / (subtotal * 100)) * Math.round(discountAmount * 100));
+        remainingDiscount -= share;
+        return {
+          name: it.titleSnapshot,
+          amount_cents: Math.max(0, fullCents - share),
+          description: it.titleSnapshot,
+          quantity: 1,
+        };
+      });
+    })();
 
     const paymobOrder = await registerPaymobOrder(authToken, {
       amountCents,
@@ -169,6 +236,7 @@ export const createCheckoutSession = async (req, res, next) => {
         iframeUrl,
         discount: {
           code: appliedCouponCode,
+          discountLabel,
           discountPercent,
           discountAmount,
           subtotal,
@@ -195,12 +263,12 @@ export const paymobWebhook = async (req, res) => {
       : req.body?.obj?.success === true;
 
     const paymobOrderId = isGet
-      ? String(req.query.order)
-      : String(req.body?.obj?.order?.id);
+      ? req.query.order
+      : req.body?.obj?.order?.id;
 
     const transactionId = isGet
-      ? String(req.query.id)
-      : String(req.body?.obj?.id);
+      ? req.query.id
+      : req.body?.obj?.id;
 
     console.log("📦 Webhook received:", {
       method: req.method,
@@ -208,6 +276,11 @@ export const paymobWebhook = async (req, res) => {
       paymobOrderId,
       transactionId,
     });
+
+    if (isGet) {
+      const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+      return res.redirect(`${frontendUrl}/payment/success?success=${success}&order=${paymobOrderId || ""}&id=${transactionId || ""}`);
+    }
 
     if (!success) return res.json({ received: true });
     if (!paymobOrderId) return res.json({ received: true });
@@ -259,6 +332,18 @@ export const paymobWebhook = async (req, res) => {
         Book.updateOne({ _id: it.book }, { $inc: { sales: it.quantity } }),
       ),
     );
+
+    // ✅ Remove purchased books from user's cart
+    try {
+      const purchasedBookIds = order.items.map((it) => it.book);
+      await Cart.updateOne(
+        { user: order.user },
+        { $pull: { items: { book: { $in: purchasedBookIds } } } },
+      );
+    } catch (cartErr) {
+      // Non-critical — log but don't fail the webhook
+      console.warn("⚠️ Could not clear cart items after purchase:", cartErr.message);
+    }
 
     console.log("✅ Paymob payment approved for order:", order._id);
     return res.json({ received: true });

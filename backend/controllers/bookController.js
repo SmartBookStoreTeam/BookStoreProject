@@ -11,7 +11,7 @@ export const getBooks = async (req, res, next) => {
 
     const filter = { isActive: true };
 
-    if (req.query.category) filter.category = req.query.category;
+    if (req.query.category) filter.categories = req.query.category;
     if (req.query.author) {
       filter.author = { $regex: req.query.author, $options: "i" };
     }
@@ -28,7 +28,7 @@ export const getBooks = async (req, res, next) => {
     const total = await Book.countDocuments(filter);
     const books = await Book.find(filter)
       .select("+pdf") // ✅ Include PDF field
-      .populate("category", "name slug")
+      .populate("categories", "name slug")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
@@ -58,7 +58,7 @@ export const getBookById = async (req, res, next) => {
       isActive: true,
     })
       .select("+pdf") // ✅ Include PDF field
-      .populate("category", "name slug");
+      .populate("categories", "name slug");
 
     if (!book) {
       return res
@@ -86,7 +86,7 @@ export const searchBooks = async (req, res, next) => {
 
     const filter = { isActive: true };
 
-    if (category) filter.category = category;
+    if (category) filter.categories = category;
 
     if (req.query.minPrice)
       filter.price = { ...filter.price, $gte: Number(req.query.minPrice) };
@@ -108,20 +108,20 @@ export const searchBooks = async (req, res, next) => {
         { title: { $regex: regex } },
         { author: { $regex: regex } },
         { isbn: { $regex: regex } },
-        { category: { $in: categoryIds } }, // Also search by category name
+        { categories: { $in: categoryIds } }, // Also search by category name
       ];
     }
 
     const total = await Book.countDocuments(filter);
 
-    let query = Book.find(filter).populate("category", "name slug");
+    let query = Book.find(filter).populate("categories", "name slug");
 
     // Standard sort
     query = query.sort(sort);
 
     const books = await query
       .select("+pdf") // ✅ Include PDF field
-      .populate("category", "name slug")
+      .populate("categories", "name slug")
       .limit(pageSize)
       .skip(pageSize * (page - 1));
 
@@ -175,7 +175,7 @@ export const getTopBooks = async (req, res, next) => {
 
     const books = await Book.find({ isActive: true })
       .select("+pdf") // ✅ Include PDF field
-      .populate("category", "name slug")
+      .populate("categories", "name slug")
       .sort({ ratings: -1, numReviews: -1 })
       .limit(limit);
 
