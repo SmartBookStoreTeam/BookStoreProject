@@ -48,10 +48,10 @@ const UserBooks = () => {
       />
 
       <div className="min-h-screen bg-gray-50 pt-20 dark:bg-zinc-900">
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
+        <div className="w-full max-w-337.5 mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
-              {t("Community Books")}
+              {t("our Community")}
             </h1>
             <span className="text-gray-600 dark:text-gray-400">
               {userBooks.length} {t("books listed")}
@@ -90,7 +90,7 @@ const UserBooks = () => {
                       className="touch-area relative w-full block cursor-pointer group"
                     >
                       <img
-                        className="rounded-2xl w-full h-[300px] sm:h-[250px] lg:h-[300px] object-cover group-hover:opacity-90 transition-opacity"
+                        className="rounded-2xl w-full h-75 sm:h-62.5 lg:h-75 object-cover group-hover:opacity-90 transition-opacity"
                         src={bookImage}
                         alt={book.title}
                       />
@@ -153,7 +153,7 @@ const UserBooks = () => {
 
                     <p
                       dir="auto"
-                      className="touch-area text-xs text-center truncate max-w-[250px] text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300"
+                      className="touch-area text-xs text-center truncate max-w-62.5 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300"
                     >
                       {book.desc ||
                         book.description ||

@@ -1,11 +1,13 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const UserProtectedRoute = ({ children }) => {
-  const { token } = useAuth();
+  const { user } = useAuth();
+  const location = useLocation();
 
-  if (!token) {
-    return <Navigate to="/user-login" replace />;
+  if (!user) {
+    // Save the current location to redirect back after login
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;

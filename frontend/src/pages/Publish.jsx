@@ -53,7 +53,7 @@ const hasFormData = (formData) => {
     formData.sellerLocation.trim() !== "" ||
     formData.edition.trim() !== "" ||
     formData.publisher.trim() !== "" ||
-    formData.publicationYear !== "" ||
+    formData.year !== "" ||
     formData.pages !== ""
   );
 };
@@ -86,10 +86,10 @@ const Publish = () => {
         // Additional Details
         edition: "",
         publisher: "",
-        publicationYear: "",
+        year: "",
         pages: "",
         language: "english",
-      }
+      },
   );
 
   const [currentStep, setCurrentStep] = useState(getInitialStep);
@@ -429,7 +429,7 @@ const Publish = () => {
           newErrors.author = t("Author name is required");
         } else if (!validateAuthor(formData.author)) {
           newErrors.author = t(
-            "Author name must be between 2 and 100 characters"
+            "Author name must be between 2 and 100 characters",
           );
         }
 
@@ -451,12 +451,9 @@ const Publish = () => {
         }
 
         // Publication year validation
-        if (
-          formData.publicationYear &&
-          !validatePublicationYear(formData.publicationYear)
-        ) {
-          newErrors.publicationYear = t(
-            `Please enter a valid year between 1900 and ${new Date().getFullYear()}`
+        if (formData.year && !validatePublicationYear(formData.year)) {
+          newErrors.year = t(
+            `Please enter a valid year between 1900 and ${new Date().getFullYear()}`,
           );
         }
 
@@ -468,7 +465,7 @@ const Publish = () => {
         // Description validation
         if (!validateDescription(formData.description)) {
           newErrors.description = t(
-            "Description must be less than 1000 characters"
+            "Description must be less than 1000 characters",
           );
         }
 
@@ -487,7 +484,7 @@ const Publish = () => {
           newErrors.sellerName = t("Your name is required");
         } else if (!validateName(formData.sellerName)) {
           newErrors.sellerName = t(
-            "Please enter a valid name (2-50 characters, letters only)"
+            "Please enter a valid name (2-50 characters, letters only)",
           );
         }
 
@@ -501,7 +498,7 @@ const Publish = () => {
         // Phone validation
         if (formData.sellerPhone && !validatePhone(formData.sellerPhone)) {
           newErrors.sellerPhone = t(
-            "Please enter a valid Egyptian phone number"
+            "Please enter a valid Egyptian phone number",
           );
         }
 
@@ -510,7 +507,7 @@ const Publish = () => {
           newErrors.sellerLocation = t("Location is required");
         } else if (!validateLocation(formData.sellerLocation)) {
           newErrors.sellerLocation = t(
-            "Please enter a valid location (2-100 characters)"
+            "Please enter a valid location (2-100 characters)",
           );
         }
         break;
@@ -525,7 +522,7 @@ const Publish = () => {
       // Scroll to first error
       const firstErrorField = Object.keys(newErrors)[0];
       const errorElement = document.querySelector(
-        `[name="${firstErrorField}"]`
+        `[name="${firstErrorField}"]`,
       );
       if (errorElement) {
         errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -585,9 +582,9 @@ const Publish = () => {
     if (!validateStep(currentStep)) {
       showToast(
         `${t("Please complete")} ${t(steps[currentStep - 1].title)} ${t(
-          "before proceeding"
+          "before proceeding",
         )}`,
-        "error"
+        "error",
       );
       return;
     }
@@ -605,9 +602,9 @@ const Publish = () => {
         allValid = false;
         showToast(
           `${t("Please complete")} ${t(steps[step - 1].title)} ${t(
-            "before proceeding"
+            "before proceeding",
           )}`,
-          "error"
+          "error",
         );
         break;
       }
@@ -632,7 +629,7 @@ const Publish = () => {
     if (!allValid) {
       showToast(
         `${t("Please fix all validation errors before publishing")}`,
-        "error"
+        "error",
       );
       setCurrentStep(1);
       return;
@@ -653,7 +650,7 @@ const Publish = () => {
             };
           }
           return image; // If it's already processed
-        })
+        }),
       );
 
       // Prepare book data for storage
@@ -674,7 +671,7 @@ const Publish = () => {
         sellerLocation: formData.sellerLocation.trim(),
         edition: formData.edition.trim(),
         publisher: formData.publisher.trim(),
-        publicationYear: formData.publicationYear,
+        year: formData.year,
         pages: formData.pages,
         language: formData.language,
       };
@@ -699,7 +696,7 @@ const Publish = () => {
         sellerLocation: "",
         edition: "",
         publisher: "",
-        publicationYear: "",
+        year: "",
         pages: "",
         language: "english",
       });
@@ -783,7 +780,7 @@ const Publish = () => {
 
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               {t(
-                "You have unsaved book information. If you leave this page, all your entered data will be lost."
+                "You have unsaved book information. If you leave this page, all your entered data will be lost.",
               )}
             </p>
 
@@ -809,7 +806,7 @@ const Publish = () => {
         dir={i18n.dir()}
         className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-20"
       >
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
+        <div className="w-full max-w-337.5 mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
@@ -818,7 +815,7 @@ const Publish = () => {
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               {t(
                 "PublishBookParagraph",
-                "List your loved books and reach thousands of readers. Fill out the form below to get started."
+                "List your loved books and reach thousands of readers. Fill out the form below to get started.",
               )}
             </p>
           </div>
@@ -963,7 +960,7 @@ const Publish = () => {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:[color-scheme:dark] focus:outline-none focus:ring-1 ${
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:scheme-dark focus:outline-none focus:ring-1 ${
                             errors.price
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1003,7 +1000,7 @@ const Publish = () => {
                       <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
                         {t(
                           "DescriptionOptional",
-                          "Optional, max 1000 characters"
+                          "Optional, max 1000 characters",
                         )}
                       </span>
                     </label>
@@ -1020,7 +1017,7 @@ const Publish = () => {
                         }`}
                         placeholder={t(
                           "describeBook",
-                          "Describe your book's content, special features, and any notable aspects..."
+                          "Describe your book's content, special features, and any notable aspects...",
                         )}
                       />
                     </div>
@@ -1083,11 +1080,11 @@ const Publish = () => {
                       <div className="touch-area relative rounded-lg">
                         <input
                           type="number"
-                          name="publicationYear"
-                          value={formData.publicationYear}
+                          name="year"
+                          value={formData.year}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:[color-scheme:dark] focus:outline-none focus:ring-1 ${
-                            errors.publicationYear
+                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:scheme-dark focus:outline-none focus:ring-1 ${
+                            errors.year
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
                           }`}
@@ -1096,7 +1093,7 @@ const Publish = () => {
                           max={new Date().getFullYear()}
                         />
                       </div>
-                      {renderError("publicationYear")}
+                      {renderError("year")}
                     </div>
                   </div>
 
@@ -1127,7 +1124,7 @@ const Publish = () => {
                           name="pages"
                           value={formData.pages}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:[color-scheme:dark] focus:outline-none focus:ring-1 ${
+                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:scheme-dark focus:outline-none focus:ring-1 ${
                             errors.pages
                               ? "border-red-500 focus:ring-red-500"
                               : "border-gray-300 focus:ring-indigo-500"
@@ -1163,7 +1160,7 @@ const Publish = () => {
                     <p className="text-gray-500 dark:text-gray-300 mb-4">
                       {t(
                         "uploadImagesHint",
-                        "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each)."
+                        "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each).",
                       )}
                     </p>
                     <input
@@ -1325,7 +1322,7 @@ const Publish = () => {
                     </h2>
                     <p className="text-gray-600 dark:text-gray-300">
                       {t(
-                        "Please review all the information below before publishing your book."
+                        "Please review all the information below before publishing your book.",
                       )}
                     </p>
                   </div>
@@ -1367,7 +1364,10 @@ const Publish = () => {
                             <span className="font-medium text-gray-700 dark:text-gray-300">
                               {t("Price")}:
                             </span>
-                            <p dir={i18n.dir()} className="text-gray-900 dark:text-gray-200 text-right">
+                            <p
+                              dir={i18n.dir()}
+                              className="text-gray-900 dark:text-gray-200 text-right"
+                            >
                               {formData.price} {t("EGP")}
                             </p>
                           </div>
@@ -1395,7 +1395,7 @@ const Publish = () => {
                       {/* Additional Book Details */}
                       {(formData.isbn ||
                         formData.edition ||
-                        formData.publicationYear ||
+                        formData.year ||
                         formData.pages) && (
                         <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg">
                           <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-3">
@@ -1422,13 +1422,13 @@ const Publish = () => {
                                 </span>
                               </div>
                             )}
-                            {formData.publicationYear && (
+                            {formData.year && (
                               <div className="flex justify-between">
                                 <span className="text-gray-600 dark:text-gray-400">
                                   {t("Publication Year")}:
                                 </span>
                                 <span className="text-gray-900 dark:text-gray-200">
-                                  {formData.publicationYear}
+                                  {formData.year}
                                 </span>
                               </div>
                             )}
@@ -1529,7 +1529,7 @@ const Publish = () => {
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300 text-center mb-4">
                           {t(
-                            "Once published, your book will be visible to all users on the platform."
+                            "Once published, your book will be visible to all users on the platform.",
                           )}
                         </p>
                         <button
@@ -1554,7 +1554,7 @@ const Publish = () => {
                         </button>
                         <p className="text-xs text-gray-500 text-center mt-2">
                           {t(
-                            "By publishing, you agree to our terms and conditions"
+                            "By publishing, you agree to our terms and conditions",
                           )}
                         </p>
                       </div>
@@ -1576,8 +1576,8 @@ const Publish = () => {
                     currentStep === 1
                       ? " bg-gray-200 text-gray-500 cursor-not-allowed"
                       : currentStep === 4
-                      ? "hidden sm:block bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
+                        ? "hidden sm:block bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
                   }`}
                 >
                   {t("Previous")}
@@ -1627,7 +1627,7 @@ const Publish = () => {
           <div className="max-w-4xl mx-auto mt-8 text-center text-sm text-gray-500">
             <p>
               {t(
-                "By listing your book, you agree to our terms of service. Your name and email will be shared with potential buyers."
+                "By listing your book, you agree to our terms of service. Your name and email will be shared with potential buyers.",
               )}
             </p>
           </div>

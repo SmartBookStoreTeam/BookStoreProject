@@ -17,6 +17,7 @@ import {
   X,
   ArrowLeft,
   Download,
+  BadgeCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
@@ -24,7 +25,7 @@ import { getImageSrc } from "../utils/imageUtils";
 import UserAvatar from "../components/UserAvatar";
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { userBooks, removeUserBook, cartItems, purchasedBooks } = useCart();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -35,6 +36,7 @@ const Profile = () => {
   });
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -102,18 +104,46 @@ const Profile = () => {
     },
   ];
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-    // Implement API call to update user info
-    toast.success(t("Profile updated successfully!"), {
-      duration: 1500,
-      style: {
-        background: "#333",
-        color: "#fff",
-        direction: i18n.dir(),
-      },
-    });
-    setShowEditModal(false);
+    setLoading(true);
+
+    try {
+      const result = await updateUser(editForm.name, editForm.email);
+
+      if (result.success) {
+        toast.success(t("Profile updated successfully!"), {
+          duration: 1500,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+        setShowEditModal(false);
+      } else {
+        toast.error(result.error || t("Failed to update profile"), {
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+            direction: i18n.dir(),
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast.error(t("An error occurred"), {
+        duration: 2000,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -174,11 +204,11 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-5 transition-colors duration-300">
-      <div className="w-full max-w-[1350px] mx-auto px-4">
+      <div className="w-full max-w-337.5 mx-auto px-4">
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="group touch-area md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
+          className="group touch-area p-2 rounded-full md:hidden flex items-center text-gray-500 dark:text-gray-300 hover:text-gray-900 hover:dark:text-gray-200 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-all" />
           {t("Go Back")}
@@ -194,8 +224,11 @@ const Profile = () => {
 
             {/* User Info */}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center justify-center sm:justify-start gap-2">
                 {user.name}
+                {user.role === "admin" && (
+                  <BadgeCheck className="w-7 h-7 text-white fill-blue-500" />
+                )}
               </h1>
               <div className="flex flex-col sm:flex-row items-center gap-4 text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
@@ -285,29 +318,32 @@ const Profile = () => {
                   >
                     {/* Book Image with Overlay */}
                     <div className="relative overflow-hidden">
-                      <div className="touch-area relative aspect-[3/4] overflow-hidden">
+                      <Link
+                        to={`/book/${book._id || book.id}`}
+                        className="touch-area relative aspect-3/4 overflow-hidden block cursor-pointer group"
+                      >
                         <img
                           src={imageSrc}
                           alt={book.title}
-                          className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-50"
+                          className="w-full h-full object-cover brightness-50 transition-transform duration-300 group-hover:scale-110"
                         />
 
                         {/* Title and Author */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 cursor-pointer z-10">
+                        <div className="absolute inset-0 flex flex-col justify-end p-4 cursor-pointer z-10 transition-all duration-300 group-hover:bg-black/20">
                           <h3
                             dir="auto"
-                            className="font-bold text-lg text-white line-clamp-2 mb-1 drop-shadow-md"
+                            className="font-bold text-lg text-white line-clamp-2 mb-1 drop-shadow-lg"
                           >
                             {book.title}
                           </h3>
                           <p
                             dir="auto"
-                            className="text-sm text-gray-200 drop-shadow-md"
+                            className="text-sm text-gray-200 drop-shadow-lg"
                           >
                             {book.author}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                     </div>
 
                     <div className="p-5 relative z-20">
@@ -316,20 +352,54 @@ const Profile = () => {
                         <Link
                           to={`/pdf-viewer/${book._id || book.id}`}
                           state={{ pdfUrl: book.pdf, bookTitle: book.title }}
-                          className="touch-area flex-1 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                          className="touch-area flex-1 bg-linear-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                         >
                           <Eye size={16} />
                           {t("View")}
                         </Link>
-                        <a
-                          dir={i18n.dir()}
-                          href={book.pdf || "#"}
-                          download
+                        <button
+                          onClick={async () => {
+                            try {
+                              const { downloadBook } =
+                                await import("../api/booksApi");
+                              const response = await downloadBook(
+                                book._id || book.id,
+                              );
+                              if (response.success && response.data?.url) {
+                                // Create a temporary link and trigger download
+                                const link = document.createElement("a");
+                                link.href = response.data.url;
+                                link.download = `${book.title}.pdf`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              } else {
+                                toast.error(t("Failed to download book"), {
+                                  duration: 2000,
+                                  style: {
+                                    background: "#333",
+                                    color: "#fff",
+                                    direction: i18n.dir(),
+                                  },
+                                });
+                              }
+                            } catch (error) {
+                              console.error("Download error:", error);
+                              toast.error(t("Failed to download book"), {
+                                duration: 2000,
+                                style: {
+                                  background: "#333",
+                                  color: "#fff",
+                                  direction: i18n.dir(),
+                                },
+                              });
+                            }
+                          }}
                           className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                           title={t("Download PDF")}
                         >
                           <Download className="" size={16} />
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -538,7 +608,7 @@ const Profile = () => {
               </h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="touch-area text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
+                className="touch-area p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-600 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -589,9 +659,10 @@ const Profile = () => {
                 </button>
                 <button
                   type="submit"
-                  className="touch-area flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition-colors cursor-pointer"
+                  disabled={loading}
+                  className="touch-area flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white py-2 rounded-lg transition-colors cursor-pointer"
                 >
-                  {t("Save Changes")}
+                  {loading ? t("Saving...") : t("Save Changes")}
                 </button>
               </div>
             </form>

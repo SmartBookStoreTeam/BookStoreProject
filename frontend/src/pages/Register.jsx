@@ -108,7 +108,7 @@ const Register = () => {
             {t("Register New Account")}
           </h1>
           <p className="text-gray-600 dark:text-white/80 mt-2 text-sm sm:text-base">
-            {t("Create an account to access the dashboard")}
+            {t("Create an account to buy your favorite books")}
           </p>
         </div>
 
@@ -220,7 +220,7 @@ const Register = () => {
           </span>
           <button
             onClick={() =>
-              navigate("/user-login", {
+              navigate("/login", {
                 state: { from: location.state?.from },
               })
             }

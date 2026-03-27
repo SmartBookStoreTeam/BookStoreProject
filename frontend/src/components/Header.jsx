@@ -246,7 +246,7 @@ const Header = () => {
                 {openNotifications && (
                   <div
                     ref={notificationsDropdownRef}
-                    className="absolute right-0 mt-2 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-[100] max-h-96 overflow-hidden flex flex-col"
+                    className="absolute right-0 mt-2 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-100 max-h-96 overflow-hidden flex flex-col"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Header */}
@@ -311,7 +311,7 @@ const Header = () => {
                                 <div className="flex-1 pr-6">
                                   <p className="text-sm text-indigo-950 dark:text-indigo-200">
                                     {i18n.language === "ar"
-                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملف الشخصي.`
+                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
                                       : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
                                   </p>
                                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -321,7 +321,7 @@ const Header = () => {
                                   </p>
                                 </div>
                                 {!notification.read && (
-                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 flex-shrink-0" />
+                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 shrink-0" />
                                 )}
                               </div>
                               <button
@@ -586,7 +586,7 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className="touch-area relative mt-[2px] p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
+                  className="touch-area relative p-2 rounded-full active:bg-zinc-300 dark:active:bg-zinc-700 active:text-indigo-900 dark:active:text-indigo-200 text-indigo-900 transition duration-300 dark:text-indigo-200 hover:bg-zinc-400 dark:hover:bg-zinc-600 cursor-pointer"
                 >
                   <Bell size={24} />
                   {unreadCount > 0 && (
@@ -600,7 +600,7 @@ const Header = () => {
                 {openNotifications && (
                   <div
                     ref={mobileNotificationsDropdownRef}
-                    className="fixed top-16 right-4 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-[100] max-h-96 overflow-hidden flex flex-col"
+                    className="fixed top-16 right-4 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-100 max-h-96 overflow-hidden flex flex-col"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Header */}
@@ -649,7 +649,7 @@ const Header = () => {
                           {notifications.map((notification) => (
                             <div
                               key={notification.id}
-                              className={`p-4 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition cursor-pointer ${
+                              className={`touch-area p-4 active:bg-zinc-300 dark:active:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition cursor-pointer ${
                                 !notification.read
                                   ? "bg-indigo-50 dark:bg-indigo-900/20"
                                   : ""
@@ -665,7 +665,7 @@ const Header = () => {
                                 <div className="flex-1">
                                   <p className="text-sm text-indigo-950 dark:text-indigo-200">
                                     {i18n.language === "ar"
-                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملف الشخصي.`
+                                      ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
                                       : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
                                   </p>
                                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -675,7 +675,7 @@ const Header = () => {
                                   </p>
                                 </div>
                                 {!notification.read && (
-                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 flex-shrink-0" />
+                                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-1 shrink-0" />
                                 )}
                                 <button
                                   onClick={(e) => {
@@ -737,7 +737,7 @@ const Header = () => {
           <Link
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
-            className="touch-area flex items-center gap-3 text-indigo-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
+            className="touch-area flex items-center gap-3 text-gray-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
             onContextMenu={handleContextMenu}
           >
             <span>Bookfly</span>

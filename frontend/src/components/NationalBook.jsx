@@ -4,7 +4,7 @@ const NationalBook = () => {
   const { t, i18n } = useTranslation();
   return (
     <div className="bg-yellow-100 dark:bg-zinc-800 transition-colors duration-300 ">
-      <div className="w-full max-w-[1350px] mx-auto px-4 py-8">
+      <div className="w-full max-w-337.5 mx-auto px-4 py-8">
         <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6 md:gap-0">
           {/* Text Content */}
           <div className="flex-1 text-center md:text-left">
@@ -23,7 +23,7 @@ const NationalBook = () => {
             <img
               src={assets.award}
               alt="Award"
-              className="w-[250px] h-[250px] md:w-[300px] md:h-[300px] object-contain"
+              className="w-62.5 h-62.5 md:w-75 md:h-75 object-contain"
             />
           </div>
         </div>

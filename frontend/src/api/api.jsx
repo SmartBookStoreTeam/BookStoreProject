@@ -1,15 +1,12 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || "/api",
+  withCredentials: true, // Important: Send cookies with requests
 });
 
-// 1) حط التوكن لو موجود
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+// Note: Backend uses HttpOnly cookies for JWT, not Authorization header
+// So we don only need to enable withCredentials, no need to add token manually
 
 // 2) لو رجع HTML بدل JSON اعتبره خطأ (ده اللي كنا بنتكلم عنه)
 api.interceptors.response.use(

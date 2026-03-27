@@ -64,15 +64,15 @@ const Footer = () => {
             <ul className="space-y-2 text-gray-300">
               <li className="flex items-start">
                 <span className="min-w-20">{t("Email")}:</span>
-                <span dir="ltr">bookfly@gmail.com</span>
+                <span dir="ltr">bookfly2026@gmail.com</span>
               </li>
               <li className="flex items-start">
                 <span className="min-w-20">{t("Phone")}:</span>
-                <span dir="ltr">+20 10 123 4561</span>
+                <span dir="ltr">+20 10 970 264 66</span>
               </li>
               <li className="flex items-start">
                 <span className="min-w-20">{t("Address")}:</span>
-                <span dir="ltr">MMEC, Mullana - 133207</span>
+                <span dir="ltr">FCI-ZU, Zagazig University</span>
               </li>
             </ul>
           </div>

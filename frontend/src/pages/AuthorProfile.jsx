@@ -1,7 +1,14 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCart } from "../hooks/useCart";
-import { ShoppingCart, Star, User, ArrowLeft, BookOpen } from "lucide-react";
+import {
+  ShoppingCart,
+  Star,
+  User,
+  ArrowLeft,
+  BookOpen,
+  CheckCircle,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -17,7 +24,7 @@ import { getImageSrc } from "../utils/imageUtils";
 const AuthorProfile = () => {
   const { name } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks } = useCart();
+  const { addToCart, userBooks, purchasedBooks } = useCart();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -62,7 +69,7 @@ const AuthorProfile = () => {
         );
 
         // Combine both sources
-        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];    
+        const combinedBooks = [...filteredApiBooks, ...filteredUserBooks];
 
         setAuthorBooks(combinedBooks);
       } catch (error) {
@@ -121,7 +128,7 @@ const AuthorProfile = () => {
       />
 
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900">
-        <div className="w-full max-w-[1350px] mx-auto px-4 py-4">
+        <div className="w-full max-w-337.5 mx-auto px-4 py-4">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
@@ -184,7 +191,7 @@ const AuthorProfile = () => {
                       className="relative w-full block touch-area cursor-pointer group overflow-hidden rounded-2xl"
                     >
                       <motion.img
-                        className="w-full h-[300px] sm:h-[250px] lg:h-[300px] object-cover"
+                        className="w-full h-75 sm:h-62.5 lg:h-75 object-cover"
                         src={bookImage}
                         alt={book.title}
                         whileHover={{ scale: 1.1 }}
@@ -243,7 +250,7 @@ const AuthorProfile = () => {
 
                     <p
                       dir="auto"
-                      className="touch-area text-xs text-center truncate max-w-[250px] text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300"
+                      className="touch-area text-xs text-center truncate max-w-62.5 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300"
                     >
                       {book.desc ||
                         book.description ||
@@ -258,18 +265,31 @@ const AuthorProfile = () => {
                       >
                         {t("Details")}
                       </Link>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(book);
-                        }}
-                        className="flex-1 touch-area cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
-                      >
-                        <FaCartPlus className="w-4 h-4" />
-                        <span className="text-xs whitespace-nowrap">
-                          {t("Add to Cart")}
-                        </span>
-                      </button>
+
+                      {/* Check if book is already purchased */}
+                      {purchasedBooks?.some(
+                        (pb) => pb._id === book._id || pb.id === book.id,
+                      ) ? (
+                        <button
+                          disabled
+                          className="flex-1 touch-area bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(book);
+                          }}
+                          className="flex-1 touch-area cursor-pointer bg-gray-900 dark:bg-indigo-600 hover:bg-gray-800 active:scale-95 dark:hover:bg-indigo-500 text-white font-medium px-2 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300"
+                        >
+                          <FaCartPlus className="w-4 h-4" />
+                          <span className="text-xs whitespace-nowrap">
+                            {t("Add to Cart")}
+                          </span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

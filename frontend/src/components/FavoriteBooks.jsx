@@ -66,12 +66,12 @@ const FavoriteBooks = () => {
             </p>
 
             {/* Stats */}
-            <div className="touch-area grid grid-cols-3 gap-6 mb-8 max-w-md mx-auto lg:mx-0">
+            <div className="grid grid-cols-3 gap-6 mb-8 max-w-md mx-auto lg:mx-0">
               <div>
                 <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 transition-colors duration-300">
                   {bookCount}+
                 </div>
-                <div className="touch-area text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Book Listing")}
                 </div>
               </div>
@@ -79,7 +79,7 @@ const FavoriteBooks = () => {
                 <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400 mb-1 transition-colors duration-300">
                   {userCount}+
                 </div>
-                <div className="touch-area text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Register User")}
                 </div>
               </div>
@@ -87,7 +87,7 @@ const FavoriteBooks = () => {
                 <div className="text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1 transition-colors duration-300">
                   {soldCount}+
                 </div>
-                <div className="touch-area text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Books Sold")}
                 </div>
               </div>

@@ -25,7 +25,7 @@ const Cart = () => {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors">
-        <div className="w-full max-w-[1350px] mx-auto px-4 text-center">
+        <div className="w-full max-w-337.5 mx-auto px-4 text-center">
           <ShoppingBag size={64} className="mx-auto text-gray-400 mb-6" />
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200 mb-4">
             {t("emptyCart", "Your Cart is Empty")}

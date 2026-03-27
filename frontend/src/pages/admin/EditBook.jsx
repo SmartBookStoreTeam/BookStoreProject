@@ -56,7 +56,9 @@ const EditBook = () => {
         "category",
         "description",
         "status",
-        "publicationYear",
+        "year",
+        "isbn",
+        "edition",
       ].forEach((f) => bookData.append(f, data.get(f)));
 
       bookData.append("price", parseFloat(data.get("price") || 0));
@@ -80,7 +82,7 @@ const EditBook = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
+      <div className="flex justify-center items-center min-h-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -115,8 +117,8 @@ const EditBook = () => {
               <BookOpenIcon className="h-5 w-5 mr-2 text-blue-600" />
               Book Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="col-span-2 md:col-span-1">
+            <div className="flex flex-col space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Title <span className="text-red-500">*</span>
                 </label>
@@ -129,7 +131,7 @@ const EditBook = () => {
                 />
               </div>
 
-              <div className="col-span-2 md:col-span-1">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Author <span className="text-red-500">*</span>
                 </label>
@@ -162,13 +164,37 @@ const EditBook = () => {
                   Publication Year
                 </label>
                 <input
-                  name="publicationYear"
+                  name="year"
                   type="number"
-                  defaultValue={book.publicationYear}
+                  defaultValue={book.year}
                   className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder={new Date().getFullYear()}
                   min="1000"
                   max={new Date().getFullYear() + 1}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ISBN
+                </label>
+                <input
+                  name="isbn"
+                  defaultValue={book.isbn}
+                  className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="ISBN"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Edition
+                </label>
+                <input
+                  name="edition"
+                  defaultValue={book.edition}
+                  className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Edition"
                 />
               </div>
 
@@ -225,7 +251,7 @@ const EditBook = () => {
             <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Files & Media
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors bg-gray-50">
                 <label className="block cursor-pointer">
                   <div className="text-sm font-medium text-gray-700 mb-2">
