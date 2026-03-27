@@ -146,7 +146,11 @@ const bookSchema = new mongoose.Schema(
       default: "available",
       index: true,
     },
-
+    sourceRequest: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BookRequest",
+      default: null,
+    },
     isActive: {
       type: Boolean,
       default: true,

@@ -22,7 +22,9 @@ import previewRoutes from "./routes/previewRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
-import couponRoutes from "./routes/couponRoutes.js"; // ✅ new
+import couponRoutes from "./routes/couponRoutes.js";
+import bookRequestRoutes from "./routes/bookRequestRoutes.js";
+import adminBookRequestRoutes from "./routes/adminBookRequestRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -36,10 +38,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://192.168.1.19:5173",
-  "https://d1r1pvso22xiyd.cloudfront.net",
-  "http://d1r1pvso22xiyd.cloudfront.net",
-  "http://d3bwgf4wkm0gnh.cloudfront.net",
-  "https://d3bwgf4wkm0gnh.cloudfront.net", // ✅ new CloudFront
+  "https://dn7prippnkodg.cloudfront.net",
 ];
 
 app.use(cookieParser());
@@ -77,8 +76,10 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api", previewRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/api/coupons", couponRoutes); // ✅ user: apply coupon
-app.use("/api/admin/coupons", couponRoutes); // ✅ admin: manage coupons
+app.use("/api/coupons", couponRoutes); // user: apply coupon
+app.use("/api/admin/coupons", couponRoutes); // admin: manage coupons
+app.use("/api/book-requests", bookRequestRoutes); // users
+app.use("/api/admin/book-requests", adminBookRequestRoutes); // admin
 
 // Error handlers
 app.use(notFound);
@@ -88,24 +89,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
-// ```
-
-// ---
-
-// ## ✅ Coupon system is done! Quick test checklist:
-// ```
-// ☐ Create a coupon via Postman:
-//   POST /api/admin/coupons
-//   { "discountPercent": 20, "expiresAt": "2026-12-31" }
-
-// ☐ Apply coupon before checkout:
-//   POST /api/coupons/apply
-//   { "code": "BOOK-XXXX-XXXX" }
-
-// ☐ Use coupon in checkout:
-//   POST /api/payments/checkout
-//   { "items": [...], "couponCode": "BOOK-XXXX-XXXX" }
-
-// ☐ Check order in MongoDB — coupon object should be filled
-// ☐ Try using same coupon again — should get "already used" error
-// ☐ Check coupon usedBy array in MongoDB after payment
