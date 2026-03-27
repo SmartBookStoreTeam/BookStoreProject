@@ -425,6 +425,7 @@
   "ISBN": "رقم ISBN",
   "Preview Book": "معاينة الكتاب",
   "View Book": "عرض الكتاب",
+  "Start Reading": "ابدأ القراءة",
   "Book not found": "لم يتم العثور على الكتاب",
 
   "Download link will be sent to this email": "سيتم إرسال رابط التحميل إلى هذا البريد الإلكتروني",
@@ -505,13 +506,16 @@
   "Buy Your First Book Now!": "اشترِ كتابك الأول الآن!",
   "Get 50% off any book!": "احصل على خصم 50٪ على اي  كتاب !",
   "First Order Discount (50% off 1 book)": "خصم على الطلب الأول (50٪ خصم على كتاب واحد)",
+  "Wait for offers": "انتظر العروض القادمة",
+  "Wait for our special offers.": "انتظر عروضنا الخاصة.",
+  "Buy your favorite books from here!": "اشترِ كتبك المفضلة من هنا!",
   "Ramadan Mubarak!": "رمضان مبارك!",
   "Eid Mubarak!": "عيد مبارك!",
   "Eid Fitr Mubarak!": "عيد فطر مبارك!",
   "Eid Adha Mubarak!": "عيد أضحى مبارك!",
   "May this holy month bring you peace, joy, and countless blessings. Happy reading during Ramadan!": "نتمنى أن يجلب لك هذا الشهر الكريم السلام والفرح والبركات التي لا تُحصى. قراءة ممتعة خلال شهر رمضان. 🌙",
   "Continue to Bookfly Store": "استمر إلى Bookfly Store",
-  "Wishing you a joyous and blessed Eid filled with happiness and wonderful stories to read.":"نتمنى لكم عيدًا سعيدًا ومباركًا مليئًا بالفرح وقصصٍ رائعة للقراءة. 🎉",
+  "Wishing you a joyous and blessed Eid filled with happiness and wonderful stories to read.": "نتمنى لكم عيدًا سعيدًا ومباركًا مليئًا بالفرح وقصصٍ رائعة للقراءة. 🎉",
   "Cairo Time": "بتوقيت القاهرة",
   "Have a coupon?": "هل لديك كوبون؟",
   "Apply Coupon": "تطبيق الكوبون",
@@ -526,5 +530,9 @@
   "Coupon not valid for this order": "الكوبون غير صالح لهذا الطلب",
   "Coupon not valid for your account": "الكوبون غير صالح لحسابك",
   "Coupon not valid for these items": "الكوبون غير صالح لهذه الكتب",
-  "Coupon not valid for this date": "الكوبون غير صالح لهذا التاريخ"
+  "Coupon not valid for this date": "الكوبون غير صالح لهذا التاريخ",
+  "Please login or create an account to proceed to checkout": "يرجى تسجيل الدخول أو إنشاء حساب للمتابعة إلى الدفع",
+  "Discount": "خصم",
+  "Translation":"ترجمة",
+  "Please login or create an account to continue reading": "يرجى تسجيل الدخول أو إنشاء حساب للمتابعة في القراءة"
 }

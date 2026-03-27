@@ -3,6 +3,9 @@ import { Trash2, ShoppingBag, ArrowLeft, Star } from "lucide-react";
 import { assets } from "../assets/assets";
 import { useCart } from "../hooks/useCart";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import AuthModal from "../components/AuthModal";
 
 const Cart = () => {
   const {
@@ -14,8 +17,14 @@ const Cart = () => {
   } = useCart();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleCheckout = () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     // Navigate to checkout with all books in cart
     if (cartItems.length > 0) {
       navigate("/checkout", { state: { books: cartItems } });
@@ -46,134 +55,141 @@ const Cart = () => {
   }
 
   return (
-    <div
-      dir={i18n.dir()}
-      className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors"
-    >
-      <div className="mx-auto px-6 max-w-6xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="touch-area text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t("Shopping Cart")}
-          </h1>
-          <span className="touch-area text-gray-600 dark:text-gray-400">
-            {getCartItemsCount()}{" "}
-            {getCartItemsCount() === 1 ? t("item") : t("items")}
-          </span>
-        </div>
-
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 lg:items-start">
-          {/* Cart Items */}
-          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 divide-y divide-gray-200 dark:divide-zinc-700 h-fit">
-            {cartItems.map((item) => (
-              <div key={item.id} className=" p-6 flex gap-4 items-center">
-                <Link
-                  to={`/book/${item._id || item.id}`}
-                  className="touch-area"
-                >
-                  <img
-                    src={
-                      item.img ||
-                      item.image ||
-                      (item.images && item.images.length > 0
-                        ? item.images[0]?.preview ||
-                          item.images[0]?.base64 ||
-                          item.images[0]
-                        : assets.logo)
-                    }
-                    alt={item.title}
-                    className="w-20 h-24 object-cover rounded hover:opacity-75 transition-opacity cursor-pointer"
-                  />
-                </Link>
-
-                <div className="flex-1">
-                  <Link to={`/book/${item._id || item.id}`}>
-                    <h3 className="touch-area font-semibold text-gray-900 dark:text-gray-100 hover:underline focus:underline hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 transition-colors cursor-pointer">
-                      {item.title}
-                    </h3>
-                  </Link>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
-                    {t("by")}{" "}
-                    <span className="touch-area hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 transition-colors cursor-pointer">
-                      {item.author}
-                    </span>
-                  </p>
-
-                  <div className="flex items-center mt-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        size={14}
-                        className={
-                          i <
-                          Math.round(
-                            item.ratings || item.rate || item.rating || 0
-                          )
-                            ? "text-yellow-500 fill-yellow-500"
-                            : "text-gray-300"
-                        }
-                      />
-                    ))}
-                  </div>
-
-                  <p dir={i18n.dir()} className="touch-area text-lg font-bold text-indigo-600 dark:text-indigo-200 mt-1">
-                    {item.price} {t("EGP")}
-                  </p>
-                </div>
-
-                {/* Remove */}
-                <button
-                  onClick={() => removeFromCart(item.id)}
-                  className="touch-area p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded cursor-pointer transition-colors"
-                  title={t("Remove from cart")}
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            ))}
+    <>
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title={t("Please login or create an account to proceed to checkout")}
+      />
+      <div
+        dir={i18n.dir()}
+        className="min-h-screen bg-gray-50 dark:bg-zinc-900 py-12 transition-colors"
+      >
+        <div className="mx-auto px-6 max-w-6xl">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="touch-area text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {t("Shopping Cart")}
+            </h1>
+            <span className="touch-area text-gray-600 dark:text-gray-400">
+              {getCartItemsCount()}{" "}
+              {getCartItemsCount() === 1 ? t("item") : t("items")}
+            </span>
           </div>
 
-          {/* Summary Sidebar */}
-          <aside className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)]">
-            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 p-6">
-              <div className="flex justify-between mb-6">
-                <span className="touch-area text-xl font-bold text-gray-900 dark:text-gray-200">
-                  {t("Total")}:
-                </span>
-                <span dir={i18n.dir()} className="touch-area text-2xl font-bold text-indigo-600 dark:text-indigo-200">
-                  {getCartTotal().toFixed(2)} {t("EGP")}
-                </span>
-              </div>
+          {/* Main Grid Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 lg:items-start">
+            {/* Cart Items */}
+            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 divide-y divide-gray-200 dark:divide-zinc-700 h-fit">
+              {cartItems.map((item) => (
+                <div key={item.id} className=" p-6 flex gap-4 items-center">
+                  <Link
+                    to={`/book/${item._id || item.id}`}
+                    className="touch-area"
+                  >
+                    <img
+                      src={
+                        item.img ||
+                        item.image ||
+                        (item.images && item.images.length > 0
+                          ? item.images[0]?.preview ||
+                            item.images[0]?.base64 ||
+                            item.images[0]
+                          : assets.logo)
+                      }
+                      alt={item.title}
+                      className="w-20 h-24 object-cover rounded hover:opacity-75 transition-opacity cursor-pointer"
+                    />
+                  </Link>
 
-              {/* Buttons in Column */}
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleCheckout}
-                  className="touch-area w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 cursor-pointer font-medium transition-colors"
-                >
-                  {t("Checkout")}
-                </button>
-                <button
-                  onClick={clearCart}
-                  className="touch-area w-full bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-zinc-600 cursor-pointer font-medium transition-colors"
-                >
-                  {t("Clear Cart")}
-                </button>
-                <Link
-                  to="/shop"
-                  dir="ltr"
-                  className="touch-area flex items-center justify-center w-full py-3 text-indigo-600 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200 cursor-pointer font-medium transition-colors"
-                >
-                  <ArrowLeft size={18} className="me-2" />
-                  {t("Continue Shopping")}
-                </Link>
-              </div>
+                  <div className="flex-1">
+                    <Link to={`/book/${item._id || item.id}`}>
+                      <h3 className="touch-area font-semibold text-gray-900 dark:text-gray-100 hover:underline focus:underline hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 transition-colors cursor-pointer">
+                        {item.title}
+                      </h3>
+                    </Link>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                      {t("by")}{" "}
+                      <span className="touch-area hover:text-indigo-600 dark:hover:text-indigo-200 focus:text-indigo-600 dark:focus:text-indigo-200 transition-colors cursor-pointer">
+                        {item.author}
+                      </span>
+                    </p>
+
+                    <div className="flex items-center mt-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className={
+                            i <
+                            Math.round(
+                              item.ratings || item.rate || item.rating || 0
+                            )
+                              ? "text-yellow-500 fill-yellow-500"
+                              : "text-gray-300"
+                          }
+                        />
+                      ))}
+                    </div>
+
+                    <p dir={i18n.dir()} className="touch-area text-lg font-bold text-indigo-600 dark:text-indigo-200 mt-1">
+                      {item.price} {t("EGP")}
+                    </p>
+                  </div>
+
+                  {/* Remove */}
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className="touch-area p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded cursor-pointer transition-colors"
+                    title={t("Remove from cart")}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
             </div>
-          </aside>
+
+            {/* Summary Sidebar */}
+            <aside className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)]">
+              <div className="bg-white dark:bg-zinc-800 rounded-lg shadow border border-gray-200 dark:border-zinc-700 p-6">
+                <div className="flex justify-between mb-6">
+                  <span className="touch-area text-xl font-bold text-gray-900 dark:text-gray-200">
+                    {t("Total")}:
+                  </span>
+                  <span dir={i18n.dir()} className="touch-area text-2xl font-bold text-indigo-600 dark:text-indigo-200">
+                    {getCartTotal().toFixed(2)} {t("EGP")}
+                  </span>
+                </div>
+
+                {/* Buttons in Column */}
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={handleCheckout}
+                    className="touch-area w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 cursor-pointer font-medium transition-colors"
+                  >
+                    {t("Checkout")}
+                  </button>
+                  <button
+                    onClick={clearCart}
+                    className="touch-area w-full bg-gray-200 dark:bg-zinc-700 text-gray-800 dark:text-gray-200 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-zinc-600 cursor-pointer font-medium transition-colors"
+                  >
+                    {t("Clear Cart")}
+                  </button>
+                  <Link
+                    to="/shop"
+                    dir="ltr"
+                    className="touch-area flex items-center justify-center w-full py-3 text-indigo-600 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200 cursor-pointer font-medium transition-colors"
+                  >
+                    <ArrowLeft size={18} className="me-2" />
+                    {t("Continue Shopping")}
+                  </Link>
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

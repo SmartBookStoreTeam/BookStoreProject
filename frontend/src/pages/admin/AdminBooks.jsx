@@ -47,8 +47,14 @@ const AdminBooks = () => {
 
     const matchesCategory =
       selectedCategory === "all" ||
-      book.category?._id === selectedCategory ||
-      book.category?.name === selectedCategory;
+      (Array.isArray(book.categories)
+        ? book.categories.some(
+            (c) =>
+              (typeof c === "object" ? c._id : c) === selectedCategory ||
+              (typeof c === "object" ? c.name : c) === selectedCategory
+          )
+        : book.category?._id === selectedCategory ||
+          book.category?.name === selectedCategory);
 
     return matchesSearch && matchesCategory;
   });
@@ -219,7 +225,9 @@ const AdminBooks = () => {
 
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        {book.category?.name || "Uncategorized"}
+                        {Array.isArray(book.categories) && book.categories.length > 0
+                          ? book.categories.map((c) => (typeof c === "object" ? c.name : c)).join(", ")
+                          : book.category?.name || "Uncategorized"}
                       </span>
                     </td>
 
@@ -320,7 +328,9 @@ const AdminBooks = () => {
                         {Number(book.price || 0).toFixed(2)} EGP
                       </span>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {book.category?.name || "Uncategorized"}
+                      {Array.isArray(book.categories) && book.categories.length > 0
+                          ? book.categories.map((c) => (typeof c === "object" ? c.name : c)).join(", ")
+                          : book.category?.name || "Uncategorized"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between mt-2">

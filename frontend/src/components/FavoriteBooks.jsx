@@ -186,7 +186,7 @@ const FavoriteBooks = () => {
             >
               <div>
                 <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 transition-colors duration-300">
-                  {typeof bookCount === "number" ? `${bookCount * 100}+` : "--"}
+                  {typeof bookCount === "number" ? `${bookCount}00+` : "--"}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Book Listing")}
@@ -202,7 +202,7 @@ const FavoriteBooks = () => {
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1 transition-colors duration-300">
-                  {typeof soldCount === "number" ? `${soldCount}00+` : "--"}
+                  {typeof soldCount === "number" ? `${soldCount}+` : "--"}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   {t("Books Sold")}
