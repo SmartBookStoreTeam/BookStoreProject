@@ -25,7 +25,9 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
 import bookRequestRoutes from "./routes/bookRequestRoutes.js";
 import adminBookRequestRoutes from "./routes/adminBookRequestRoutes.js";
-
+import authorApplicationRoutes      from "./routes/authorApplicationRoutes.js";
+import adminAuthorApplicationRoutes from "./routes/adminAuthorApplicationRoutes.js";
+ 
 dotenv.config();
 connectDB();
 
@@ -80,6 +82,8 @@ app.use("/api/coupons", couponRoutes); // user: apply coupon
 app.use("/api/admin/coupons", couponRoutes); // admin: manage coupons
 app.use("/api/book-requests", bookRequestRoutes); // users
 app.use("/api/admin/book-requests", adminBookRequestRoutes); // admin
+app.use("/api/author-applications",       authorApplicationRoutes);
+app.use("/api/admin/author-applications", adminAuthorApplicationRoutes);
 
 // Error handlers
 app.use(notFound);
