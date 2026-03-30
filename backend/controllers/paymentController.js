@@ -109,7 +109,8 @@ export const createCheckoutSession = async (req, res, next) => {
         const cheapestItem = orderItems.reduce((min, it) =>
           it.priceSnapshot < min.priceSnapshot ? it : min,
         );
-        discountAmount = Math.round(cheapestItem.priceSnapshot * 0.5 * 100) / 100;
+        discountAmount =
+          Math.round(cheapestItem.priceSnapshot * 0.5 * 100) / 100;
         discountPercent = Math.round((discountAmount / subtotal) * 100);
         appliedCouponCode = "FIRST_ORDER";
         discountLabel = "first_order";
@@ -163,7 +164,10 @@ export const createCheckoutSession = async (req, res, next) => {
         return orderItems.map((it) => {
           let itemCents = Math.round(it.priceSnapshot * it.quantity * 100);
           if (!appliedOnce && it.priceSnapshot === cheapestPrice) {
-            itemCents = Math.max(0, itemCents - Math.round(discountAmount * 100));
+            itemCents = Math.max(
+              0,
+              itemCents - Math.round(discountAmount * 100),
+            );
             appliedOnce = true;
           }
           return {
@@ -182,7 +186,9 @@ export const createCheckoutSession = async (req, res, next) => {
         const isLast = idx === orderItems.length - 1;
         const share = isLast
           ? remainingDiscount
-          : Math.round((fullCents / (subtotal * 100)) * Math.round(discountAmount * 100));
+          : Math.round(
+              (fullCents / (subtotal * 100)) * Math.round(discountAmount * 100),
+            );
         remainingDiscount -= share;
         return {
           name: it.titleSnapshot,
@@ -262,13 +268,9 @@ export const paymobWebhook = async (req, res) => {
       ? req.query.success === "true"
       : req.body?.obj?.success === true;
 
-    const paymobOrderId = isGet
-      ? req.query.order
-      : req.body?.obj?.order?.id;
+    const paymobOrderId = isGet ? req.query.order : req.body?.obj?.order?.id;
 
-    const transactionId = isGet
-      ? req.query.id
-      : req.body?.obj?.id;
+    const transactionId = isGet ? req.query.id : req.body?.obj?.id;
 
     console.log("📦 Webhook received:", {
       method: req.method,
@@ -278,8 +280,12 @@ export const paymobWebhook = async (req, res) => {
     });
 
     if (isGet) {
-      const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
-      return res.redirect(`${frontendUrl}/payment/success?success=${success}&order=${paymobOrderId || ""}&id=${transactionId || ""}`);
+      const frontendUrl = (
+        process.env.FRONTEND_URL || "http://localhost:5173"
+      ).replace(/\/$/, "");
+      return res.redirect(
+        `${frontendUrl}/payment/success?success=${success}&order=${paymobOrderId || ""}&id=${transactionId || ""}`,
+      );
     }
 
     if (!success) return res.json({ received: true });
@@ -342,7 +348,10 @@ export const paymobWebhook = async (req, res) => {
       );
     } catch (cartErr) {
       // Non-critical — log but don't fail the webhook
-      console.warn("⚠️ Could not clear cart items after purchase:", cartErr.message);
+      console.warn(
+        "⚠️ Could not clear cart items after purchase:",
+        cartErr.message,
+      );
     }
 
     console.log("✅ Paymob payment approved for order:", order._id);
