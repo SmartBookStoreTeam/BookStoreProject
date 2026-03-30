@@ -8,6 +8,7 @@ import SkeletonLoading from "./SkeletonLoading";
 import Loading from "./Loading";
 import AuthModal from "./AuthModal";
 import AuthorBooks from "./AuthorBooks";
+import { getMyOrders } from "../api/ordersApi";
 import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import {
   Star,
@@ -34,16 +35,29 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 
 // helpers
-const getCategoryName = (category, t) => {
-  if (!category) return t("uncategorized");
-  if (typeof category === "string") return category;
-  return category?.name || t("uncategorized");
+// Returns array of category name strings
+const getCategoryNames = (book, t) => {
+  // New format: categories array
+  if (Array.isArray(book?.categories) && book.categories.length > 0) {
+    return book.categories.map((c) => {
+      if (!c) return t("uncategorized");
+      if (typeof c === "string") return c;
+      return c?.name || t("uncategorized");
+    });
+  }
+  // Old format: single category field
+  if (book?.category) {
+    const c = book.category;
+    if (typeof c === "string") return [c];
+    return [c?.name || t("uncategorized")];
+  }
+  return [t("uncategorized")];
 };
 
 const fillMissingBookData = (book, t, actualPages = null) => {
   if (!book) return null;
 
-  const catName = getCategoryName(book.category, t);
+  const categoryNames = getCategoryNames(book, t);
 
   return {
     ...book,
@@ -60,8 +74,8 @@ const fillMissingBookData = (book, t, actualPages = null) => {
     price:
       typeof book.price === "number" ? book.price : Number(book.price || 0),
 
-    category: book.category || "Unavailable",
-    categoryName: catName || "Unavailable",
+    categories: book.categories || (book.category ? [book.category] : []),
+    categoryNames,
 
     isbn: book.isbn || "Unavailable",
     edition: book.edition || "Unavailable",
@@ -115,7 +129,7 @@ const getArabicOrdinal = (num) => {
 const BookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks, cartItems, isBookPurchased } = useCart();
+  const { addToCart, userBooks, cartItems, isBookPurchased, purchasedBooks } = useCart();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -125,6 +139,26 @@ const BookDetails = () => {
   const [authModalMode, setAuthModalMode] = useState("cart"); // 'cart' or 'preview'
   const [isImageHovered, setIsImageHovered] = useState(false);
   const { setIsLoading } = useGlobalLoading();
+
+  const [isFirstOrder, setIsFirstOrder] = useState(false);
+
+  useEffect(() => {
+    const checkFirstOrder = async () => {
+      if (user) {
+        try {
+          const res = await getMyOrders();
+          const hasOrders = Array.isArray(res) && res.length > 0;
+          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
+        } catch {
+          setIsFirstOrder(false);
+        }
+      } else {
+        setIsFirstOrder(true);
+      }
+    };
+    checkFirstOrder();
+  }, [user, purchasedBooks]);
   const [actualPages, setActualPages] = useState(null);
   const [pagesLoading, setPagesLoading] = useState(false);
 
@@ -255,13 +289,13 @@ const BookDetails = () => {
     );
 
   const handleAddToCart = (bookToAdd) => {
-    if (!user) {
-      setAuthModalMode("cart");
-      setShowAuthModal(true);
-      return;
-    }
-
+    // If book is already in cart, the button acts as "Go to Checkout"
     if (isBookInCart) {
+      if (!user) {
+        setAuthModalMode("cart");
+        setShowAuthModal(true);
+        return;
+      }
       navigate("/checkout", { state: { books: cartItems } });
       return;
     }
@@ -423,30 +457,15 @@ const BookDetails = () => {
                         isImageHovered ? "opacity-100" : "opacity-0"
                       }`}
                     >
-                      {user ? (
-                        <Link
-                          to={`/pdf-viewer/${bookId}`}
-                          className="touch-area px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
-                        >
-                          <BookOpen className="w-5 h-5" />
-                          {isBookPurchased(bookId)
-                            ? t("View Book")
-                            : t("Preview Book")}
-                        </Link>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setAuthModalMode("preview");
-                            setShowAuthModal(true);
-                          }}
-                          className="touch-area px-6 py-3 bg-white dark:bg-indigo-600 text-gray-900 dark:text-white rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition-transform shadow-xl cursor-pointer"
-                        >
-                          <BookOpen className="w-5 h-5" />
-                          {isBookPurchased(bookId)
-                            ? t("View Book")
-                            : t("Preview Book")}
-                        </button>
-                      )}
+                      <Link
+                        to={`/pdf-viewer/${bookId}`}
+                        className="touch-area px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
+                      >
+                        <BookOpen className="w-5 h-5" />
+                        {isBookPurchased(bookId)
+                          ? t("Start Reading")
+                          : t("Preview Book")}
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -533,24 +552,43 @@ const BookDetails = () => {
                 {/* Price card small */}
                 {!isBookPurchased(bookId) && (
                   <div className="my-4 md:hidden p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
-                    <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                      {book.price} {t("EGP")}
-                    </span>
+                    {isFirstOrder ? (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-400 line-through">
+                            {book.price} {t("EGP")}
+                          </span>
+                          <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded dark:bg-green-900/30 dark:text-green-400">
+                            {t("First Order Discount")} (-50%)
+                          </span>
+                        </div>
+                        <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                          {(book.price / 2).toFixed(2)} {t("EGP")}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                        {book.price} {t("EGP")}
+                      </span>
+                    )}
                   </div>
                 )}
 
-                {/* Category */}
-                <div className="flex flex-wrap gap-3 mb-6">
-                  <span
-                    className={`inline-flex items-center text-sm font-medium px-3 py-1 rounded-full ${
-                      book.categoryName === t("uncategorized")
-                        ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                        : "bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200"
-                    }`}
-                  >
-                    <Tag className="w-4 h-4 mr-1 ml-1" />
-                    {t(book.categoryName)}
-                  </span>
+                {/* Categories */}
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {(book.categoryNames || [t("uncategorized")]).map((name, idx) => (
+                    <span
+                      key={idx}
+                      className={`inline-flex items-center text-sm font-medium px-3 py-1 rounded-full ${
+                        name === t("uncategorized")
+                          ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                          : "bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200"
+                      }`}
+                    >
+                      <Tag className="w-4 h-4 mr-1 ml-1" />
+                      {t(name)}
+                    </span>
+                  ))}
                 </div>
 
                 {/* Description */}
@@ -574,38 +612,39 @@ const BookDetails = () => {
               <div className="flex flex-col space-y-4 order-3 lg:w-full">
                 {!isBookPurchased(bookId) && (
                   <div className="hidden md:block p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
-                    <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                      {book.price} {t("EGP")}
-                    </span>
+                    {isFirstOrder ? (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-400 line-through">
+                            {book.price} {t("EGP")}
+                          </span>
+                          <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded dark:bg-green-900/30 dark:text-green-400">
+                            50% {t("Discount")}
+                          </span>
+                        </div>
+                        <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                          {(book.price / 2).toFixed(2)} {t("EGP")}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-lg lg:text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                        {book.price} {t("EGP")}
+                      </span>
+                    )}
                   </div>
                 )}
 
                 {book.pdf && !isBookPurchased(bookId) && (
                   <div dir={i18n.dir()} className="touch-area">
-                    {user ? (
-                      <Link
-                        to={`/pdf-viewer/${bookId}`}
-                        className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
-                      >
-                        <BookOpen className="w-5 h-5" />
-                        {isBookPurchased(bookId)
-                          ? t("View Book")
-                          : t("Preview Book")}
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setAuthModalMode("preview");
-                          setShowAuthModal(true);
-                        }}
-                        className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
-                      >
-                        <BookOpen className="w-5 h-5" />
-                        {isBookPurchased(bookId)
-                          ? t("View Book")
-                          : t("Preview Book")}
-                      </button>
-                    )}
+                    <Link
+                      to={`/pdf-viewer/${bookId}`}
+                      className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
+                    >
+                      <BookOpen className="w-5 h-5" />
+                      {isBookPurchased(bookId)
+                        ? t("Start Reading")
+                        : t("Preview Book")}
+                    </Link>
                   </div>
                 )}
 
@@ -616,7 +655,7 @@ const BookDetails = () => {
                       className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-green-600 hover:bg-green-700 text-white active:scale-95 cursor-pointer shadow-lg hover:shadow-xl"
                     >
                       <BookOpen className="w-6 h-6" />
-                      {t("View Book")}
+                      {t("Start Reading")}
                     </Link>
                   )
                 ) : (

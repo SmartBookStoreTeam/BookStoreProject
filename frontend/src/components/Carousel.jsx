@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getMyOrders } from "../api/ordersApi";
 
+
 const Carousel = ({ books, carouselId = "default" }) => {
   // Check if mobile on initial render
   const getInitialIndex = () => {
@@ -47,7 +48,7 @@ const Carousel = ({ books, carouselId = "default" }) => {
   const touchEndX = useRef(0);
   const touchStartY = useRef(0);
 
-  const { addToCart, cartItems, isBookPurchased } = useCart();
+  const { addToCart, cartItems, isBookPurchased, purchasedBooks } = useCart();
 
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -61,17 +62,20 @@ const Carousel = ({ books, carouselId = "default" }) => {
       if (user) {
         try {
           const res = await getMyOrders();
-          const hasOrders = Array.isArray(res?.data) && res.data.length > 0;
-          setIsFirstOrder(!hasOrders);
+          // getMyOrders returns the array directly (not wrapped in {data:[]})
+          const hasOrders = Array.isArray(res) && res.length > 0;
+          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
         } catch {
           setIsFirstOrder(false);
         }
       } else {
-        setIsFirstOrder(false);
+        setIsFirstOrder(true);
       }
     };
     checkFirstOrder();
-  }, [user]);
+  }, [user, purchasedBooks]);
+
 
   useEffect(() => {
     const updateBooksPerView = () => {
@@ -224,16 +228,17 @@ const Carousel = ({ books, carouselId = "default" }) => {
   };
 
   const handleAddToCart = (book) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    // Check if this specific book is already in cart
+    // Check if this specific book is already in cart (Go to Checkout)
     if (isBookInCart(book)) {
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
       navigate("/checkout", { state: { books: cartItems } });
       return;
     }
+    
+    // Add to cart allows guests
     addToCart(book);
     toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
       duration: 1500,

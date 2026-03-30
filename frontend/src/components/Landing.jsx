@@ -259,7 +259,9 @@ const Landing = () => {
                 {/* Visible typing text overlaid on top */}
                 <span
                   dir={i18n.dir()}
-                  className="absolute top-0 left-0 right-0 text-center lg:text-left"
+                  className={`absolute top-0 left-0 right-0 text-center ${
+                    landingImagesAvailable ? "lg:text-left" : ""
+                  }`}
                 >
                   {displayedText}{" "}
                   <span
@@ -284,7 +286,9 @@ const Landing = () => {
               {/* Search bar with autocomplete */}
               <div
                 ref={searchContainerRef}
-                className="relative w-full max-w-md mx-auto lg:mx-0"
+                className={`relative w-full max-w-md mx-auto ${
+                  landingImagesAvailable ? "lg:mx-0" : ""
+                }`}
               >
                 <form
                   onSubmit={handleSearch}

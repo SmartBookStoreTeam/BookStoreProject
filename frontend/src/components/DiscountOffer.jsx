@@ -1,7 +1,11 @@
+import { useState, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { useTranslation } from "react-i18next";
 import { getIslamicOccasion } from "../utils/islamicOccasion";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../hooks/useCart";
+import { getMyOrders } from "../api/ordersApi";
 
 const OCCASION_CONTENT = {
   ramadan: {
@@ -28,9 +32,42 @@ const OCCASION_CONTENT = {
 
 const DiscountOffer = () => {
   const { t, i18n } = useTranslation();
+  
+  const { user } = useAuth();
+  const { purchasedBooks } = useCart();
+  const [isFirstOrder, setIsFirstOrder] = useState(true);
 
-  const occasion = getIslamicOccasion();
-  const content = OCCASION_CONTENT[occasion] ?? OCCASION_CONTENT.default;
+  useEffect(() => {
+    let isMounted = true;
+    const checkFirstOrder = async () => {
+      if (user) {
+        try {
+          const res = await getMyOrders();
+          if (!isMounted) return;
+          const hasOrders = Array.isArray(res) && res.length > 0;
+          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
+        } catch {
+          if (isMounted) setIsFirstOrder(false);
+        }
+      } else {
+        if (isMounted) setIsFirstOrder(true);
+      }
+    };
+    checkFirstOrder();
+    return () => { isMounted = false; };
+  }, [user, purchasedBooks]);
+
+  const occasion = getIslamicOccasion() || "default";
+  let content = OCCASION_CONTENT[occasion] ?? OCCASION_CONTENT.default;
+
+  if (occasion === "default" && !isFirstOrder) {
+    content = {
+      badge: null,
+      heading: "Wait for our special offers.",
+      button: "Buy your favorite books from here!",
+    };
+  }
 
   return (
     <div className="bg-yellow-100 dark:bg-zinc-800 transition-colors duration-300 ">

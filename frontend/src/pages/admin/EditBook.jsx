@@ -8,6 +8,7 @@ const EditBook = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [book, setBook] = useState(null);
@@ -23,9 +24,17 @@ const EditBook = () => {
 
         if (bookRes.success) {
           setBook(bookRes.data);
+          // Pre-select existing categories
+          const existing = bookRes.data?.categories || [];
+          setSelectedCategories(
+            existing.map((c) => (typeof c === "object" ? c._id : c))
+          );
         } else {
-          // Fallback for some API responses that might just return data directly
           setBook(bookRes);
+          const existing = bookRes?.categories || [];
+          setSelectedCategories(
+            existing.map((c) => (typeof c === "object" ? c._id : c))
+          );
         }
 
         setCategories(
@@ -53,13 +62,20 @@ const EditBook = () => {
       [
         "title",
         "author",
-        "category",
         "description",
         "status",
         "year",
         "isbn",
         "edition",
       ].forEach((f) => bookData.append(f, data.get(f)));
+
+      // Append each selected category separately
+      if (selectedCategories.length === 0) {
+        alert("Please select at least one category.");
+        setIsUploading(false);
+        return;
+      }
+      selectedCategories.forEach((id) => bookData.append("categories", id));
 
       bookData.append("price", parseFloat(data.get("price") || 0));
 
@@ -198,23 +214,46 @@ const EditBook = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category <span className="text-red-500">*</span>
                 </label>
-                <select
-                  name="category"
-                  defaultValue={book.category?._id || book.category}
-                  required
-                  className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto bg-white">
+                  {categories.length === 0 ? (
+                    <p className="text-sm text-gray-500">Loading categories...</p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {categories.map((c) => (
+                        <label
+                          key={c._id}
+                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            value={c._id}
+                            checked={selectedCategories.includes(c._id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedCategories((prev) => [...prev, c._id]);
+                              } else {
+                                setSelectedCategories((prev) =>
+                                  prev.filter((id) => id !== c._id)
+                                );
+                              }
+                            }}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{c.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {selectedCategories.length > 0 && (
+                  <p className="text-xs text-blue-600 mt-1">
+                    {selectedCategories.length} categor{selectedCategories.length === 1 ? "y" : "ies"} selected
+                  </p>
+                )}
               </div>
 
               <div>

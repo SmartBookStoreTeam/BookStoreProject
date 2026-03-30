@@ -46,8 +46,9 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
 
             # Stop and remove old container if exists
-            docker stop backend || true
-            docker rm backend || true
+            docker rm -f backend
+
+            docker container prune -f
 
             # Run new container on host port 80 mapped to container 5000
             docker run -d \
