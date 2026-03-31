@@ -48,6 +48,18 @@ const userSchema = new mongoose.Schema(
       default: "user",
       index: true,
     },
+    
+    // Author Application Fields
+    applicationStatus: {
+      type: String,
+      enum: ["none", "pending", "approved", "rejected"],
+      default: "none",
+    },
+    nationalId: { type: String, select: false },
+    portfolioLink: { type: String },
+    bio: { type: String },
+    phoneNumber: { type: String },
+    digitalSignature: { type: String, select: false },
   },
   { timestamps: true },
 );
