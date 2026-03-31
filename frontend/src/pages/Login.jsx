@@ -14,7 +14,7 @@ import loginImg1 from "../assets/login_img.png";
 import loginImg2 from "../assets/login_img2.png";
 import loginImg3 from "../assets/login_img3.png";
 
-const UserLogin = () => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -141,31 +141,35 @@ const UserLogin = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
+            <fieldset dir={i18n.dir()} className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
+            <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
               {t("Email Address")}
-            </label>
+            </legend>
             <div className="touch-area relative rounded-lg">
               <input
+              dir="ltr"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-white/20 bg-white dark:bg-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition"
+                className="w-full bg-transparent rounded-lg outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 p-2 appearance-none"
                 placeholder="example@mail.com"
                 required
               />
             </div>
+            </fieldset>
           </div>
 
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2">
+            <fieldset dir={i18n.dir()} className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
+            <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
               {t("Password")}
-            </label>
+            </legend>
             <div className="touch-area relative rounded-lg">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-white/20 bg-white dark:bg-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 pr-12 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition"
+                className="w-full bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-1"
                 placeholder="••••••••"
                 required
               />
@@ -174,7 +178,7 @@ const UserLogin = () => {
             <button
               type="button"
               onClick={togglePassword}
-              className="touch-area absolute right-3 top-11 text-gray-500 dark:text-white/60 hover:text-gray-700 dark:hover:text-white cursor-pointer"
+              className={`touch-area absolute ${i18n.dir() === "rtl" ? "left-3" : "right-3"} top-8 text-gray-500 dark:text-white/60 hover:text-gray-700 dark:hover:text-white cursor-pointer`}
             >
               {showPassword ? (
                 <EyeSlashIcon className="h-5 w-5" />
@@ -182,6 +186,7 @@ const UserLogin = () => {
                 <EyeIcon className="h-5 w-5" />
               )}
             </button>
+            </fieldset>
           </div>
 
           <button
@@ -234,4 +239,4 @@ const UserLogin = () => {
   );
 };
 
-export default UserLogin;
+export default Login;

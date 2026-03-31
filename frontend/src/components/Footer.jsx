@@ -33,7 +33,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/"
+                  href="/community"
                   className="touch-area text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   {t("About Us")}
@@ -41,7 +41,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/"
+                  href="/community"
                   className="touch-area text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   {t("Contact")}
