@@ -34,7 +34,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import Register from "./pages/Register";
-import UserLogin from "./pages/UserLogin";
+import Login from "./pages/Login";
 import GuestRoute from "./components/GuestRoute";
 import PdfViewer from "./pages/PdfViewer";
 import { useTheme } from "./hooks/useTheme";
@@ -105,7 +105,7 @@ function App() {
                   path="/login"
                   element={
                     <GuestRoute>
-                      <UserLogin />
+                      <Login />
                     </GuestRoute>
                   }
                 />
