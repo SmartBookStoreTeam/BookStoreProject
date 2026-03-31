@@ -28,9 +28,9 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(getStoredToken);
 
   /* ---------- register ---------- */
-  const register = async (name, email, password) => {
+  const register = async (name, email, password, extraData = {}) => {
     try {
-      await api.post("/auth/register", { name, email, password });
+      await api.post("/auth/register", { name, email, password, ...extraData });
       return { success: true };
     } catch (err) {
       return {

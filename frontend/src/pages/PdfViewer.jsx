@@ -388,7 +388,7 @@ const PdfViewer = () => {
         item._id === book.id,
     );
 
-  const handleAddToCart = (bookToAdd) => {
+  const handleAddToCart = async (bookToAdd) => {
     // If already in cart, navigate to checkout
     if (isBookInCart) {
       if (!user) {
@@ -400,8 +400,8 @@ const PdfViewer = () => {
     }
 
     // Otherwise, add to cart
-    const result = addToCart(bookToAdd);
-    if (result.success) {
+    const result = await addToCart(bookToAdd);
+    if (result?.success) {
       toast.success(`${t("Added")} "${bookToAdd.title}" ${t("to Cart")}!`, {
         duration: 1500,
         style: {
@@ -418,6 +418,33 @@ const PdfViewer = () => {
           justifyContent: "center",
         },
       });
+
+      setTimeout(() => {
+        toast(
+          (tToast) => (
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <span className="text-sm font-medium">{t("Do you want to checkout?")}</span>
+              <button
+                onClick={() => {
+                  toast.dismiss(tToast.id);
+                  navigate(!user ? "/cart" : "/checkout", { state: { books: [bookToAdd] } });
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition duration-200 cursor-pointer"
+              >
+                {t("Go to Checkout")}
+              </button>
+            </div>
+          ),
+          { 
+            duration: 5000, 
+            style: { 
+              direction: i18n.dir(),
+              background: "#333",
+              color: "#fff",
+            } 
+          }
+        );
+      }, 1500);
     }
   };
 
