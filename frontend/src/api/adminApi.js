@@ -72,3 +72,69 @@ export const deleteMyAccount = async () => {
   const res = await api.delete("/auth/me");
   return res.data;
 };
+
+// Update user role (user <-> author)
+export const updateUserRole = async (id, role) => {
+  const res = await api.patch(`/admin/users/${id}/role`, { role });
+  return res.data;
+};
+
+// Author dashboard
+export const getAuthorDashboard = async () => {
+  const res = await api.get("/author/dashboard");
+  return res.data;
+};
+
+// ── Author Book Submission ──────────────────────────────
+export const previewAuthorBookContract = async (data) => {
+  const res = await api.post("/author/books/preview-contract", data);
+  return res.data;
+};
+
+export const submitAuthorBook = async (formData) => {
+  const res = await api.post("/author/books", formData);
+  return res.data;
+};
+
+export const getMyAuthorBooks = async () => {
+  const res = await api.get("/author/books");
+  return res.data;
+};
+
+export const updateAuthorBook = async (id, formData) => {
+  const res = await api.put(`/author/books/${id}`, formData);
+  return res.data;
+};
+
+export const deleteAuthorBook = async (id) => {
+  const res = await api.delete(`/author/books/${id}`);
+  return res.data;
+};
+
+// ── Admin Approve / Reject ──────────────────────────────
+export const approveBook = async (id) => {
+  const res = await api.patch(`/admin/books/${id}/approve`);
+  return res.data;
+};
+
+export const rejectBook = async (id, reason = "") => {
+  const res = await api.patch(`/admin/books/${id}/reject`, { reason });
+  return res.data;
+};
+
+export const getPendingBooks = async () => {
+  const res = await api.get("/admin/books", { params: { approvalStatus: "pending", pageSize: 100 } });
+  return res.data;
+};
+
+// ── Contract PDF ────────────────────────────────────────
+export const getAdminBookContract = async (id) => {
+  const res = await api.get(`/admin/books/${id}/contract`);
+  return res.data;
+};
+
+export const getAuthorBookContract = async (id) => {
+  const res = await api.get(`/author/books/${id}/contract`);
+  return res.data;
+};
+
