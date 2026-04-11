@@ -9,7 +9,17 @@ import loadEmailTemplate from "../utils/emailTemplate.js";
 // -----------------------------------------
 export const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const {
+      name,
+      email,
+      password,
+      roleType,
+      nationalId,
+      portfolioLink,
+      bio,
+      phoneNumber,
+      digitalSignature,
+    } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -25,12 +35,22 @@ export const registerUser = async (req, res, next) => {
       100000 + Math.random() * 900000,
     ).toString();
 
+    const isAuthor = roleType === "author";
+
     const user = await User.create({
       name,
       email,
       password,
       verificationCode,
       verificationCodeExpires: Date.now() + 10 * 60 * 1000,
+      applicationStatus: isAuthor ? "pending" : "none",
+      ...(isAuthor && {
+        nationalId,
+        portfolioLink,
+        bio,
+        phoneNumber,
+        digitalSignature,
+      }),
     });
 
     const html = loadEmailTemplate("verifyEmail", {
