@@ -40,7 +40,7 @@ const getPublicIdFromUrl = (url) => {
 // @access  Admin
 export const createBook = async (req, res, next) => {
   try {
-    const { title, author, description, categories, price, year, isbn, edition } =
+    const { title, author, description, category, price, year, isbn, edition } =
       req.body;
 
     const imageFile = req.files?.image?.[0];
@@ -66,11 +66,7 @@ export const createBook = async (req, res, next) => {
       author,
       description,
       year,
-      categories: Array.isArray(categories)
-        ? categories
-        : categories
-          ? [categories]
-          : [],
+      category,
       isbn,
       edition: edition || "",
       price: Number(price),
@@ -114,9 +110,7 @@ export const createBook = async (req, res, next) => {
       previewKey = previewUpload.key;
     }
 
-    // For meta.json, use the name of the first category
-    const firstCatId = Array.isArray(categories) ? categories[0] : categories;
-    const categoryDoc = await Category.findById(firstCatId).select("name").lean();
+    const categoryDoc = await Category.findById(category).select("name").lean();
     const categoryName = categoryDoc?.name || null;
 
     // 7) create meta.json
@@ -168,7 +162,7 @@ export const createBook = async (req, res, next) => {
     await book.save();
 
     const populatedBook = await Book.findById(book._id)
-      .populate("categories", "name")
+      .populate("category", "name")
       .lean();
 
     res.status(201).json({
@@ -189,7 +183,7 @@ export const updateBook = async (req, res, next) => {
       "title",
       "author",
       "description",
-      "categories",
+      "category",
       "price",
       "year",
       "isActive",
@@ -200,13 +194,8 @@ export const updateBook = async (req, res, next) => {
 
     fields.forEach((field) => {
       if (req.body[field] !== undefined) {
-        if (field === "categories") {
-          // Accept array or single string from form-data
-          const val = req.body[field];
-          updateData[field] = Array.isArray(val) ? val : [val];
-        } else {
-          updateData[field] = req.body[field];
-        }
+        // Ensure edition is stored as a String (no transformation needed)
+        updateData[field] = req.body[field];
       }
     });
 
@@ -414,6 +403,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
     const isActive = req.query.isActive;
     const category = req.query.category;
     const sort = req.query.sort || "-createdAt";
+    const approvalStatus = req.query.approvalStatus;
 
     const filter = {};
     if (q) {
@@ -426,12 +416,14 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
     if (isActive === "true") filter.isActive = true;
     if (isActive === "false") filter.isActive = false;
-    if (category) filter.categories = category;
+    if (category) filter.category = category;
+    if (approvalStatus) filter.approvalStatus = approvalStatus;
 
     const total = await Book.countDocuments(filter);
     const books = await Book.find(filter)
       .select("-reviews -__v")
       .populate("categories", "name slug")
+      .populate("submittedBy", "name email")
       .sort(sort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
@@ -448,9 +440,7 @@ export const getAllBooksAdmin = async (req, res, next) => {
 
 export const getBookAdminById = async (req, res, next) => {
   try {
-    const book = await Book.findById(req.params.id)
-      .populate("categories", "name slug")
-      .select("+pdf -__v");
+    const book = await Book.findById(req.params.id).select("+pdf +contractPdf -__v");
     if (!book)
       return res
         .status(404)
@@ -461,30 +451,122 @@ export const getBookAdminById = async (req, res, next) => {
   }
 };
 
-// @desc    Update user role
-// @route   PUT /api/admin/users/:id
+// @desc    Update user role (user -> author or author -> user)
+// @route   PATCH /api/admin/users/:id/role
 // @access  Admin
+export const updateUserRole = async (req, res, next) => {
+  try {
+    const { role } = req.body;
+    if (!["user", "author"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role. Must be 'user' or 'author'" });
+    }
 
-//  >>>>> Will do this from mongo DB <<<<<<<<<
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-// export const updateUserRole = async (req, res, next) => {
-//   try {
-//     const { role } = req.body;
-//     if (!["user", "admin"].includes(role)) {
-//       res.status(400);
-//       throw new Error("Invalid role");
-//     }
+    // Prevent changing admin's role
+    if (user.role === "admin") {
+      return res.status(403).json({ message: "Cannot change an admin's role" });
+    }
 
-//     const user = await User.findById(req.params.id);
-//     if (!user) {
-//       res.status(404);
-//       throw new Error("User not found");
-//     }
+    user.role = role;
+    if (role === "author") {
+      user.applicationStatus = "approved";
+    } else if (role === "user") {
+      user.applicationStatus = "none";
+    }
+    await user.save();
 
-//     user.role = role;
-//     const updatedUser = await user.save();
-//     res.json(updatedUser);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+    res.json({
+      success: true,
+      message: `User role updated to ${role}`,
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc  Admin approves a pending book
+// @route PATCH /api/admin/books/:id/approve
+// @access Admin
+export const approveBook = async (req, res, next) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ success: false, message: "Book not found" });
+
+    if (book.pendingEdits && Object.keys(book.pendingEdits).length > 0) {
+      Object.assign(book, book.pendingEdits);
+      book.pendingEdits = undefined;
+    }
+
+    book.approvalStatus = "approved";
+    book.isActive = true;
+    book.rejectionReason = undefined;
+    await book.save();
+
+    res.json({ success: true, message: "Book approved and is now live", data: book });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc  Admin rejects a pending book
+// @route PATCH /api/admin/books/:id/reject
+// @access Admin
+export const rejectBook = async (req, res, next) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ success: false, message: "Book not found" });
+
+    if (book.pendingEdits) {
+      // Discard edits, return to original state
+      book.pendingEdits = undefined;
+      book.approvalStatus = "approved";
+      book.rejectionReason = req.body.reason || "Your recent edits were rejected.";
+    } else {
+      // New submission rejection
+      book.approvalStatus = "rejected";
+      book.isActive = false;
+      book.rejectionReason = req.body.reason || null;
+    }
+    
+    await book.save();
+
+    res.json({ success: true, message: "Book rejected", data: book });
+  } catch (err) {
+    next(err);
+  }
+};
+// @desc  Get signed URL for a book's publishing contract PDF
+// @route GET /api/admin/books/:id/contract
+// @access Admin
+export const getBookContract = async (req, res, next) => {
+  try {
+    const book = await Book.findById(req.params.id).select("+contractPdf +signatureUrl contractSignedAt submittedBy");
+    if (!book) return res.status(404).json({ success: false, message: "Book not found" });
+    if (!book.contractPdf) return res.status(404).json({ success: false, message: "No contract found for this book" });
+
+    const { getSignedReadUrl } = await import("../utils/getSignedUrl.js");
+    const url = await getSignedReadUrl(book.contractPdf, 60 * 15); // 15 min
+
+    res.json({
+      success: true,
+      data: {
+        url,
+        signatureUrl: book.signatureUrl || null,
+        contractSignedAt: book.contractSignedAt || null,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
