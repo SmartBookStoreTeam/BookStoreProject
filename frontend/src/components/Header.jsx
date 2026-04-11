@@ -227,83 +227,102 @@ const Header = () => {
   const occasion = getIslamicOccasion();
 
   return (
+    <>
     <header
       className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700/10 transition-all duration-300 bg-indigo-900/90 dark:bg-indigo-950/50 border-indigo-800 text-white ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-        <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <pattern
-              id="pattern-triangles"
-              x="0"
-              y="0"
-              width="40"
-              height="40"
-              patternUnits="userSpaceOnUse"
+      <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <pattern
+            id="pattern-triangles"
+            x="0"
+            y="0"
+            width="40"
+            height="40"
+            patternUnits="userSpaceOnUse"
+          >
+            <path d="M20 0 L40 40 L0 40 Z" fill="currentColor" opacity="0.6" />
+            <path d="M0 0 L20 40 L40 0 Z" fill="currentColor" opacity="0.3" />
+          </pattern>
+          <pattern
+            id="pattern-books"
+            x="0"
+            y="0"
+            width="120"
+            height="45"
+            patternUnits="userSpaceOnUse"
+          >
+            <g
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              opacity="0.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <path
-                d="M20 0 L40 40 L0 40 Z"
-                fill="currentColor"
-                opacity="0.6"
+              {/* Subtle Shelf Line */}
+              <line
+                x1="0"
+                y1="38"
+                x2="120"
+                y2="38"
+                strokeWidth="1"
+                opacity="0.2"
               />
-              <path d="M0 0 L20 40 L40 0 Z" fill="currentColor" opacity="0.3" />
-            </pattern>
-            <pattern
-              id="pattern-books"
-              x="0"
-              y="0"
-              width="120"
-              height="45"
-              patternUnits="userSpaceOnUse"
-            >
-              <g fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4" strokeLinecap="round" strokeLinejoin="round">
-                 {/* Subtle Shelf Line */}
-                 <line x1="0" y1="38" x2="120" y2="38" strokeWidth="1" opacity="0.2" />
-                 
-                 {/* Standing Books */}
-                 <rect x="6" y="14" width="8" height="24" rx="1" />
-                 <line x1="10" y1="16" x2="10" y2="36" opacity="0.4" />
-                 
-                 <rect x="16" y="20" width="6" height="18" rx="1" />
-                 
-                 {/* Leaning Book */}
-                 <g transform="translate(26, 38) rotate(18) translate(-26, -38)">
-                   <rect x="26" y="14" width="9" height="24" rx="1" />
-                   <line x1="30" y1="16" x2="30" y2="36" opacity="0.4" />
-                 </g>
 
-                 {/* Stacked Horizontal Books */}
-                 <rect x="44" y="30" width="22" height="8" rx="1" />
-                 <line x1="46" y1="34" x2="64" y2="34" opacity="0.3" />
-                 
-                 <rect x="47" y="22" width="16" height="8" rx="1" />
-                 <line x1="49" y1="26" x2="61" y2="26" opacity="0.3" />
+              {/* Standing Books */}
+              <rect x="6" y="14" width="8" height="24" rx="1" />
+              <line x1="10" y1="16" x2="10" y2="36" opacity="0.4" />
 
-                 {/* Large Tome */}
-                 <rect x="72" y="10" width="12" height="28" rx="1.5" />
-                 <path d="M 75 10 V 38 M 81 10 V 38" opacity="0.3" />
-                 
-                 {/* Small Leaning Book */}
-                 <g transform="translate(94, 38) rotate(-14) translate(-94, -38)">
-                   <rect x="88" y="20" width="7" height="18" rx="1" />
-                 </g>
-                 
-                 {/* Open Book */}
-                 <path d="M 102 30 Q 106 26 110 30 V 38 Q 106 34 102 38 Z" fill="currentColor" fillOpacity="0.05" />
-                 <path d="M 110 30 Q 114 26 118 30 V 38 Q 114 34 110 38 Z" fill="currentColor" fillOpacity="0.05" />
-                 <line x1="110" y1="30" x2="110" y2="38" opacity="0.5" />
+              <rect x="16" y="20" width="6" height="18" rx="1" />
+
+              {/* Leaning Book */}
+              <g transform="translate(26, 38) rotate(18) translate(-26, -38)">
+                <rect x="26" y="14" width="9" height="24" rx="1" />
+                <line x1="30" y1="16" x2="30" y2="36" opacity="0.4" />
               </g>
-            </pattern>
-            <rect
-              x="0"
-              y="0"
-              width="100%"
-              height="100%"
-              fill={occasion ? "url(#pattern-triangles)" : "url(#pattern-books)"}
-            />
-          </svg>
-        </div>
+
+              {/* Stacked Horizontal Books */}
+              <rect x="44" y="30" width="22" height="8" rx="1" />
+              <line x1="46" y1="34" x2="64" y2="34" opacity="0.3" />
+
+              <rect x="47" y="22" width="16" height="8" rx="1" />
+              <line x1="49" y1="26" x2="61" y2="26" opacity="0.3" />
+
+              {/* Large Tome */}
+              <rect x="72" y="10" width="12" height="28" rx="1.5" />
+              <path d="M 75 10 V 38 M 81 10 V 38" opacity="0.3" />
+
+              {/* Small Leaning Book */}
+              <g transform="translate(94, 38) rotate(-14) translate(-94, -38)">
+                <rect x="88" y="20" width="7" height="18" rx="1" />
+              </g>
+
+              {/* Open Book */}
+              <path
+                d="M 102 30 Q 106 26 110 30 V 38 Q 106 34 102 38 Z"
+                fill="currentColor"
+                fillOpacity="0.05"
+              />
+              <path
+                d="M 110 30 Q 114 26 118 30 V 38 Q 114 34 110 38 Z"
+                fill="currentColor"
+                fillOpacity="0.05"
+              />
+              <line x1="110" y1="30" x2="110" y2="38" opacity="0.5" />
+            </g>
+          </pattern>
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            fill={occasion ? "url(#pattern-triangles)" : "url(#pattern-books)"}
+          />
+        </svg>
+      </div>
       <div className="w-full max-w-367.5 mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between py-4 relative z-10">
           {/* Logo */}
@@ -313,55 +332,55 @@ const Header = () => {
             className={`touch-area relative flex items-center gap-3 text-2xl font-bold tracking-tight text-white`}
             onContextMenu={handleContextMenu}
           >
-{/* Occasion Logo Decor */}
-{occasion === "ramadan" && (
-  <>
-    <span className="absolute -top-4.5 -left-3 w-8 h-8 pointer-events-none">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 100 125"
-        className="w-full h-full fill-current"
-      >
-        <g>
-          <path d="M29.015,40.857L40.36,88.04h20.53l10.985-47.183H29.015z M49.381,80.678h-8.377l-7.667-32.932h16.044V80.678z M59.722,80.678h-8.377V47.746H67.39L59.722,80.678z" />
-        </g>
-        <polygon points="93.57,27.739 93.57,27.864 93.256,27.676" />
-        <polygon points="38.379,19.607 62.511,19.607 75.657,39.417 29.015,39.417 25.773,39.417" />
-        <polygon points="69.714,93.63 31.536,93.63 40.353,89.481 60.897,89.481" />
-        <circle
-          cx="50.265"
-          cy="13.124"
-          r="6.483"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-      </svg>
-    </span>
-
-    <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
-      <FaMoon className="text-white/80" />
-    </span>
-  </>
-)}
-            {(occasion === "eid_fitr") && (
+            {/* Occasion Logo Decor */}
+            {occasion === "ramadan" && (
               <>
-              <span className="absolute -top-3.5 -left-3 text-[1.4rem] rotate-12 drop-shadow-sm pointer-events-none">
-                🎉
-              </span>
-               <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
-                🎊
-              </span>
+                <span className="absolute -top-4.5 -left-3 w-8 h-8 pointer-events-none">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 100 125"
+                    className="w-full h-full fill-current"
+                  >
+                    <g>
+                      <path d="M29.015,40.857L40.36,88.04h20.53l10.985-47.183H29.015z M49.381,80.678h-8.377l-7.667-32.932h16.044V80.678z M59.722,80.678h-8.377V47.746H67.39L59.722,80.678z" />
+                    </g>
+                    <polygon points="93.57,27.739 93.57,27.864 93.256,27.676" />
+                    <polygon points="38.379,19.607 62.511,19.607 75.657,39.417 29.015,39.417 25.773,39.417" />
+                    <polygon points="69.714,93.63 31.536,93.63 40.353,89.481 60.897,89.481" />
+                    <circle
+                      cx="50.265"
+                      cy="13.124"
+                      r="6.483"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                  </svg>
+                </span>
+
+                <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
+                  <FaMoon className="text-white/80" />
+                </span>
               </>
             )}
-            {(occasion === "eid_adha") && (
+            {occasion === "eid_fitr" && (
               <>
-              <span className="absolute -top-3.5 -left-3 text-[1.4rem] rotate-12 drop-shadow-sm pointer-events-none">
-                🎉
-              </span>
-               <span className="absolute -top-3.5 -right-3 text-xl animate-swing origin-bottom drop-shadow-sm pointer-events-none">
-                🐑
-              </span>
+                <span className="absolute -top-3.5 -left-3 text-[1.4rem] rotate-12 drop-shadow-sm pointer-events-none">
+                  🎉
+                </span>
+                <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
+                  🎊
+                </span>
+              </>
+            )}
+            {occasion === "eid_adha" && (
+              <>
+                <span className="absolute -top-3.5 -left-3 text-[1.4rem] rotate-12 drop-shadow-sm pointer-events-none">
+                  🎉
+                </span>
+                <span className="absolute -top-3.5 -right-3 text-xl animate-swing origin-bottom drop-shadow-sm pointer-events-none">
+                  🐑
+                </span>
               </>
             )}
             <span>Bookfly</span>
@@ -749,20 +768,24 @@ const Header = () => {
                         {t("Dashboard")}
                       </Link>
                     )}
-                      
-                                          {/* Author Dashboard */}
-                                          {user?.role === "author" && (
-                                            <Link
-                                              to="/author-dashboard"
-                                              onClick={(e) => {
-                                                handleSafeNavigation(e, "/author-dashboard", closeDropdown);
-                                              }}
-                                              className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 text-indigo-700 dark:text-indigo-300 font-medium"
-                                              onContextMenu={handleContextMenu}
-                                            >
-                                              {t("Dashboard")}
-                                            </Link>
-                                          )}
+
+                    {/* Author Dashboard */}
+                    {user?.role === "author" && (
+                      <Link
+                        to="/author-dashboard"
+                        onClick={(e) => {
+                          handleSafeNavigation(
+                            e,
+                            "/author-dashboard",
+                            closeDropdown,
+                          );
+                        }}
+                        className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 text-indigo-700 dark:text-indigo-300 font-medium"
+                        onContextMenu={handleContextMenu}
+                      >
+                        {t("Dashboard")}
+                      </Link>
+                    )}
                     <Link
                       to="/profile"
                       onClick={(e) => {
@@ -943,256 +966,6 @@ const Header = () => {
             </button>
           </div>
         </div>
-
-        {/* Mobile Sidebar */}
-        <div
-          ref={sidebarRef}
-          className={`md:hidden fixed top-0 left-0 w-3/4 max-w-xs bg-zinc-200 dark:bg-zinc-900 h-full p-6 border-r border-zinc-300 dark:border-zinc-700 transform transition-transform duration-300 z-40 ${
-            isMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          {/* Mobile Logo */}
-          <Link
-            to="/"
-            onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
-            className="touch-area flex items-center gap-3 text-gray-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
-            onContextMenu={handleContextMenu}
-          >
-            <span>Bookfly</span>
-          </Link>
-
-          {/* Mobile Egypt Time */}
-          <div className="hidden items-center justify-center gap-2 font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-200 px-4 py-2 rounded-lg mb-6">
-            <span dir="ltr" className="text-lg">
-              {egyptTime}
-            </span>
-            <span className="text-sm ml-1 opacity-70">{t("Cairo Time")}</span>
-          </div>
-
-          <ul className="flex flex-col gap-4 text-indigo-950 dark:text-zinc-200 font-medium">
-            {links.map(({ label, to, icon }) => (
-              <li key={to}>
-                <NavLink
-                  to={to}
-                  onClick={(e) => handleSafeNavigation(e, to, closeMenu)}
-                  className={({ isActive }) =>
-                    `touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors ${
-                      isActive
-                        ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
-                        : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
-                    }`
-                  }
-                  onContextMenu={handleContextMenu}
-                >
-                  {icon && getIcon(icon, 18)}
-                  <span>{t(label)}</span>
-                </NavLink>
-              </li>
-            ))}
-            {/* Mobile Cart */}
-            <li>
-              <NavLink
-                to="/cart"
-                onClick={(e) => handleSafeNavigation(e, "/cart", closeMenu)}
-                className={({ isActive }) =>
-                  `touch-area relative flex items-center gap-2 py-2 px-4 rounded-lg transition-colors ${
-                    isActive
-                      ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
-                      : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
-                  }`
-                }
-                onContextMenu={handleContextMenu}
-              >
-                <ShoppingCart size={18} />
-                <span>{t("Cart")}</span>
-
-                {getCartItemsCount() > 0 && (
-                  <span className="bg-indigo-600 text-white text-xs font-semibold w-5 h-5 flex items-center justify-center rounded-full">
-                    {getCartItemsCount()}
-                  </span>
-                )}
-              </NavLink>
-            </li>
-            {/* Dark Mode */}
-            <li>
-              <div
-                onClick={toggleTheme}
-                className="touch-area flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-              >
-                <Moon size={18} />
-                <span className="text-indigo-950 dark:text-zinc-200 font-medium absolute left-11">
-                  {" "}
-                  {t("Dark Mode")}{" "}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleTheme();
-                  }}
-                  type="button"
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${
-                    isDarkModeActive()
-                      ? "bg-indigo-500 dark:bg-indigo-400"
-                      : "bg-zinc-300 dark:bg-zinc-600"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform pointer-events-none ${
-                      isDarkModeActive() ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </li>
-            {/* Register */}
-            <li>
-              {!user ? (
-                <Link
-                  to="/register"
-                  onClick={(e) =>
-                    handleSafeNavigation(e, "/register", closeMenu)
-                  }
-                  className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-                  onContextMenu={handleContextMenu}
-                >
-                  <User size={18} /> {t("Register")}
-                </Link>
-              ) : (
-                <>
-                  <Link
-                    to="/profile"
-                    onClick={(e) =>
-                      handleSafeNavigation(e, "/profile", closeMenu)
-                    }
-                    className="touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-                    onContextMenu={handleContextMenu}
-                  >
-                    <UserAvatar user={user} size={32} className="shadow-md" />
-
-                    {firstName}
-                  </Link>
-
-                  {/* Author Dashboard - mobile */}
-                  {user?.role === "author" && (
-                    <Link
-                      to="/author-dashboard"
-                      onClick={(e) =>
-                        handleSafeNavigation(e, "/author-dashboard", closeMenu)
-                      }
-                      className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700 text-indigo-700 dark:text-indigo-300 font-medium"
-                      onContextMenu={handleContextMenu}
-                    >
-                      ✍️ {t("Author Dashboard")}
-                    </Link>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      logout();
-                      closeMenu();
-                    }}
-                    className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors text-red-500 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-left"
-                  >
-                    {t("Logout")}
-                  </button>
-                </>
-              )}
-            </li>
-          </ul>
-
-          {/* Language - Fixed at Bottom */}
-          <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-            <div className="relative" ref={mobileLanguageRef}>
-              <div
-                onClick={toggleLanguageDropdown}
-                className="active:bg-zinc-300 dark:active:bg-zinc-800 group flex items-center justify-between relative px-4 py-2 mb-2 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
-              >
-                <div className="flex items-center gap-3">
-                  <Languages
-                    className="text-indigo-950 dark:text-zinc-200"
-                    size={18}
-                  />
-                  <span className="text-indigo-950 dark:text-zinc-200 font-medium">
-                    {t("Language")}
-                  </span>
-                </div>
-                <div
-                  dir="ltr"
-                  className="relative inline-flex items-center gap-0.5 ms-3 min-w-17.5 justify-end"
-                >
-                  <div className="text-indigo-950 dark:text-zinc-200 text-xs font-semibold relative h-4 w-14 flex items-center justify-end">
-                    <span
-                      className={`text-indigo-500 dark:text-indigo-200 absolute right-0 transition-all duration-500 ease-in-out transform-gpu ${
-                        i18n.language === "en"
-                          ? "translate-y-0 opacity-100 group-hover:translate-y-4 group-hover:opacity-0"
-                          : "-translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-                      }`}
-                    >
-                      English
-                    </span>
-                    <span
-                      className={`text-indigo-500 dark:text-indigo-200 absolute right-0 transition-all duration-500 ease-in-out transform-gpu ${
-                        i18n.language === "ar"
-                          ? "translate-y-0 opacity-100 group-hover:translate-y-4 group-hover:opacity-0"
-                          : "-translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-                      }`}
-                    >
-                      عربي
-                    </span>
-                  </div>
-                  <ChevronDown
-                    size={16}
-                    className="text-indigo-950 dark:text-zinc-200 group-hover:translate-y-1 transition-all duration-500"
-                  />
-                </div>
-              </div>
-
-              {/* Mobile Language Dropdown */}
-              {openLanguageDropdown && (
-                <div className="absolute bottom-full left-0 right-0 mb-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden">
-                  <div
-                    onClick={() => {
-                      i18n.changeLanguage("en");
-                      localStorage.setItem("language", "en");
-                      closeLanguageDropdown();
-                    }}
-                    className={`touch-area flex items-center justify-between py-2 px-3 cursor-pointer transition duration-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
-                      i18n.language === "en"
-                        ? "bg-indigo-100 dark:bg-indigo-900/30"
-                        : ""
-                    }`}
-                  >
-                    <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
-                      English
-                    </span>
-                    {i18n.language === "en" && (
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
-                    )}
-                  </div>
-                  <div
-                    onClick={() => {
-                      i18n.changeLanguage("ar");
-                      localStorage.setItem("language", "ar");
-                      closeLanguageDropdown();
-                    }}
-                    className={`touch-area flex items-center justify-between py-2 px-3 cursor-pointer transition duration-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
-                      i18n.language === "ar"
-                        ? "bg-indigo-100 dark:bg-indigo-900/30"
-                        : ""
-                    }`}
-                  >
-                    <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
-                      عربي
-                    </span>
-                    {i18n.language === "ar" && (
-                      <span className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Loading Bar */}
@@ -1227,6 +1000,197 @@ const Header = () => {
         )}
       </div>
     </header>
+
+    {/* Mobile Sidebar Overlay — outside <header> so CSS transform on header doesn't affect fixed children */}
+    {isMenuOpen && (
+      <div
+        className="md:hidden fixed inset-0 bg-black/50 z-[45]"
+        onClick={closeMenu}
+      />
+    )}
+
+    {/* Mobile Sidebar — outside <header> for the same reason */}
+    <div
+      ref={sidebarRef}
+      className={`md:hidden fixed top-0 left-0 w-3/4 max-w-xs bg-zinc-200 dark:bg-zinc-900 h-full flex flex-col border-r border-zinc-300 dark:border-zinc-700 transform transition-transform duration-300 z-[46] overflow-y-auto ${
+        isMenuOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="p-6">
+        <Link
+          to="/"
+          onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
+          className="touch-area flex items-center gap-3 text-gray-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
+          onContextMenu={handleContextMenu}
+        >
+          <span>Bookfly</span>
+        </Link>
+
+        <ul className="flex flex-col gap-4 text-indigo-950 dark:text-zinc-200 font-medium">
+          {links.map(({ label, to, icon }) => (
+            <li key={to}>
+              <NavLink
+                to={to}
+                onClick={(e) => handleSafeNavigation(e, to, closeMenu)}
+                className={({ isActive }) =>
+                  `touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors ${
+                    isActive
+                      ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
+                      : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                  }`
+                }
+                onContextMenu={handleContextMenu}
+              >
+                {icon && getIcon(icon, 18)}
+                <span>{t(label)}</span>
+              </NavLink>
+            </li>
+          ))}
+          {/* Cart */}
+          <li>
+            <NavLink
+              to="/cart"
+              onClick={(e) => handleSafeNavigation(e, "/cart", closeMenu)}
+              className={({ isActive }) =>
+                `touch-area relative flex items-center gap-2 py-2 px-4 rounded-lg transition-colors ${
+                  isActive
+                    ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
+                    : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                }`
+              }
+              onContextMenu={handleContextMenu}
+            >
+              <ShoppingCart size={18} />
+              <span>{t("Cart")}</span>
+              {getCartItemsCount() > 0 && (
+                <span className="bg-indigo-600 text-white text-xs font-semibold w-5 h-5 flex items-center justify-center rounded-full">
+                  {getCartItemsCount()}
+                </span>
+              )}
+            </NavLink>
+          </li>
+          {/* Dark Mode */}
+          <li>
+            <div
+              onClick={toggleTheme}
+              className="touch-area flex items-center justify-between relative py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+            >
+              <div className="flex items-center gap-3">
+                <Moon size={18} />
+                <span className="text-indigo-950 dark:text-zinc-200 font-medium">
+                  {t("Dark Mode")}
+                </span>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTheme();
+                }}
+                type="button"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
+                  isDarkModeActive()
+                    ? "bg-indigo-500 dark:bg-indigo-400"
+                    : "bg-zinc-300 dark:bg-zinc-600"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform pointer-events-none ${
+                    isDarkModeActive() ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          </li>
+          {/* Profile / Register */}
+          <li>
+            {!user ? (
+              <Link
+                to="/register"
+                onClick={(e) => handleSafeNavigation(e, "/register", closeMenu)}
+                className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                onContextMenu={handleContextMenu}
+              >
+                <User size={18} /> {t("Register")}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/profile"
+                  onClick={(e) => handleSafeNavigation(e, "/profile", closeMenu)}
+                  className="touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                  onContextMenu={handleContextMenu}
+                >
+                  <UserAvatar user={user} size={32} className="shadow-md" />
+                  {firstName}
+                </Link>
+                {user?.role === "author" && (
+                  <Link
+                    to="/author-dashboard"
+                    onClick={(e) => handleSafeNavigation(e, "/author-dashboard", closeMenu)}
+                    className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700 text-indigo-700 dark:text-indigo-300 font-medium"
+                    onContextMenu={handleContextMenu}
+                  >
+                     {t("Author Dashboard")}
+                  </Link>
+                )}
+                <button
+                  onClick={() => { logout(); closeMenu(); }}
+                  className="touch-area w-full flex items-center gap-2 py-2 px-4 rounded-lg transition-colors text-red-500 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-left"
+                >
+                  {t("Logout")}
+                </button>
+              </>
+            )}
+          </li>
+          {/* Language */}
+          <li ref={mobileLanguageRef}>
+            <div
+              onClick={toggleLanguageDropdown}
+              className="touch-area flex items-center justify-between py-2 px-4 cursor-pointer rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700"
+            >
+              <div className="flex items-center gap-3">
+                <Languages className="text-indigo-950 dark:text-zinc-200" size={18} />
+                <span className="text-indigo-950 dark:text-zinc-200 font-medium">{t("Language")}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-semibold text-indigo-500 dark:text-indigo-300">
+                  {i18n.language === "ar" ? "عربي" : "English"}
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={`text-indigo-950 dark:text-zinc-200 transition-transform duration-200 ${
+                    openLanguageDropdown ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </div>
+            {openLanguageDropdown && (
+              <div className="mx-2 mt-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg overflow-hidden">
+                <div
+                  onClick={() => { i18n.changeLanguage("en"); localStorage.setItem("language", "en"); closeLanguageDropdown(); }}
+                  className={`touch-area flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
+                    i18n.language === "en" ? "bg-indigo-100 dark:bg-indigo-900/30" : ""
+                  }`}
+                >
+                  <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">English</span>
+                  {i18n.language === "en" && <span className="w-2 h-2 rounded-full bg-indigo-500" />}
+                </div>
+                <div
+                  onClick={() => { i18n.changeLanguage("ar"); localStorage.setItem("language", "ar"); closeLanguageDropdown(); }}
+                  className={`touch-area flex items-center justify-between py-2 px-3 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
+                    i18n.language === "ar" ? "bg-indigo-100 dark:bg-indigo-900/30" : ""
+                  }`}
+                >
+                  <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">عربي</span>
+                  {i18n.language === "ar" && <span className="w-2 h-2 rounded-full bg-indigo-500" />}
+                </div>
+              </div>
+            )}
+          </li>
+        </ul>
+      </div>
+    </div>
+    </>
   );
 };
 export default Header;
