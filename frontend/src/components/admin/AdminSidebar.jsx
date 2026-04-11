@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { getPendingBooks } from "../../api/adminApi";
 import {
   HomeIcon,
   BookOpenIcon,
@@ -9,21 +11,40 @@ import {
   CogIcon,
   ShoppingBagIcon,
   ArrowLeftIcon,
+  TagIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 
-// import logo from "../../assets/logo.png";
-
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
+  const { user } = useAuth();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const fetchPending = async () => {
+      try {
+        const res = await getPendingBooks();
+        setPendingCount(Array.isArray(res.data) ? res.data.length : 0);
+      } catch { /* silent */ }
+    };
+    fetchPending();
+  }, []);
+
   const navItems = [
     { name: "Dashboard", path: "/admin", icon: HomeIcon },
     { name: "Books", path: "/admin/books", icon: BookOpenIcon },
+    {
+      name: "Pending Books",
+      path: "/admin/books/pending",
+      icon: ClockIcon,
+      badge: pendingCount,
+      isPending: true,
+    },
     { name: "Orders", path: "/admin/orders", icon: ShoppingCartIcon },
-    { name: "Customers", path: "/admin/customers", icon: UsersIcon },
+    { name: "Customers & Authors", path: "/admin/customers", icon: UsersIcon },
+    { name: "Coupons", path: "/admin/coupons", icon: TagIcon },
     { name: "Analytics", path: "/admin/analytics", icon: ChartBarIcon },
     { name: "Settings", path: "/admin/settings", icon: CogIcon },
   ];
-
-  const { user } = useAuth();
 
   return (
     <>
@@ -62,22 +83,32 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
               <NavLink
                 key={item.name}
                 to={item.path}
                 end={item.path === "/admin"}
+                onClick={item.onClick}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
+                  `flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                    item.isPending
+                      ? "text-amber-300 hover:bg-amber-600/20"
+                      : isActive
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-700 text-gray-300"
                   }`
                 }
               >
-                <item.icon className="h-5 w-5" />
-                <span>{item.name}</span>
+                <div className="flex items-center space-x-3">
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </div>
+                {item.badge > 0 && (
+                  <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>

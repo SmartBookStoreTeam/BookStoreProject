@@ -109,19 +109,11 @@ const EditBook = () => {
   return (
     <div className="space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate("/admin/books")}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
-          </button>
+      <div className="flex items-center justify-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Edit Book</h1>
+            <h1 className="text-2xl text-center font-bold text-gray-800">Edit Book</h1>
             <p className="text-gray-600">Update book information and files</p>
           </div>
-        </div>
       </div>
 
       {/* Form Card */}

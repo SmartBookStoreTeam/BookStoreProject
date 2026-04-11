@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getAdminBookById } from "../../api/adminApi";
+import { getAdminBookById, getAdminBookContract } from "../../api/adminApi";
+import { getCategories } from "../../api/categoriesApi";
 import axios from "axios";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
@@ -17,6 +18,8 @@ import {
   CheckCircleIcon,
   EyeIcon,
   EyeSlashIcon,
+  DocumentTextIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminBookDetails = () => {
@@ -27,14 +30,21 @@ const AdminBookDetails = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [allCategories, setAllCategories] = useState([]);
+  const [contractLoading, setContractLoading] = useState(false);
+  const [contractData, setContractData] = useState(null);
 
   // جلب بيانات الكتاب
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
         setLoading(true);
-        const response = await getAdminBookById(id);
+        const [response, categoriesRes] = await Promise.all([
+          getAdminBookById(id),
+          getCategories()
+        ]);
         setBook(response.data);
+        setAllCategories(categoriesRes.data || []);
 
         // Fetch signed URL for PDF
         if (response.data?.pdf) {
@@ -73,6 +83,19 @@ const AdminBookDetails = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    }
+  };
+
+  // View contract
+  const handleViewContract = async () => {
+    setContractLoading(true);
+    try {
+      const res = await getAdminBookContract(id);
+      setContractData(res.data);
+    } catch {
+      alert("No contract found for this book.");
+    } finally {
+      setContractLoading(false);
     }
   };
 
@@ -141,19 +164,72 @@ const AdminBookDetails = () => {
             <p className="text-gray-600 mt-2">{book.author}</p>
           </div>
 
-          <div className="mt-4 md:mt-0 flex space-x-3">
+          <div className="mt-4 md:mt-0 flex flex-wrap gap-3">
             {book.pdf && (
               <button
                 onClick={downloadPDF}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="cursor-pointer flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                 Download PDF
               </button>
             )}
+            {(book.contractPdf || book.signatureUrl) && (
+              <button
+                onClick={handleViewContract}
+                disabled={contractLoading}
+                className="cursor-pointer flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60"
+              >
+                <DocumentTextIcon className="h-5 w-5 mr-2" />
+                {contractLoading ? "Loading..." : "View Contract"}
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Pending Edits Info Box */}
+      {book.pendingEdits && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="flex h-3 w-3 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+            </span>
+            <h3 className="text-lg font-bold text-amber-800">Pending Edit Request</h3>
+          </div>
+          <p className="text-amber-700 text-sm mb-4">
+            The author has requested changes to this book. Below are the new values proposed:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(book.pendingEdits).map(([key, value]) => {
+              if (key === 'fileMeta') return null;
+              let displayValue = value;
+              if (key === 'categories' && Array.isArray(value)) {
+                const mappedCats = value.map(catId => {
+                  const cat = allCategories.find(c => c._id === catId || c.name === catId);
+                  return cat ? cat.name : catId;
+                });
+                displayValue = `[${mappedCats.join(', ')}]`;
+              } else if (key === 'image' || key === 'pdf') {
+                displayValue = "A new file was uploaded";
+              }
+              
+              return (
+                <div key={key} className="bg-white p-3 rounded-lg border border-amber-100 flex flex-col">
+                  <span className="text-xs text-amber-600 font-bold uppercase mb-1">{key}</span>
+                  <span className="text-sm font-medium text-gray-800 truncate" title={String(displayValue)}>
+                    {String(displayValue) || "—"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-4 text-xs text-amber-600 font-semibold">
+            Approve the book from the 'Pending' list to apply these changes, or Reject to discard them.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
@@ -192,7 +268,7 @@ const AdminBookDetails = () => {
               <h3 className="text-lg font-semibold">PDF Viewer</h3>
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer"
                 title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               >
                 {isFullscreen ? (
@@ -239,6 +315,56 @@ const AdminBookDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Contract Modal */}
+      {contractData && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden">
+            <div className="bg-indigo-600 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white">
+                <DocumentTextIcon className="h-5 w-5" />
+                <h2 className="font-bold text-lg">Publishing Contract</h2>
+              </div>
+              <button onClick={() => setContractData(null)} className="text-white/70 hover:text-white cursor-pointer">✕</button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Signature preview */}
+              {contractData.signatureUrl && (
+                <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                  <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1">
+                    <PencilIcon className="h-4 w-4" /> Author's Digital Signature
+                  </p>
+                  <img src={contractData.signatureUrl} alt="Signature" className="max-h-24 border border-gray-300 rounded-lg bg-white p-2" />
+                  {contractData.contractSignedAt && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Signed on {new Date(contractData.contractSignedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <a
+                  href={contractData.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm"
+                >
+                  <EyeIcon className="h-4 w-4" /> View Contract PDF
+                </a>
+                <a
+                  href={contractData.url}
+                  download={`${book?.title || "contract"}-contract.pdf`}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4" /> Download
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
