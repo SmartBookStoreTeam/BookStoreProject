@@ -43,7 +43,7 @@ const Chatbot = () => {
           title: book.title,
           author: book.author,
           price: book.price,
-          category: book.category,
+          category: book.categories || book.category,
           desc: book.description || book.desc,
           rate: book.ratings || book.rate || 0,
         }));
@@ -192,14 +192,22 @@ const Chatbot = () => {
           ? `سعر كتاب ${book.title} هو ${book.price} جنيه`
           : `The price of the book ${book.title} is ${book.price} EGP`;
       }
-      const categoryName =
-        typeof book.category === "object" ? book.category?.name : book.category;
+      const categoryName = Array.isArray(book.category)
+        ? book.category
+            .map((c) => t(typeof c === "object" ? c.name : c, { lng }))
+            .join(", ")
+        : t(
+            typeof book.category === "object"
+              ? book.category?.name
+              : book.category,
+            { lng }
+          );
 
       return hasArabic
         ? `اسم الكتاب: ${book.title}
 المؤلف: ${book.author}
 السعر: ${book.price} جنيه
-التصنيف: ${t(categoryName, { lng })}
+التصنيف: ${categoryName}
 الوصف: ${book.desc}
 التقييم: ${book.rate}`
         : `Book: ${book.title}

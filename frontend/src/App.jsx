@@ -27,6 +27,9 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminCoupons from "./pages/admin/AdminCoupons";
+import AdminPendingBooks from "./pages/admin/AdminPendingBooks";
+import AuthorDashboard from "./pages/AuthorDashboard";
 import { AuthProvider } from "./context/AuthContext";
 import { NavigationProvider } from "./context/NavigationContext";
 import { LoadingProvider } from "./context/LoadingContext";
@@ -42,6 +45,10 @@ import { useTranslation } from "react-i18next";
 import VerifyEmail from "./pages/VerifyEmail";
 import AboutUs from "./pages/AboutUs";
 import OccasionModal from "./components/OccasionModal";
+import AddAuthorBook from "./pages/author/AddAuthorBook";
+import EditAuthorBook from "./pages/author/EditAuthorBook";
+import AuthorLayout from "./pages/author/AuthorLayout";
+import AuthorSubmissions from "./pages/author/AuthorSubmissions";
 
 function App() {
   useScrollToTop();
@@ -83,7 +90,6 @@ function App() {
                   <Route path="author/:name" element={<AuthorProfile />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="community" element={<AboutUs />} />
-                  <Route path="*" element={<NotFound />} />
                 </Route>
 
                 {/* PDF Viewer - Full Screen (Outside Layout) */}
@@ -129,13 +135,30 @@ function App() {
                 >
                   <Route index element={<AdminDashboard />} />
                   <Route path="books" element={<AdminBooks />} />
+                  <Route path="books/pending" element={<AdminPendingBooks />} />
                   <Route path="books/add" element={<AddBook />} />
                   <Route path="books/edit/:id" element={<EditBook />} />
                   <Route path="orders" element={<AdminOrders />} />
                   <Route path="customers" element={<AdminCustomers />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="settings" element={<AdminSettings />} />
+                  <Route path="coupons" element={<AdminCoupons />} />
                   <Route path="books/:id" element={<AdminBookDetails />} />
+                </Route>
+
+                {/* Author Dashboard - Full Screen with Sidebar (Outside Layout) */}
+                <Route
+                  path="/author-dashboard"
+                  element={
+                    <ProtectedRoute roles={["author", "admin"]}>
+                      <AuthorLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AuthorDashboard />} />
+                  <Route path="submissions" element={<AuthorSubmissions />} />
+                  <Route path="add-book" element={<AddAuthorBook />} />
+                  <Route path="edit-book/:id" element={<EditAuthorBook />} />
                 </Route>
               </Routes>
             </NotificationProvider>

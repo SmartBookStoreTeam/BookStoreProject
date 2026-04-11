@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { deleteBook, getAdminBooks } from "../../api/adminApi";
+import { deleteBook, getAdminBooks, getPendingBooks } from "../../api/adminApi";
 import { getCategories } from "../../api/categoriesApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import {
   PlusIcon,
@@ -10,16 +10,16 @@ import {
   MagnifyingGlassIcon,
   EyeIcon,
   BookOpenIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminBooks = () => {
   const [books, setBooks] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-
-  const navigate = useNavigate();
-
   const [categories, setCategories] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,7 +36,16 @@ const AdminBooks = () => {
         console.error(err);
       }
     };
+
+    const fetchPending = async () => {
+      try {
+        const res = await getPendingBooks();
+        setPendingCount(Array.isArray(res.data) ? res.data.length : 0);
+      } catch { /* silent */ }
+    };
+
     fetchData();
+    fetchPending();
   }, []);
 
   /* ================= FILTER ================= */
@@ -60,7 +69,6 @@ const AdminBooks = () => {
   });
 
   /* ================= API HANDLERS ================= */
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this book?")) return;
     try {
@@ -71,9 +79,6 @@ const AdminBooks = () => {
       alert("Failed to delete book");
     }
   };
-
-  /* ================= FETCH ================= */
-  // Fetched in initial useEffect above
 
   return (
     <div className="space-y-6 relative">
@@ -87,13 +92,24 @@ const AdminBooks = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => navigate("/admin/books/add")}
-            className="mt-4 md:mt-0 bg-white text-blue-600 px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-blue-50 font-semibold shadow-md transition-all hover:scale-105 cursor-pointer"
-          >
-            <PlusIcon className="h-5 w-5" />
-            <span>Add New Book</span>
-          </button>
+          <div className="flex items-center gap-3 mt-4 md:mt-0">
+            {pendingCount > 0 && (
+              <Link
+                to="/admin/books/pending"
+                className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-lg font-semibold shadow-md transition-colors text-sm"
+              >
+                <ClockIcon className="h-4 w-4" />
+                {pendingCount} Pending
+              </Link>
+            )}
+            <button
+              onClick={() => navigate("/admin/books/add")}
+              className="bg-white text-blue-600 px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-blue-50 font-semibold shadow-md transition-all hover:scale-105 cursor-pointer"
+            >
+              <PlusIcon className="h-5 w-5" />
+              <span>Add New Book</span>
+            </button>
+          </div>
         </div>
 
         {/* Quick Stats */}
@@ -110,7 +126,7 @@ const AdminBooks = () => {
             <div className="text-2xl font-bold">{categories.length}</div>
             <div className="text-sm text-blue-100">Categories</div>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+          <div className="bg-white/10 backdrop-blur rounded-lg p-4 relative">
             <div className="text-2xl font-bold">
               {books.filter((b) => b.status === "available").length}
             </div>
@@ -192,7 +208,6 @@ const AdminBooks = () => {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        {/* Book Cover Thumbnail */}
                         <div className="shrink-0">
                           {book.image ? (
                             <img
@@ -206,7 +221,6 @@ const AdminBooks = () => {
                             </div>
                           )}
                         </div>
-                        {/* Book Info */}
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold text-gray-900 truncate hover:text-blue-600 cursor-pointer max-w-50">
                             {book.title}
@@ -300,7 +314,6 @@ const AdminBooks = () => {
                 className="p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex gap-3">
-                  {/* Book Cover */}
                   <div className="shrink-0">
                     {book.image ? (
                       <img
@@ -315,7 +328,6 @@ const AdminBooks = () => {
                     )}
                   </div>
 
-                  {/* Book Details */}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 truncate text-sm">
                       {book.title}
@@ -328,7 +340,7 @@ const AdminBooks = () => {
                         {Number(book.price || 0).toFixed(2)} EGP
                       </span>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {Array.isArray(book.categories) && book.categories.length > 0
+                        {Array.isArray(book.categories) && book.categories.length > 0
                           ? book.categories.map((c) => (typeof c === "object" ? c.name : c)).join(", ")
                           : book.category?.name || "Uncategorized"}
                       </span>
@@ -344,7 +356,6 @@ const AdminBooks = () => {
                         {book.status || "available"}
                       </span>
 
-                      {/* Mobile Actions */}
                       <div className="flex gap-1">
                         <button
                           onClick={() => navigate(`/admin/books/${book._id}`)}

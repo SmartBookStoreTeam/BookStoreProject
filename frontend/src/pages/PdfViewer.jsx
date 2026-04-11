@@ -129,12 +129,9 @@ const PdfViewer = () => {
           {(slots) => {
             const {
               CurrentPageInput,
-              Download,
-              EnterFullScreen,
               GoToNextPage,
               GoToPreviousPage,
               NumberOfPages,
-              Print,
               Zoom,
               ZoomIn,
               ZoomOut,
@@ -163,9 +160,6 @@ const PdfViewer = () => {
                 </div>
                 <div className="px-1">
                   <GoToNextPage />
-                </div>
-                <div className="px-1 ml-auto">
-                  <EnterFullScreen />
                 </div>
                 <div className="px-1">
                   <button
@@ -306,7 +300,12 @@ const PdfViewer = () => {
     };
 
     document.addEventListener("mouseup", handleMouseUp);
-    return () => document.removeEventListener("mouseup", handleMouseUp);
+    document.addEventListener("touchend", handleMouseUp);
+    
+    return () => {
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("touchend", handleMouseUp);
+    };
   }, []);
 
   const handleTranslate = async (e) => {
@@ -315,8 +314,12 @@ const PdfViewer = () => {
     setTranslationPopup(prev => ({ ...prev, status: "loading" }));
 
     try {
+      // Detect if text contains Arabic characters
+      const isArabic = /[\u0600-\u06FF]/.test(translationPopup.text);
+      const targetLang = isArabic ? 'en' : 'ar';
+      
       // Using Google Translate public api (free, reliable, accurate)
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(translationPopup.text)}`;
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(translationPopup.text)}`;
       const res = await fetch(url);
       const data = await res.json();
       const result = data[0].map((item) => item[0]).join("");
@@ -758,7 +761,8 @@ const PdfViewer = () => {
               {isFullScreen && (
                 <button
                   onClick={toggleFullScreen}
-                  className="touch-area fixed top-12 left-10 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-300 cursor-pointer"
+                  className="touch-area cursor-pointer absolute top-4 left-4 z-[70] p-2 bg-black/40 text-white rounded-full hover:bg-zinc-400 transition-colors backdrop-blur-sm"
+                  aria-label="Exit Full Screen"
                 >
                   <X size={24} />
                 </button>
@@ -770,7 +774,7 @@ const PdfViewer = () => {
                   {currentPage} / {totalPages}
                 </div>
               )}
-              {/* Add blur effect when modal is shown on page 3 */}
+              {/* Add blur effect */}
               <div className="flex-1 min-h-0 relative w-full transition-all duration-300">
                 <Viewer
                   fileUrl={book.pdfUrl || getImageSrc(book.pdf)}
