@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../hooks/useCart";
-import { deleteMyAccount } from "../api/adminApi";
+import { deleteMyAccount, getMyAuthorBooks } from "../api/adminApi";
 import { getCategories } from "../api/categoriesApi";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -26,7 +26,7 @@ import UserAvatar from "../components/UserAvatar";
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuth();
-  const { userBooks, removeUserBook, cartItems, purchasedBooks } = useCart();
+  const { cartItems, purchasedBooks } = useCart();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [showEditModal, setShowEditModal] = useState(false);
@@ -37,6 +37,8 @@ const Profile = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [authorBooks, setAuthorBooks] = useState([]);
+  const [authorBooksLoading, setAuthorBooksLoading] = useState(false);
 
   // Category modal: show on first profile visit per user
   const firstVisitKey = user ? `categoryModalShown_${user._id || user.email}` : null;
@@ -74,6 +76,22 @@ const Profile = () => {
     // Show category modal on first profile visit
     if (firstVisitKey && !localStorage.getItem(firstVisitKey)) {
       setShowCategoryModal(true);
+    }
+
+    // Fetch author's published books if user is an author
+    if (user?.role === "author") {
+      setAuthorBooksLoading(true);
+      getMyAuthorBooks()
+        .then((res) => {
+          if (res.success) {
+            const approved = (res.data || []).filter(
+              (b) => b.approvalStatus === "approved"
+            );
+            setAuthorBooks(approved);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setAuthorBooksLoading(false));
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -266,14 +284,27 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Edit Button */}
-            <button
-              onClick={() => setShowEditModal(true)}
-              className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Edit className="w-4 h-4" />
-              {t("Edit Profile")}
-            </button>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
+              {(user?.role === "admin" || user?.role === "author") && (
+                <button
+                  onClick={() =>
+                    navigate(user.role === "admin" ? "/admin" : "/author-dashboard")
+                  }
+                  className="touch-area bg-gray-900 border border-gray-900 text-white hover:bg-gray-800 dark:bg-zinc-700 dark:border-zinc-700 dark:hover:bg-zinc-600 px-6 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  {t("Dashboard")}
+                </button>
+              )}
+              {/* Edit Button */}
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-6 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Edit className="w-4 h-4" />
+                {t("Edit Profile")}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -431,124 +462,103 @@ const Profile = () => {
           )}
         </div>
 
-        {/* My Listed Books */}
-        <h1 className="text-3xl text-center font-bold text-gray-900 dark:text-gray-100 mb-8">
-          {t("My Listed Books")}
-        </h1>
-        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
-          <div dir={i18n.dir()} className="flex justify-end items-center mb-6">
-            <Link
-              to="/publish"
-              className="touch-area bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <BookOpen className="w-4 h-4" />
-              {t("List New Book")}
-            </Link>
-          </div>
+        {/* My Listed Books — Author only */}
+        {user?.role === "author" && (
+          <>
+            <h1 className="text-3xl text-center font-bold text-gray-900 dark:text-gray-100 mb-8">
+              {t("My Listed Books")}
+            </h1>
+            <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 sm:p-8 mb-8 transition-colors duration-300">
+              <div dir={i18n.dir()} className="flex justify-end items-center mb-6">
+                <Link
+                  to="/author-dashboard/add-book"
+                  className="touch-area bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  {t("Publish New Book")}
+                </Link>
+              </div>
 
-          {userBooks.length === 0 ? (
-            <div className="text-center py-12">
-              <BookOpen className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-              <p
-                dir={i18n.dir()}
-                className="text-gray-600 dark:text-gray-400 mb-4"
-              >
-                {t("You haven't listed any books yet")}
-              </p>
-              <Link
-                dir={i18n.dir()}
-                to="/publish"
-                className="touch-area text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                {t("List your first book")}
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {userBooks.map((book) => {
-                const imageSrc =
-                  book.images && book.images.length > 0
-                    ? getImageSrc(book.images[0])
-                    : null;
-
-                return (
-                  <div
-                    key={book.id}
-                    className="bg-gray-50 dark:bg-zinc-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+              {authorBooksLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="h-10 w-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : authorBooks.length === 0 ? (
+                <div className="text-center py-12">
+                  <BookOpen className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+                  <p dir={i18n.dir()} className="text-gray-600 dark:text-gray-400 mb-4">
+                    {t("No approved books yet")}
+                  </p>
+                  <Link
+                    dir={i18n.dir()}
+                    to="/author-dashboard/add-book"
+                    className="touch-area text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
-                    {/* Book Image */}
-                    <div className="touch-area">
-                      {imageSrc ? (
-                        <img
-                          src={imageSrc}
-                          alt={book.title}
-                          className="w-full h-48 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-48 bg-gray-200 dark:bg-zinc-600 flex items-center justify-center">
-                          <span className="text-gray-400">{t("No Image")}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4">
-                      <h3 className="touch-area font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 mb-2">
-                        {book.title}
-                      </h3>
-                      <div className="flex gap-1">
-                        <span className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          by{" "}
-                        </span>
-                        <p className="touch-area text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          {book.author}
-                        </p>
-                      </div>
-                      <p
-                        dir={i18n.dir()}
-                        className="text-indigo-600 dark:text-indigo-400 font-bold mb-3"
+                    {t("Publish your first book")}
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {authorBooks.map((book) => {
+                    const imageSrc = book.image || null;
+                    return (
+                      <div
+                        key={book._id}
+                        className="bg-gray-50 dark:bg-zinc-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                       >
-                        {book.price} {t("EGP")}
-                      </p>
+                        {/* Book Image */}
+                        <div className="touch-area">
+                          {imageSrc ? (
+                            <img
+                              src={imageSrc}
+                              alt={book.title}
+                              className="w-full h-48 object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-48 bg-gray-200 dark:bg-zinc-600 flex items-center justify-center">
+                              <span className="text-gray-400">{t("No Image")}</span>
+                            </div>
+                          )}
+                        </div>
 
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        <Link
-                          to={`/book/${book.id}`}
-                          className="touch-area flex-1 bg-gray-200 dark:bg-zinc-600 hover:bg-gray-300 dark:hover:bg-zinc-500 text-gray-900 dark:text-gray-100 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
-                        >
-                          <Eye size={14} />
-                          {t("View")}
-                        </Link>
-                        <button
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                t("Are you sure you want to remove this book?"),
-                              )
-                            ) {
-                              removeUserBook(book.id);
-                              toast.success(t("Book removed successfully!"), {
-                                duration: 1500,
-                                style: {
-                                  background: "#333",
-                                  color: "#fff",
-                                  direction: i18n.dir(),
-                                },
-                              });
-                            }
-                          }}
-                          className="touch-area bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <div className="p-4">
+                          {/* Live badge */}
+                          <h3 className="touch-area font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
+                            {book.title}
+                          </h3>
+                          <p className="touch-area text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            {book.author}
+                          </p>
+                          <p dir={i18n.dir()} className="text-indigo-600 dark:text-indigo-400 font-bold mb-3">
+                            {book.price} {t("EGP")}
+                          </p>
+
+                          {/* Actions */}
+                          <div className="flex gap-2">
+                            <Link
+                              to={`/book/${book._id}`}
+                              className="touch-area flex-1 bg-gray-200 dark:bg-zinc-600 hover:bg-gray-300 dark:hover:bg-zinc-500 text-gray-900 dark:text-gray-100 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
+                            >
+                              <Eye size={14} />
+                              {t("View")}
+                            </Link>
+                            <Link
+                              to={`/author-dashboard/edit-book/${book._id}`}
+                              className="touch-area flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
+                            >
+                              <Edit size={14} />
+                              {t("Edit")}
+                            </Link>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
 
         {/* Account Actions */}
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6 transition-colors duration-300">

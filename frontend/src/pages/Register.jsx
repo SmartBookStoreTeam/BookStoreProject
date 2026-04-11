@@ -82,9 +82,11 @@ const Register = () => {
 const getPosition = (e) => {
   const canvas = canvasRef.current;
   const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
   return {
-    x: (e.clientX - rect.left) * (canvas.width / rect.width),
-    y: (e.clientY - rect.top) * (canvas.height / rect.height),
+    x: (clientX - rect.left) * (canvas.width / rect.width),
+    y: (clientY - rect.top) * (canvas.height / rect.height),
   };
 };
   const submitRegistration = async () => {
@@ -130,6 +132,7 @@ const getPosition = (e) => {
   // نص placeholder
   
 const startDrawing = (e) => {
+  if (e.cancelable) e.preventDefault();
   setHasDrawn(true);
   const ctx = canvasRef.current.getContext("2d");
   const pos = getPosition(e);
@@ -140,24 +143,24 @@ const startDrawing = (e) => {
 };
 
 const draw = (e) => {
+  if (e.cancelable) e.preventDefault();
   if (!isDrawing) return;
 
   const ctx = canvasRef.current.getContext("2d");
   const pos = getPosition(e);
 
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-
   ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
 };
-  const stopDrawing = () => {
-    if (!isDrawing) return;
-    setIsDrawing(false);
-    if (canvasRef.current) {
-      setDigitalSignature(canvasRef.current.toDataURL("image/png"));
-    }
-  };
+
+const stopDrawing = (e) => {
+  if (e && e.cancelable) e.preventDefault();
+  if (!isDrawing) return;
+  setIsDrawing(false);
+  if (canvasRef.current) {
+    setDigitalSignature(canvasRef.current.toDataURL("image/png"));
+  }
+};
 
   const clearSignature = () => {
     const canvas = canvasRef.current;
@@ -483,13 +486,16 @@ const draw = (e) => {
     <div className="touch-area relative rounded-lg">
                   <canvas
                     ref={canvasRef}
+                    width={500}
                     height={150}
-                    className="w-full h-[150px] cursor-crosshair"
+                    className="w-full h-[150px] cursor-crosshair touch-none bg-white dark:bg-zinc-800 rounded-lg"
                     onPointerDown={startDrawing}
                     onPointerMove={draw}
                     onPointerUp={stopDrawing}
                     onPointerLeave={stopDrawing}
-                    onMouseUp={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
                   />
                    {!hasDrawn && (
     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-400 pointer-events-none">

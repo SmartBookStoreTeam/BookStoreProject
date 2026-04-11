@@ -130,6 +130,25 @@ const Header = () => {
 
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openLanguageDropdown, setOpenLanguageDropdown] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window !== "undefined") {
+        if (window.scrollY > lastScrollY && window.scrollY > 100) {
+          setIsVisible(false); // scrolling down
+        } else {
+          setIsVisible(true); // scrolling up
+        }
+        setLastScrollY(window.scrollY);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
   const settingsRef = useRef(null);
   const menuRef = useRef(null);
   const sidebarRef = useRef(null);
@@ -209,7 +228,9 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700/10 transition-colors duration-300 bg-indigo-900/90 dark:bg-indigo-950/50 border-indigo-800 text-white`}
+      className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700/10 transition-all duration-300 bg-indigo-900/90 dark:bg-indigo-950/50 border-indigo-800 text-white ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
     >
         <div className="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -715,6 +736,33 @@ const Header = () => {
                     onClick={(e) => e.stopPropagation()}
                     className="absolute right-0 top-13 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50"
                   >
+                    {/* admin Dashboard */}
+                    {user?.role === "admin" && (
+                      <Link
+                        to="/admin"
+                        onClick={(e) => {
+                          handleSafeNavigation(e, "/admin", closeDropdown);
+                        }}
+                        className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 text-indigo-700 dark:text-indigo-300 font-medium"
+                        onContextMenu={handleContextMenu}
+                      >
+                        {t("Dashboard")}
+                      </Link>
+                    )}
+                      
+                                          {/* Author Dashboard */}
+                                          {user?.role === "author" && (
+                                            <Link
+                                              to="/author-dashboard"
+                                              onClick={(e) => {
+                                                handleSafeNavigation(e, "/author-dashboard", closeDropdown);
+                                              }}
+                                              className="block px-4 py-2 rounded-lg hover:bg-zinc-300 dark:hover:bg-zinc-700 text-indigo-700 dark:text-indigo-300 font-medium"
+                                              onContextMenu={handleContextMenu}
+                                            >
+                                              {t("Dashboard")}
+                                            </Link>
+                                          )}
                     <Link
                       to="/profile"
                       onClick={(e) => {
@@ -1023,6 +1071,20 @@ const Header = () => {
 
                     {firstName}
                   </Link>
+
+                  {/* Author Dashboard - mobile */}
+                  {user?.role === "author" && (
+                    <Link
+                      to="/author-dashboard"
+                      onClick={(e) =>
+                        handleSafeNavigation(e, "/author-dashboard", closeMenu)
+                      }
+                      className="touch-area flex items-center gap-2 py-2 px-4 rounded-lg transition-colors hover:bg-zinc-300 dark:hover:bg-zinc-700 text-indigo-700 dark:text-indigo-300 font-medium"
+                      onContextMenu={handleContextMenu}
+                    >
+                      ✍️ {t("Author Dashboard")}
+                    </Link>
+                  )}
 
                   <button
                     onClick={() => {

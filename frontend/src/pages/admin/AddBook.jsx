@@ -82,20 +82,12 @@ const AddBook = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate("/admin/books")}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeftIcon className="h-6 w-6 text-gray-600" />
-          </button>
+      <div className="flex items-center justify-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Add New Book</h1>
+            <h1 className="text-2xl text-center font-bold text-gray-800">Add New Book</h1>
             <p className="text-gray-600">
               Fill in the details to add a new book
             </p>
-          </div>
         </div>
       </div>
 

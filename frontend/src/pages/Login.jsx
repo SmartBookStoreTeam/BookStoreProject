@@ -59,11 +59,11 @@ const Login = () => {
     }
 
     setLoading(false);
-    navigate(from, { replace: true }); // Return to original page
+    window.location.href = from; // Return to original page with full reload
   };
 
   const handleGoogleSuccess = () => {
-    navigate(from, { replace: true });
+    window.location.href = from;
   };
 
   const handleGoogleError = (error) => {
@@ -141,51 +141,57 @@ const Login = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
-            <fieldset dir={i18n.dir()} className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
-            <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
-              {t("Email Address")}
-            </legend>
-            <div className="touch-area relative rounded-lg">
-              <input
-              dir="ltr"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-transparent rounded-lg outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 p-2 appearance-none"
-                placeholder="example@mail.com"
-                required
-              />
-            </div>
+            <fieldset
+              dir={i18n.dir()}
+              className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3"
+            >
+              <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
+                {t("Email Address")}
+              </legend>
+              <div className="touch-area relative rounded-lg">
+                <input
+                  dir="ltr"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-transparent rounded-lg outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 p-2 appearance-none"
+                  placeholder="example@mail.com"
+                  required
+                />
+              </div>
             </fieldset>
           </div>
 
           <div className="relative">
-            <fieldset dir={i18n.dir()} className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
-            <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
-              {t("Password")}
-            </legend>
-            <div className="touch-area relative rounded-lg">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-1"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={togglePassword}
-              className={`touch-area absolute ${i18n.dir() === "rtl" ? "left-3" : "right-3"} top-8 text-gray-500 dark:text-white/60 hover:text-gray-700 dark:hover:text-white cursor-pointer`}
+            <fieldset
+              dir={i18n.dir()}
+              className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3"
             >
-              {showPassword ? (
-                <EyeSlashIcon className="h-5 w-5" />
-              ) : (
-                <EyeIcon className="h-5 w-5" />
-              )}
-            </button>
+              <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
+                {t("Password")}
+              </legend>
+              <div className="touch-area relative rounded-lg">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-1"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={togglePassword}
+                className={`touch-area absolute ${i18n.dir() === "rtl" ? "left-3" : "right-3"} top-8 text-gray-500 dark:text-white/60 hover:text-gray-700 dark:hover:text-white cursor-pointer`}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
             </fieldset>
           </div>
 

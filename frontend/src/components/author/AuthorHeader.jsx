@@ -1,39 +1,29 @@
-// components/admin/AdminHeader.jsx
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  HomeIcon,
   UserIcon,
   ArrowRightStartOnRectangleIcon,
   BellIcon,
-  MagnifyingGlassIcon,
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
+const AuthorHeader = ({ sidebarOpen, setSidebarOpen }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  // Close dropdown when clicking outside
+  const { t } = useTranslation();
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     };
-
-    if (dropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (dropdownOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownOpen]);
 
   const handleLogout = () => {
@@ -44,11 +34,11 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 px-4 my-4 py-4">
       <div className="flex items-center justify-between">
-        {/* Left side */}
+        {/* Left */}
         <div className="flex items-center space-x-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none"
+            className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 cursor-pointer"
           >
             {sidebarOpen ? (
               <XMarkIcon className="h-5 w-5" />
@@ -56,35 +46,22 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
               <Bars3Icon className="h-5 w-5" />
             )}
           </button>
-
-          {/* Search */}
-          <div className="hidden md:block relative mt-2">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
-            />
-          </div>
         </div>
 
-        {/* Right side */}
-        <div className="flex items-center space-x-4">
-          {/* User Profile */}
+        {/* Right */}
           <div className="flex items-center space-x-3">
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-gray-700">{user?.name}</p>
-              <p className="text-xs text-gray-500">Administrator</p>
+              <p className="text-xs text-gray-500">{t("Author")}</p>
             </div>
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-200 transition-colors"
+                className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 hover:bg-indigo-200 transition-colors"
               >
                 <UserIcon className="h-5 w-5" />
               </button>
 
-              {/* Dropdown */}
               <div
                 className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 transition-all duration-200 z-10 ${
                   dropdownOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -92,29 +69,20 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
               >
                 <div className="py-2">
                   <button
-                    onClick={() => {
-                      navigate("/admin/settings");
-                      setDropdownOpen(false);
-                    }}
+                    onClick={() => { navigate("/profile"); setDropdownOpen(false); }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Profile Settings
+                    My Profile
                   </button>
                   <button
-                    onClick={() => {
-                      navigate("/");
-                      setDropdownOpen(false);
-                    }}
+                    onClick={() => { navigate("/"); setDropdownOpen(false); }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     View Store
                   </button>
-                  <div className="border-t border-gray-200 my-1"></div>
+                  <div className="border-t border-gray-200 my-1" />
                   <button
-                    onClick={() => {
-                      handleLogout();
-                      setDropdownOpen(false);
-                    }}
+                    onClick={() => { handleLogout(); setDropdownOpen(false); }}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
                   >
                     <ArrowRightStartOnRectangleIcon className="h-4 w-4 mr-2" />
@@ -125,9 +93,8 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
             </div>
           </div>
         </div>
-      </div>
     </header>
   );
 };
 
-export default AdminHeader;
+export default AuthorHeader;
