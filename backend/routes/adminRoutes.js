@@ -7,6 +7,10 @@ import {
   getBookAdminById,
   getAllUsers,
   deleteUser,
+  updateUserRole,
+  approveBook,
+  rejectBook,
+  getBookContract,
 } from "../controllers/adminController.js";
 
 import { protect, admin } from "../middleware/authMiddleware.js";
@@ -287,6 +291,13 @@ router.put("/books/:id", protect, admin, uploadBookFiles, updateBook);
  */
 router.delete("/books/:id", protect, admin, deleteBook);
 
+// Approve / Reject author-submitted books
+router.patch("/books/:id/approve", protect, admin, approveBook);
+router.patch("/books/:id/reject", protect, admin, rejectBook);
+
+// Contract PDF (signed URL)
+router.get("/books/:id/contract", protect, admin, getBookContract);
+
 /* =========================
    User Management (Admin)
    ========================= */
@@ -354,4 +365,6 @@ router.get("/users", protect, admin, getAllUsers);
  */
 router.delete("/users/:id", protect, admin, deleteUser);
 
+// Update user role (user <-> author)
+router.patch("/users/:id/role", protect, admin, updateUserRole);
 export default router;

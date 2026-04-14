@@ -92,7 +92,7 @@ const AuthorSubmissions = () => {
   return (
     <div dir={i18n.dir()} className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">{t("Books' status")}</h1>
           <p className="text-sm text-gray-500 mt-0.5">

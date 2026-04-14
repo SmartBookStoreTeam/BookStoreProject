@@ -9,7 +9,7 @@ export const getBooks = async (req, res, next) => {
     const pageSize = Number(req.query.pageSize) || 10;
     const page = Number(req.query.page) || 1;
 
-    const filter = { isActive: true };
+    const filter = { isActive: true, status: "available" };
 
     if (req.query.category) filter.categories = req.query.category;
     if (req.query.author) {
@@ -173,7 +173,7 @@ export const getTopBooks = async (req, res, next) => {
   try {
     const limit = Number(req.query.limit) || 5;
 
-    const books = await Book.find({ isActive: true })
+    const books = await Book.find({ isActive: true, status: "available" })
       .select("+pdf") // ✅ Include PDF field
       .populate("categories", "name slug")
       .sort({ ratings: -1, numReviews: -1 })
@@ -193,7 +193,7 @@ export const rateBook = async (req, res, next) => {
     const { rating, comment } = req.body;
     const userId = req.user.id;
 
-    const book = await Book.findOne({ _id: req.params.id, isActive: true });
+    const book = await Book.findOne({ _id: req.params.id, isActive: true, status: "available" });
 
     if (!book) {
       return res
