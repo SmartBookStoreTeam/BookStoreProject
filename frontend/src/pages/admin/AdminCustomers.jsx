@@ -327,18 +327,21 @@ const AdminCustomers = () => {
                               <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                             </button>
 
-                            <button
-                              onClick={() => handleRoleChange(customer, isAuthor ? "user" : "author")}
-                              disabled={roleLoadingId === customer.id}
-                              className={`p-1 rounded text-xs font-medium px-2 py-1 transition-colors ${
-                                isAuthor
-                                  ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                  : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
-                              } disabled:opacity-50`}
-                              title={isAuthor ? "Revert to User" : "Make Author"}
-                            >
-                              {roleLoadingId === customer.id ? "..." : isAuthor ? "Revert User" : "Make Author"}
-                            </button>
+                            {/* Show "Make Author" only if user applied as author (pending), always show "Revert User" for authors */}
+                            {(isAuthor || customer.applicationStatus === "pending") && (
+                              <button
+                                onClick={() => handleRoleChange(customer, isAuthor ? "user" : "author")}
+                                disabled={roleLoadingId === customer.id}
+                                className={`p-1 rounded text-xs font-medium px-2 py-1 transition-colors ${
+                                  isAuthor
+                                    ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                                } disabled:opacity-50`}
+                                title={isAuthor ? "Revert to User" : "Make Author"}
+                              >
+                                {roleLoadingId === customer.id ? "..." : isAuthor ? "Revert User" : "Make Author"}
+                              </button>
+                            )}
 
                             <button
                               onClick={() => toggleStatus(customer.id)}
