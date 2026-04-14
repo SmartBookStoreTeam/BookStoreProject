@@ -112,7 +112,7 @@ const sortMap = {
 };
 
 const Shop = () => {
-  const { addToCart, userBooks, cartItems, isBookPurchased, purchasedBooks } = useCart();
+  const { addToCart, cartItems, isBookPurchased, purchasedBooks } = useCart();
   const location = useLocation();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -181,25 +181,19 @@ const Shop = () => {
   }, [user, purchasedBooks]);
 
 
-  // Get first category ID for filtering (supports both old single and new array)
-  const getCategoryId = (book) => {
-    if (Array.isArray(book.categories) && book.categories.length > 0) {
-      const c = book.categories[0];
-      return typeof c === "object" ? c._id : c;
-    }
-    return typeof book.category === "string" ? book.category : book.category?._id;
-  };
+const getCategoryIds = (book) => {
+  if (Array.isArray(book.categories) && book.categories.length > 0) {
+    return book.categories.map((c) =>
+      typeof c === "object" ? c._id : c
+    );
+  }
 
-  const getCategoryName = (book) => {
-    if (Array.isArray(book.categories) && book.categories.length > 0) {
-      const c = book.categories[0];
-      return typeof c === "object" ? c.name : c;
-    }
-    return typeof book.category === "string"
-      ? book.category
-      : book.category?.name || "Unknown";
-  };
+  if (book.category) {
+    return [typeof book.category === "object" ? book.category._id : book.category];
+  }
 
+  return [];
+};
   // reset page when filters change
   useEffect(() => {
     setPage(1);
@@ -210,18 +204,6 @@ const Shop = () => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-
-        // لو user فقط => ما تضربش API
-        if (selectedType === "user") {
-          setApiBooks([]);
-          setMeta({
-            page: 1,
-            pages: 1,
-            total: userBooks.length,
-            pageSize: userBooks.length,
-          });
-          return;
-        }
 
         const PAGE_SIZE = 12;
 
@@ -263,7 +245,6 @@ const Shop = () => {
     selectedType,
     sortBy,
     priceRange,
-    userBooks.length,
   ]);
 
   // Helper function to check if a specific book is in cart
@@ -279,54 +260,49 @@ const Shop = () => {
   // shown list
   const storeBooks = apiBooks.length ? apiBooks : mockBooks;
 
-  const shownBooks = useMemo(() => {
-    if (selectedType === "user") {
-      return userBooks.map((b) => ({ ...b, type: "user" }));
-    }
-    if (selectedType === "regular") {
-      return storeBooks.map((b) => ({ ...b, type: "regular" }));
-    }
-    // all: store + user
-    return [
-      ...storeBooks.map((b) => ({ ...b, type: "regular" })),
-      ...userBooks.map((b) => ({ ...b, type: "user" })),
-    ];
-  }, [selectedType, storeBooks, userBooks]);
+  const shownBooks = storeBooks;
 
-  // categories + counts
-  const categorySource = useMemo(() => {
-    if (selectedType === "user") return userBooks;
-    if (selectedType === "regular") return storeBooks;
-    return [...storeBooks, ...userBooks];
-  }, [selectedType, storeBooks, userBooks]);
 
-  const allCategories = useMemo(() => {
-    return [...new Set(categorySource.map((b) => getCategoryId(b)))].filter(
-      Boolean,
-    );
-  }, [categorySource]);
-
+  // categories
+  const categorySource = storeBooks;
+ 
+ const allCategories = useMemo(() => {
+  return [
+    ...new Set(
+      categorySource.flatMap((b) => getCategoryIds(b))
+    ),
+  ].filter(Boolean);
+}, [categorySource]);
   const categories = useMemo(() => {
-    return [
-      {
-        value: "all",
-        label: t("All Categories"),
-        count:
-          selectedType === "regular" && meta?.total != null
-            ? meta.total
-            : categorySource.length,
-      },
-      ...allCategories.map((catId) => {
-        const first = categorySource.find((b) => getCategoryId(b) === catId);
-        const name = first ? getCategoryName(first) : "Category";
-        const count = categorySource.filter(
-          (b) => getCategoryId(b) === catId,
-        ).length;
+  return [
+    {
+      value: "all",
+      label: t("All Categories"),
+      count: categorySource.length,
+    },
 
-        return { value: catId, label: name, count };
-      }),
-    ];
-  }, [t, selectedType, meta?.total, categorySource, allCategories]);
+    ...allCategories.map((catId) => {
+      const booksInCategory = categorySource.filter((b) =>
+        getCategoryIds(b).includes(catId)
+      );
+
+      const first = booksInCategory[0];
+
+      const name = first
+        ? (first.categories?.find(c =>
+            typeof c === "object" ? c._id === catId : c === catId
+          )?.name
+          || first.category?.name)
+        : "Category";
+
+      return {
+        value: catId,
+        label: name,
+        count: booksInCategory.length,
+      };
+    }),
+  ];
+}, [t, categorySource, allCategories]);
 
   const bookTypes = [
     { value: "all", label: "All Books" },
