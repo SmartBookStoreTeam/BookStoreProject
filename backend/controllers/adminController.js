@@ -40,7 +40,7 @@ const getPublicIdFromUrl = (url) => {
 // @access  Admin
 export const createBook = async (req, res, next) => {
   try {
-    const { title, author, description, category, price, year, isbn, edition } =
+    const { title, author, description, categories, price, year, isbn, edition } =
       req.body;
 
     const imageFile = req.files?.image?.[0];
