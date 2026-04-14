@@ -158,6 +158,41 @@ const bookSchema = new mongoose.Schema(
       default: true,
       index: true,
     },
+
+    // Author submission approval workflow
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "approved", // admin-added books are auto-approved
+      index: true,
+    },
+    submittedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    rejectionReason: {
+      type: String,
+      default: null,
+    },
+    pendingEdits: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    // Publishing contract
+    contractPdf: {
+      type: String, // S3 key for signed contract PDF
+      default: null,
+      select: false,
+    },
+    signatureUrl: {
+      type: String, // Cloudinary URL for the signature image
+      default: null,
+    },
+    contractSignedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
