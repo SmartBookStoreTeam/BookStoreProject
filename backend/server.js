@@ -27,6 +27,8 @@ import bookRequestRoutes from "./routes/bookRequestRoutes.js";
 import adminBookRequestRoutes from "./routes/adminBookRequestRoutes.js";
 import authorApplicationRoutes      from "./routes/authorApplicationRoutes.js";
 import adminAuthorApplicationRoutes from "./routes/adminAuthorApplicationRoutes.js";
+import authorDashboardRoutes        from "./routes/authorDashboardRoutes.js";
+import authorBookRoutes             from "./routes/authorBookRoutes.js";
  
 dotenv.config();
 connectDB();
@@ -84,6 +86,8 @@ app.use("/api/book-requests", bookRequestRoutes); // users
 app.use("/api/admin/book-requests", adminBookRequestRoutes); // admin
 app.use("/api/author-applications",       authorApplicationRoutes);
 app.use("/api/admin/author-applications", adminAuthorApplicationRoutes);
+app.use("/api/author/dashboard",          authorDashboardRoutes);
+app.use("/api/author",                    authorBookRoutes);
 
 // Error handlers
 app.use(notFound);
