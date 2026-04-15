@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, Filter, Star, Grid, List, CheckCircle } from "lucide-react";
 import { useCart } from "../hooks/useCart";
 import { getBooks, searchBooks } from "../api/booksApi";
-import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import Loading from "../components/Loading";
@@ -20,89 +19,6 @@ import { FastAverageColor } from "fast-average-color";
 
 const fac = new FastAverageColor();
 
-// Mock data fallback
-const mockBooks = [
-  {
-    _id: "1",
-    title: "Cooking Made Easy",
-    author: "Emily Clark",
-    price: 9.99,
-    category: "cooking",
-    rate: 4,
-    desc: "Simple and delicious recipes for everyday cooking",
-    img: assets.book1,
-  },
-  {
-    _id: "2",
-    title: "Healthy Living",
-    author: "John Miller",
-    price: 12.99,
-    category: "health",
-    rate: 5,
-    desc: "Your guide to nutritious meals and balanced life",
-    img: assets.book2,
-  },
-  {
-    _id: "3",
-    title: "Creative Baking",
-    author: "Sarah Jones",
-    price: 7.49,
-    category: "baking",
-    rate: 3,
-    desc: "Fun and easy recipes for baking enthusiasts",
-    img: assets.book3,
-  },
-  {
-    _id: "4",
-    title: "Everyday Desserts",
-    author: "Mark Lee",
-    price: 10.99,
-    category: "desserts",
-    rate: 4,
-    desc: "Quick and tasty desserts for everyone",
-    img: assets.book4,
-  },
-  {
-    _id: "5",
-    title: "Italian Cuisine Masterclass",
-    author: "Marco Romano",
-    price: 15.99,
-    category: "cooking",
-    rate: 5,
-    desc: "Authentic Italian recipes from traditional kitchens",
-    img: assets.releaseBook1,
-  },
-  {
-    _id: "6",
-    title: "Vegan Delights",
-    author: "Lisa Green",
-    price: 11.49,
-    category: "health",
-    rate: 4,
-    desc: "Plant-based recipes for healthy living",
-    img: assets.releaseBook2,
-  },
-  {
-    _id: "7",
-    title: "Artisan Bread Making",
-    author: "Robert Baker",
-    price: 8.99,
-    category: "baking",
-    rate: 4,
-    desc: "Master the art of bread making at home",
-    img: assets.releaseBook3,
-  },
-  {
-    _id: "8",
-    title: "Quick Weeknight Meals",
-    author: "Jennifer Cook",
-    price: 6.99,
-    category: "cooking",
-    rate: 3,
-    desc: "Fast and delicious meals for busy weeknights",
-    img: assets.book1,
-  },
-];
 //fixed sortMap
 const sortMap = {
   name: "title",
@@ -225,12 +141,12 @@ const getCategoryIds = (book) => {
         setMeta(res?.meta || null);
       } catch (e) {
         console.error(e);
-        setApiBooks(mockBooks);
+        setApiBooks([]);
         setMeta({
           page: 1,
           pages: 1,
-          total: mockBooks.length,
-          pageSize: mockBooks.length,
+          total: 0,
+          pageSize: 0,
         });
       } finally {
         setLoading(false);
@@ -258,7 +174,7 @@ const getCategoryIds = (book) => {
   };
 
   // shown list
-  const storeBooks = apiBooks.length ? apiBooks : mockBooks;
+  const storeBooks = apiBooks || [];
 
   const shownBooks = storeBooks;
 
