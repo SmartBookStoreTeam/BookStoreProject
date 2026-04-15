@@ -229,7 +229,7 @@ const Header = () => {
   return (
     <>
     <header
-      className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700/10 transition-all duration-300 bg-indigo-900/90 dark:bg-indigo-950/50 border-indigo-800 text-white ${
+      className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-300 dark:border-zinc-700/10 transition-all duration-300 bg-indigo-900/90 dark:bg-zinc-900 border-indigo-800 text-white ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
