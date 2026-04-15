@@ -35,7 +35,7 @@ export const chatbotMessage = async (req, res) => {
     const bookContext = bookList
       .map(
         (b, i) =>
-          `${i + 1}. "${b.title}" by ${b.author} — ${b.category}, ${b.price} EGP, Rating: ${b.rating || "N/A"}`,
+          `${i + 1}. "${b.title}" by ${b.author} — ${Array.isArray(b.category) ? b.category.join(", ") : b.category}, ${b.price} EGP, Rating: ${b.rating || "N/A"}`,
       )
       .join("\n");
 
@@ -58,7 +58,7 @@ Reply in same language (Arabic or English).
 `;
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash-lite",
     });
 
     const result = await model.generateContent(prompt);
@@ -66,10 +66,13 @@ Reply in same language (Arabic or English).
 
     res.json({
       reply,
-      books: bookList, 
+      books: bookList,
     });
   } catch (error) {
-    console.error("Chatbot error:", error);
+    console.error(
+      "Chatbot FULL error:",
+      error.response?.data || error.message || error,
+    );
     res.status(500).json({
       error: "Something went wrong",
     });
