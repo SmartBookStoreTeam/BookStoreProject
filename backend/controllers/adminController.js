@@ -254,6 +254,41 @@ export const updateBook = async (req, res, next) => {
     if (!updatedBook)
       return res.status(404).json({ message: "Book not found" });
 
+    // ✅ Refresh meta.json in S3 so that updated fields (like category array) take effect
+    if (updatedBook.s3Folder) {
+      await updatedBook.populate("categories", "name");
+      const categoryNames = updatedBook.categories?.map(c => c.name) || [];
+
+      const aiMeta = {
+        bookId: String(updatedBook._id),
+        s3Folder: updatedBook.s3Folder,
+        title: updatedBook.title,
+        author: updatedBook.author,
+        description: updatedBook.description,
+        category: categoryNames,
+        price: updatedBook.price,
+        year: updatedBook.year,
+        isbn: updatedBook.isbn,
+        edition: updatedBook.edition || "",
+        pdfKey: updatedBook.pdf,
+        previewPdfKey: updatedBook.previewPdf,
+        pages: updatedBook.fileMeta?.pages || 0,
+      };
+
+      const metaUpload = await uploadToS3(
+        Buffer.from(JSON.stringify(aiMeta, null, 2)),
+        "meta.json",
+        "application/json",
+        { folder: "books", subfolder: updatedBook.s3Folder },
+      );
+
+      // Save aiMetaKey if it wasn't there
+      if (!updatedBook.aiMetaKey) {
+        updatedBook.aiMetaKey = metaUpload.key;
+        await updatedBook.save();
+      }
+    }
+
     res.json({
       success: true,
       message: "Book updated successfully",
