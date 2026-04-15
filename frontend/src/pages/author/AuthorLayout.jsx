@@ -15,17 +15,17 @@ const AuthorLayout = () => {
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+<div className="flex h-screen bg-gray-50 overflow-x-hidden">
       <AuthorSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div
-        className={`flex-1 flex flex-col ${
-          sidebarOpen ? "md:ml-64" : ""
-        } transition-all duration-300`}
-      >
+  className={`flex-1 flex flex-col min-w-0 ${
+    sidebarOpen ? "md:ml-64" : ""
+  } transition-all duration-300`}
+>
         <AuthorHeader sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+<main className="flex-1 p-4 md:p-6 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>
