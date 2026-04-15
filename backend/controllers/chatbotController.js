@@ -58,9 +58,8 @@ Reply in same language (Arabic or English).
 `;
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-2.0-flash-lite-preview-02-05",
     });
-
     const result = await model.generateContent(prompt);
     const reply = result.response.text();
 
