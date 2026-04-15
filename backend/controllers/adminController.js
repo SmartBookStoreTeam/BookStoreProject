@@ -114,10 +114,10 @@ export const createBook = async (req, res, next) => {
       previewKey = previewUpload.key;
     }
 
-    // For meta.json, use the name of the first category
-    const firstCatId = Array.isArray(categories) ? categories[0] : categories;
-    const categoryDoc = await Category.findById(firstCatId).select("name").lean();
-    const categoryName = categoryDoc?.name || null;
+    // For meta.json, fetch all category names
+    const catArray = Array.isArray(categories) ? categories : (categories ? [categories] : []);
+    const categoryDocs = await Category.find({ _id: { $in: catArray } }).select("name").lean();
+    const categoryNames = categoryDocs.map(c => c.name);
 
     // 7) create meta.json
     const aiMeta = {
@@ -126,7 +126,7 @@ export const createBook = async (req, res, next) => {
       title,
       author,
       description,
-      category: categoryName,
+      category: categoryNames,
       price: Number(price),
       year,
       isbn,
