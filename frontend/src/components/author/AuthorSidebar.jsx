@@ -67,7 +67,7 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-indigo-900 text-white transform ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-indigo-900 dark:bg-indigo-900/20 border-r border-indigo-700 dark:border-indigo-700/20 text-white transform ${
           sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full md:-translate-x-full"
@@ -75,26 +75,32 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between p-6 border-b border-indigo-700">
+          <div className="flex items-center justify-between p-6 border-b border-indigo-700 dark:border-gray-700">
             <div className="flex items-center space-x-3">
-              <PencilIcon className="h-8 w-8 text-indigo-300" />
+              <PencilIcon className="h-8 w-8 text-indigo-300 dark:text-indigo-200" />
               <div>
                 <h1 className="text-xl font-bold">{t("Author Studio")}</h1>
-                <p className="text-xs text-indigo-300">
+                <p className="text-xs text-indigo-300 dark:text-indigo-200">
                   {user?.name || t("Author")}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="md:hidden p-1 rounded-md hover:bg-indigo-700"
+              className="md:hidden p-1 rounded-md hover:bg-indigo-700 dark:hover:bg-zinc-700"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <nav
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: "#818cf8 transparent",
+            }}
+            className="flex-1 p-4 space-y-1 overflow-y-auto"
+          >
             {navItems.map((item) => (
               <NavLink
                 key={item.name}
@@ -102,12 +108,10 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 end={item.exact}
                 onClick={item.onClick}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                    item.isSubmissions
-                      ? "text-amber-300 hover:bg-indigo-700/50"
-                      : isActive
-                        ? "bg-indigo-600 text-white"
-                        : "hover:bg-indigo-700/50 text-indigo-200"
+                  `flex items-center justify-between px-4 py-3 rounded-lg transition-colors dark:text-gray-200 ${
+                    isActive
+                      ? "bg-indigo-600 text-white dark:bg-indigo-700"
+                      : "hover:bg-indigo-700/50 text-indigo-100 dark:hover:bg-gray-700"
                   }`
                 }
               >
@@ -125,7 +129,7 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </nav>
 
           {/* Return to Profile */}
-          <div className="group p-4 border-t border-indigo-700">
+          <div className="group p-4 border-t border-indigo-700 dark:border-gray-700">
             <NavLink
               to="/profile"
               className="flex items-center space-x-3 px-4 py-3 rounded-full text-indigo-200 hover:bg-indigo-600/30 transition-colors"
@@ -136,13 +140,15 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
 
           {/* User Card */}
-          <div className="p-4 border-t border-indigo-700">
+          <div className="p-4 border-t border-indigo-700 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center font-semibold text-white">
                 {user?.name?.[0]?.toUpperCase() || "A"}
               </div>
               <div className="min-w-0">
-                <p className="font-medium truncate">{user?.name || t("Author")}</p>
+                <p className="font-medium truncate">
+                  {user?.name || t("Author")}
+                </p>
                 <p className="text-xs text-indigo-300 truncate">
                   {user?.email}
                 </p>

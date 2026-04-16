@@ -26,6 +26,8 @@ a {
 /* HTML background matches header to avoid separator line under status bar */
 html {
   background-color: #e4e4e7; /* zinc-200 - same as header */
+  scrollbar-width: thin;
+  scrollbar-color: #818cf8 transparent;
 }
 
 .dark html {

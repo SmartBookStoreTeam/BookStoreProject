@@ -33,32 +33,6 @@ const Header = () => {
   const { requestNavigation } = useNavigation();
   const { isLoading } = useGlobalLoading();
   const [isPulsing, setIsPulsing] = useState(false);
-  const [egyptTime, setEgyptTime] = useState("");
-
-  // Update Egypt Time
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const options = {
-        timeZone: "Africa/Cairo",
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      };
-      setEgyptTime(
-        new Intl.DateTimeFormat(
-          i18n.language === "ar" ? "ar-EG" : "en-US",
-          options,
-        ).format(now),
-      );
-    };
-
-    updateTime(); // Initial call
-    const timer = setInterval(updateTime, 1000); // Update every second
-
-    return () => clearInterval(timer);
-  }, [i18n.language]);
 
   // Pulsing effect when loading takes too long
   useEffect(() => {
@@ -383,13 +357,13 @@ const Header = () => {
                 </span>
               </>
             )}
-            <span>Bookfly</span>
+            <span className="dark:text-indigo-200">Bookfly</span>
           </Link>
 
           {/* Desktop Links */}
           <nav className="hidden md:flex items-center gap-8">
             <ul
-              className={`flex gap-4 md:gap-3 lg:gap-6 font-medium text-white/80`}
+              className={`flex gap-4 md:gap-3 lg:gap-6 font-medium dark:text-indigo-100 text-white/80`}
             >
               {links.map(({ label, to, icon }) => (
                 <li key={to} className="relative">
@@ -419,12 +393,6 @@ const Header = () => {
 
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center gap-5 shrink-0">
-            {/* Egypt Time */}
-            <div
-              className={`hidden flex items-center gap-2 font-medium bg-zinc-300/50 dark:bg-zinc-800/50 px-3 py-1.5 rounded-full backdrop-blur-sm ${occasion ? "text-white/90" : "text-indigo-950 dark:text-zinc-200"}`}
-            >
-              <span dir="ltr">{egyptTime}</span>
-            </div>
             {/* Notifications */}
             {user && (
               <div className="relative" ref={notificationsRef}>
@@ -436,7 +404,7 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className={`relative p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 text-white hover:bg-white/30`}
+                  className={`relative p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 dark:text-indigo-100 hover:bg-white/30`}
                 >
                   <Bell size={24} />
                   {unreadCount > 0 && (
@@ -559,7 +527,7 @@ const Header = () => {
             >
               <ShoppingCart
                 size={24}
-                className={`transition cursor-pointer text-white hover:text-white/80`}
+                className={`transition cursor-pointer dark:text-indigo-100 hover:text-indigo-200/90`}
               />
               {getCartItemsCount() > 0 && (
                 <span
@@ -577,7 +545,7 @@ const Header = () => {
             >
               <button
                 onClick={toggleSettings}
-                className={`p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 text-white hover:bg-white/30 ${
+                className={`p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 text-indigo-100 hover:bg-white/30 ${
                   openSettings ? "rotate-180" : "rotate-0"
                 }`}
               >
@@ -744,7 +712,7 @@ const Header = () => {
 
                 <button
                   onClick={toggleDropdown}
-                  className={`flex items-center gap-3 transition cursor-pointer text-white hover:text-white/80`}
+                  className={`flex items-center gap-3 transition cursor-pointer dark:text-indigo-100 hover:text-indigo-200/90`}
                 >
                   {firstName}
                 </button>
@@ -825,7 +793,7 @@ const Header = () => {
                       markAllAsRead();
                     }
                   }}
-                  className={`touch-area relative p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 text-white hover:bg-white/30 active:bg-white/40`}
+                  className={`touch-area relative p-2 rounded-full transition duration-300 cursor-pointer bg-white/20 dark:text-indigo-100 hover:text-indigo-200/90 active:bg-white/40`}
                 >
                   <Bell size={24} />
                   {unreadCount > 0 && (
@@ -947,7 +915,7 @@ const Header = () => {
             >
               <ShoppingCart
                 size={24}
-                className="text-white/80 dark:text-indigo-200 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
+                className="text-white/80 dark:text-indigo-100 hover:text-indigo-500 dark:hover:text-indigo-400 transition cursor-pointer"
               />
               {getCartItemsCount() > 0 && (
                 <span className="absolute -top-2 -right-2 bg-indigo-500 dark:bg-indigo-400 text-white dark:text-zinc-900 text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
@@ -960,7 +928,7 @@ const Header = () => {
             <button
               ref={menuRef}
               onClick={toggleMenu}
-              className={`touch-area transition text-white hover:text-white/80`}
+              className={`touch-area transition dark:text-indigo-100 hover:text-indigo-200/90`}
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

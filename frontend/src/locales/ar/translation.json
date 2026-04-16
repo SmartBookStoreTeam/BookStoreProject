@@ -259,7 +259,7 @@
   "Publisher Information": "معلومات الناشر",
   "Seller Information": "معلومات البائع",
   "Review & Publish": "مراجعة ونشر",
-  "Publish Book": "نشر الكتاب",
+  "Publish Book": "نشر كتاب",
   "PublishBookParagraph": "أضف كتبك وامنحها فرصة الوصول إلى آلاف القرّاء أونلاين. املأ النموذج أدناه للبدء",
   "Previous": "السابق",
   "Prev": "السابق",
@@ -666,5 +666,6 @@
   "Files & Media": "الملفات والوسائط",
   "Categories": "التصنيفات",
 "Cannot delete an approved book. Contact admin.":"لا يمكن حذف كتاب تمت الموافقة عليه. يرجى التواصل مع الادمن",
-  "Go Home": "الانتقال إلى الصفحة الرئيسية"
+  "Go Home": "الانتقال إلى الصفحة الرئيسية",
+  "Please select at least one category.":"يرجى اختيار تصنيف واحد على الأقل"
 }
