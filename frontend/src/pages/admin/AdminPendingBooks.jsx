@@ -279,18 +279,18 @@ const AdminPendingBooks = () => {
               onChange={(e) => setRejectReason(e.target.value)}
               rows={3}
               placeholder="Tell the author why their book was rejected..."
-              className="w-full border border-gray-300 dark:border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent resize-none"
+              className="w-full border border-gray-300 text-black dark:text-white dark:border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent resize-none"
             />
             <div className="flex flex-col md:flex-row gap-2 md:gap-3 mt-4">
               <button
                 onClick={() => setRejectModalBook(null)}
-                className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-200 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium text-sm min-h-[36px]"
+                className="cursor-pointer flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-200 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium text-sm min-h-[36px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleReject}
-                className="flex-1 px-4 py-2.5 bg-red-600 dark:bg-red-600 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-700 font-medium text-sm min-h-[36px]"
+                className="cursor-pointer flex-1 px-4 py-2.5 bg-red-600 dark:bg-red-600 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-700 font-medium text-sm min-h-[36px]"
               >
                 Confirm Rejection
               </button>

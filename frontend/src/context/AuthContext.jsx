@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       setToken(res.data.token);
 
-      return { success: true };
+      return { success: true, user: res.data.user };
     } catch (err) {
       return {
         success: false,
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       setToken(res.data.token);
 
-      return { success: true };
+      return { success: true, user: res.data.user };
     } catch (err) {
       return {
         success: false,

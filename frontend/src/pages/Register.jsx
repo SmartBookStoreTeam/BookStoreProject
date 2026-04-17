@@ -118,8 +118,14 @@ const getPosition = (e) => {
     setLoading(false);
   };
 
-  const handleGoogleSuccess = () => {
-    navigate(from, { replace: true });
+  const handleGoogleSuccess = (user) => {
+    let redirectPath = from;
+    if (user?.role === "admin") {
+      redirectPath = "/admin";
+    } else if (user?.role === "author") {
+      redirectPath = "/author-dashboard";
+    }
+    window.location.href = redirectPath;
   };
 
   const handleGoogleError = (error) => {
@@ -232,7 +238,7 @@ const stopDrawing = (e) => {
           </div>
         )}
 
-        {step === 1 && (
+        {step === 1 && roleType !== "author" && (
           <>
             <GoogleLoginButton
               onSuccess={handleGoogleSuccess}
