@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import AuthorApplication from "../models/AuthorApplication.js";
 import generateToken from "../utils/generateToken.js";
 
 import sendEmail from "../utils/sendEmail.js";
@@ -52,6 +53,28 @@ export const registerUser = async (req, res, next) => {
         digitalSignature,
       }),
     });
+
+    // If author, create a separate application entry for admin to review
+    if (isAuthor) {
+      try {
+        await AuthorApplication.create({
+          user: user._id,
+          fullName: name,
+          phone: phoneNumber,
+          nationalId: nationalId,
+          bio: bio,
+          portfolioUrl: portfolioLink,
+          signature: {
+            url: digitalSignature,
+            publicId: `register_${user._id}`, // temporary publicId
+          },
+          status: "pending"
+        });
+      } catch (appErr) {
+        console.error("Failed to create author application during registration:", appErr);
+        // We continue anyway since user was created
+      }
+    }
 
     const html = loadEmailTemplate("verifyEmail", {
       CODE: verificationCode,

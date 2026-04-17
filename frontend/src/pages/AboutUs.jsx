@@ -205,13 +205,6 @@ const AboutUs = () => {
             >
               {t("Explore Books Now")}
             </Link>
-
-            <Link
-              to="/publish"
-              className="touch-area px-8 py-4 bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200/10 font-semibold rounded-xl shadow-lg hover:shadow-xl border-2 border-indigo-600 dark:border-indigo-400 transform hover:scale-105 transition-all duration-300"
-            >
-              {t("Publish Your Book")}
-            </Link>
           </div>
         </div>
 

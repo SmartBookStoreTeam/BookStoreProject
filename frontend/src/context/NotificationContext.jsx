@@ -1,6 +1,9 @@
+/* eslint-disable no-unused-vars */
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useAuth } from "./AuthContext";
 import { getMyOrders } from "../api/ordersApi";
+import { getMyAuthorApplication } from "../api/authorApi";
+import AuthorStatusModal from "../components/AuthorStatusModal";
 
 const NotificationContext = createContext();
 
@@ -16,11 +19,16 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
+  const { user, refreshUser } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { user } = useAuth();
+  const [statusModal, setStatusModal] = useState({ open: false, status: null, data: null });
   const processedOrderIds = useRef(new Set());
   const pollingIntervalRef = useRef(null);
+  const authorStatusPollingIntervalRef = useRef(null);
+  const userProfilePollingIntervalRef = useRef(null);
+  const lastAuthorStatus = useRef(null);
+  const lastUserRole = useRef(user?.role);
 
   // Storage keys for persistence
   const getStorageKey = (userId, key) => `notifications_${userId}_${key}`;
@@ -170,9 +178,131 @@ export const NotificationProvider = ({ children }) => {
           processedOrderIds.current.add(order._id);
         });
       });
-      // eslint-disable-next-line no-unused-vars
+       
     } catch (error) {
       // Silent fail for notifications to avoid console spam
+    }
+  };
+
+  // Check for user role changes (e.g. user -> author)
+  const checkForRoleChanges = async () => {
+    if (!user) return;
+
+    try {
+      const response = await refreshUser();
+      if (!response?.success) return;
+
+      const currentUser = response.user;
+      const currentRole = currentUser.role;
+
+      if (
+        lastUserRole.current &&
+        lastUserRole.current !== currentRole &&
+        currentRole === "author"
+      ) {
+        const notificationId = `role-change-${user._id}-${currentRole}`;
+        const deletedNotifications = getDeletedNotifications(user._id);
+
+        if (!deletedNotifications.includes(notificationId)) {
+          setNotifications((prev) => {
+            const exists = prev.some((n) => n.id === notificationId);
+            if (exists) return prev;
+
+            return [
+              {
+                id: notificationId,
+                type: "role_change",
+                role: currentRole,
+                timestamp: new Date(),
+                read: false,
+              },
+              ...prev,
+            ];
+          });
+        }
+      }
+
+      lastUserRole.current = currentRole;
+     
+    } catch (error) {
+      // Silent fail
+    }
+  };
+
+  // Check for author application status updates
+  const checkForAuthorApplicationStatus = async () => {
+    if (!user || user.role === "admin") return;
+    
+    // If already an author and status is approved, we don't need to poll anymore
+    if (user.role === "author" && user.applicationStatus === "approved") return;
+
+    try {
+      let applicationData = null;
+      let currentStatus = null;
+
+      try {
+        const response = await getMyAuthorApplication();
+        // If response.data is null (our new 200 OK fix), just return
+        if (!response || response.data === null) {
+          return;
+        }
+        applicationData = response?.data || response;
+        currentStatus = applicationData?.status;
+      } catch (err) {
+        // Fallback to user object if application doc doesn't exist yet
+        if (user.applicationStatus && user.applicationStatus !== "none") {
+          currentStatus = user.applicationStatus;
+          applicationData = { status: currentStatus };
+        }
+      }
+
+      if (!currentStatus) return;
+
+      // Handle Modal Triggering
+      if (currentStatus === "pending") {
+        // IMPORTANT: If user is already an author, don't show pending modal even if application says so
+        if (user.role === "author") return;
+
+        const sessionShown = sessionStorage.getItem(`pending_modal_shown_${user._id}`);
+        if (!sessionShown) {
+          setStatusModal({ open: true, status: "pending", data: applicationData });
+          sessionStorage.setItem(`pending_modal_shown_${user._id}`, "true");
+        }
+      } else if (currentStatus === "approved" || currentStatus === "rejected") {
+        const lastNotified = localStorage.getItem(`last_notified_status_${user._id}`);
+        
+        if (lastNotified !== currentStatus) {
+          setStatusModal({ open: true, status: currentStatus, data: applicationData });
+          localStorage.setItem(`last_notified_status_${user._id}`, currentStatus);
+        }
+
+        // Notification logic (existing)
+        const notificationId = `author-status-${user._id}-${currentStatus}`;
+        const deletedNotifications = getDeletedNotifications(user._id);
+
+        if (!deletedNotifications.includes(notificationId)) {
+          setNotifications((prev) => {
+            const exists = prev.some((n) => n.id === notificationId);
+            if (exists) return prev;
+
+            return [
+              {
+                id: notificationId,
+                type: "author_status",
+                status: currentStatus,
+                timestamp: applicationData.reviewedAt || new Date(),
+                read: false,
+              },
+              ...prev,
+            ];
+          });
+        }
+      }
+
+      lastAuthorStatus.current = currentStatus;
+     
+    } catch (error) {
+      // Silent fail
     }
   };
 
@@ -203,6 +333,14 @@ export const NotificationProvider = ({ children }) => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
+      if (authorStatusPollingIntervalRef.current) {
+        clearInterval(authorStatusPollingIntervalRef.current);
+      }
+      if (userProfilePollingIntervalRef.current) {
+        clearInterval(userProfilePollingIntervalRef.current);
+      }
+      lastAuthorStatus.current = null;
+      lastUserRole.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -218,15 +356,33 @@ export const NotificationProvider = ({ children }) => {
       checkForApprovedOrders();
     }, 2000);
 
-    // Set up polling interval (10 seconds for faster updates)
+    // Set up polling interval (30 seconds for orders)
     pollingIntervalRef.current = setInterval(() => {
       checkForApprovedOrders();
-    }, 10000);
+    }, 30000);
+
+    // Initial author status check
+    checkForAuthorApplicationStatus();
+    authorStatusPollingIntervalRef.current = setInterval(() => {
+      checkForAuthorApplicationStatus();
+    }, 60000);
+
+    // Initial role change check
+    checkForRoleChanges();
+    userProfilePollingIntervalRef.current = setInterval(() => {
+      checkForRoleChanges();
+    }, 120000);
 
     return () => {
       clearTimeout(initialTimeout);
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
+      }
+      if (authorStatusPollingIntervalRef.current) {
+        clearInterval(authorStatusPollingIntervalRef.current);
+      }
+      if (userProfilePollingIntervalRef.current) {
+        clearInterval(userProfilePollingIntervalRef.current);
       }
     };
 
@@ -297,6 +453,13 @@ export const NotificationProvider = ({ children }) => {
         removeNotification,
       }}
     >
+      {statusModal.open && (
+        <AuthorStatusModal 
+          status={statusModal.status} 
+          applicationData={statusModal.data}
+          onClose={() => setStatusModal({ ...statusModal, open: false })} 
+        />
+      )}
       {children}
     </NotificationContext.Provider>
   );

@@ -26,6 +26,7 @@ const getStoredToken = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(getStoredUser);
   const [token, setToken] = useState(getStoredToken);
+  const [logoutInProgress, setLogoutInProgress] = useState(false);
 
   /* ---------- register ---------- */
   const register = async (name, email, password, extraData = {}) => {
@@ -120,8 +121,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /* ---------- refresh user ---------- */
+  const refreshUser = async () => {
+    try {
+      if (logoutInProgress) return { success: false };
+      const res = await api.get("/auth/me");
+      const currentUser = res.data?.user || res.data;
+      if (currentUser && !logoutInProgress) {
+        setUser(currentUser);
+        localStorage.setItem("user", JSON.stringify(currentUser));
+        return { success: true, user: currentUser };
+      }
+      return { success: false };
+    } catch (err) {
+      console.error("Refresh user failed:", err);
+      return { success: false };
+    }
+  };
+
   /* ---------- logout ---------- */
   const logout = async () => {
+    setLogoutInProgress(true);
     try {
       // Call backend to clear cookie
       await authApi.logout();
@@ -133,6 +153,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("token");
       setUser(null);
       setToken(null);
+      setLogoutInProgress(false);
     }
   };
 
@@ -147,6 +168,7 @@ export const AuthProvider = ({ children }) => {
         googleLogin,
         verifyEmail,
         updateUser,
+        refreshUser,
       }}
     >
       {children}

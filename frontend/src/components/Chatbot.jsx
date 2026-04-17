@@ -2,17 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { X, Send, Bot, User as UserIcon, Mic } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { getBooks } from "../api/booksApi";
+import { sendChatbotMessage } from "../api/chatbotApi";
 
 const Chatbot = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [hasBeenOpened, setHasBeenOpened] = useState(() => {
-    return sessionStorage.getItem("chatbotHasBeenOpened") === "true";
-  });
-  const [books, setBooks] = useState([]);
 
   const firstName = user?.name?.split(" ")[0];
   const [messages, setMessages] = useState([
@@ -29,34 +25,6 @@ const Chatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showLabel, setShowLabel] = useState(false);
   const [showText, setShowText] = useState(false);
-
-  // Fetch books from API
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const response = await getBooks();
-        const booksData = Array.isArray(response.data) ? response.data : [];
-
-        // Map books to chatbot format
-        const formattedBooks = booksData.map((book) => ({
-          id: book._id || book.id,
-          title: book.title,
-          author: book.author,
-          price: book.price,
-          category: book.categories || book.category,
-          desc: book.description || book.desc,
-          rate: book.ratings || book.rate || 0,
-        }));
-
-        setBooks(formattedBooks);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-        // Books will remain empty array on error
-      }
-    };
-
-    fetchBooks();
-  }, []);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -83,41 +51,22 @@ const Chatbot = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* delay text appearance after button appears */
+  /* auto-hide welcome message after 5 seconds */
   useEffect(() => {
-    let showTimer;
-    let hideTimer;
-
-    if (showLabel) {
-      // Show text after button appears
-      showTimer = setTimeout(() => {
-        setShowText(true);
-        // Hide it after 30 seconds
-        hideTimer = setTimeout(() => {
-          setShowText(false);
-        }, 10000);
-      }, 500);
-    } else {
-      setShowText(false);
+    if (showLabel && !isOpen) {
+      setShowText(true);
+      const timer = setTimeout(() => {
+        setShowText(false);
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      if (showTimer) clearTimeout(showTimer);
-      if (hideTimer) clearTimeout(hideTimer);
-    };
-  }, [showLabel]);
+  }, [showLabel, isOpen]);
 
   const toggleChat = () => {
-    setIsOpen((v) => {
-      if (!v) {
-        setHasBeenOpened(true);
-        sessionStorage.setItem("chatbotHasBeenOpened", "true");
-      }
-      return !v;
-    });
+    setIsOpen((v) => !v);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
@@ -136,130 +85,33 @@ const Chatbot = () => {
     setInputValue("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const response = await sendChatbotMessage(userText);
+      const botReply = response.data.reply;
+
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + 1,
-          text: generateBotResponse(userText),
+          text: botReply,
           sender: "bot",
           timestamp: new Date(),
         },
       ]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          text: "Sorry, I encountered an error. Please try again.",
+          sender: "bot",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 800);
-  };
-
-  const generateBotResponse = (userInput) => {
-    const input = userInput.toLowerCase();
-    const hasArabic = /[\u0600-\u06FF]/.test(userInput);
-    const lng = hasArabic ? "ar" : "en";
-
-    // 1. Check for specific greetings/thanks first
-    if (input.includes("thank")) return "You're welcome!";
-    if (input.includes("شكرا")) return "على الرحب والسعه";
-
-    // 2. Collect all matching books
-    const matches = [];
-    const isPriceQuery =
-      input.includes("price") ||
-      input.includes("سعر") ||
-      input.includes("اسعار");
-
-    for (const book of books) {
-      const bookTitle = book.title.toLowerCase();
-      const titleWords = bookTitle.split(" ");
-      const isMatch =
-        input.includes(bookTitle) ||
-        bookTitle.includes(input) ||
-        titleWords.some((word) => input.includes(word) && word.length > 2);
-
-      if (isMatch) {
-        matches.push(book);
-      }
     }
-
-    // Deduplicate matches based on ID
-    const uniqueMatches = Array.from(
-      new Map(matches.map((item) => [item.id, item])).values(),
-    );
-
-    // 3. Handle matches
-    if (uniqueMatches.length === 1) {
-      const book = uniqueMatches[0];
-      if (isPriceQuery) {
-        return hasArabic
-          ? `سعر كتاب ${book.title} هو ${book.price} جنيه`
-          : `The price of the book ${book.title} is ${book.price} EGP`;
-      }
-      const categoryName = Array.isArray(book.category)
-        ? book.category
-            .map((c) => t(typeof c === "object" ? c.name : c, { lng }))
-            .join(", ")
-        : t(
-            typeof book.category === "object"
-              ? book.category?.name
-              : book.category,
-            { lng }
-          );
-
-      return hasArabic
-        ? `اسم الكتاب: ${book.title}
-المؤلف: ${book.author}
-السعر: ${book.price} جنيه
-التصنيف: ${categoryName}
-الوصف: ${book.desc}
-التقييم: ${book.rate}`
-        : `Book: ${book.title}
-Author: ${book.author}
-Price: ${book.price} EGP
-Category: ${categoryName}
-Description: ${book.desc}
-Rate: ${book.rate}`;
-    }
-
-    if (uniqueMatches.length > 1) {
-      // Limit to 5 matches to avoid huge messages
-      const limitedMatches = uniqueMatches.slice(0, 5);
-      const titles = limitedMatches.map((b) => `• ${b.title}`).join("\n");
-      const moreCount = uniqueMatches.length - 5;
-
-      if (hasArabic) {
-        let msg = `وجدت ${uniqueMatches.length} كتب تطابق بحثك:\n${titles}`;
-        if (moreCount > 0) msg += `\n...و ${moreCount} كتب أخرى.`;
-        msg += "\n\nهل يمكنك توضيح سؤالك أكثر؟";
-        return msg;
-      } else {
-        let msg = `I found ${uniqueMatches.length} books matching your search:\n${titles}`;
-        if (moreCount > 0) msg += `\n...and ${moreCount} more.`;
-        msg += "\n\nCould you please be more specific?";
-        return msg;
-      }
-    }
-
-    // 4. No matches found, check generic queries
-    if (input.includes("سعر") || input.includes("اسعار"))
-      return "يمكنك العثور على أسعار الكتب في صفحات التفاصيل. هل تريد مساعدتي في إيجاد كتاب معين؟";
-    if (input.includes("price"))
-      return "You can find book prices on their detail pages. Would you like me to help you find a specific book?";
-    else if (input.includes("book"))
-      return "I can help you find books! What genre are you interested in?";
-    else if (input.includes("hello") || input.includes("hi"))
-      return "Hello! How can I assist you with finding books today?";
-    else if (input.includes("اهلا") || input.includes("مرحبا"))
-      return "مرحباً! انا هنا كيف يمكنني مساعدتك اليوم؟";
-    else if (input.includes("كتاب"))
-      return "يمكنني مساعدتك في إيجاد الكتب! ما هو النوع الذي تهتم به؟";
-    if (input.includes("help")) return "I'm here to help! Ask me anything.";
-    if (input.includes("مساعدة") || input.includes("مساعده"))
-      return "انا هنا للمساعدة اسألني على اي شئ";
-
-    // 5. Default response
-    if (hasArabic) {
-      return `أفهم أنك تسأل عن "${userInput}"، كيف يمكنني مساعدتك بشكل أفضل؟`;
-    }
-
-    return `${t("I understand you're asking about")} "${userInput}"`;
   };
 
   return (
@@ -322,13 +174,13 @@ Rate: ${book.rate}`;
                       : "bg-indigo-600 text-white"
                   }`}
                 >
-                  {m.text}
+                  {t(m.text)}
                 </div>
               </div>
             ))}
             {isTyping && (
               <div className="text-xs opacity-60 text-zinc-600 dark:text-zinc-400">
-                Typing…
+                {t("Typing...")}
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -382,7 +234,7 @@ Rate: ${book.rate}`;
         {/* Label Text */}
         <div
           className={`transition-all duration-300 ${
-            showText && !isOpen && !hasBeenOpened
+            showText
               ? "opacity-100 translate-x-0"
               : "opacity-0 translate-x-4 pointer-events-none"
           }`}

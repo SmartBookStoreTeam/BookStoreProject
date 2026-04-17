@@ -180,7 +180,7 @@ const stopDrawing = (e) => {
       const ctx = canvas.getContext("2d");
       ctx.lineWidth = 2;
       ctx.lineCap = "round";
-      ctx.strokeStyle = document.documentElement.classList.contains("dark") ? "#fff" : "#000";
+      ctx.strokeStyle = "#000";
     }
   }, [step]);
 

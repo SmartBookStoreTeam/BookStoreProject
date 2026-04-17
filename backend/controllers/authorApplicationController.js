@@ -100,8 +100,7 @@ export const getMyApplication = asyncHandler(async (req, res) => {
     .select("-signature"); // don't expose signature URL in listing
 
   if (!application) {
-    res.status(404);
-    throw new Error("You have not submitted an author application yet");
+    return res.json({ success: true, data: null });
   }
 
   res.json({ success: true, data: application });

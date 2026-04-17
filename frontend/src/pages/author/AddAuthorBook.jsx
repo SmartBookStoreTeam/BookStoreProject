@@ -6,7 +6,9 @@ import { getCategories } from "../../api/categoriesApi";
 import imageCompression from "browser-image-compression";
 import { BookOpenIcon, ClockIcon, PencilIcon, XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../../context/AuthContext";
+import { DollarSign, AlertTriangle, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigation } from "../../context/NavigationContext";
 
 /* ─────────────────────────────────────────────
    SignatureModal — canvas-based digital signing
@@ -97,14 +99,14 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div dir={i18n.dir()} className={`bg-white rounded-2xl shadow-2xl w-full ${step === 2 ? 'max-w-2xl' : 'max-w-lg'} overflow-hidden transition-all`}>
+      <div dir={i18n.dir()} className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full ${step === 2 ? 'max-w-2xl' : 'max-w-lg'} overflow-hidden transition-all`}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-white">
+        <div className="bg-indigo-600 dark:bg-indigo-700 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-white dark:text-gray-200">
             <PencilIcon className="h-5 w-5" />
             <h2 className="font-bold text-lg">{step === 1 ? t("Digital Signature") : t("Contract Preview")}</h2>
           </div>
-          <button onClick={onCancel} className="text-white/70 hover:text-white cursor-pointer">
+          <button onClick={onCancel} className="text-white/70 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 cursor-pointer">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -113,21 +115,21 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
           {step === 1 ? (
             <>
               {/* Contract summary */}
-              <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-800 space-y-1">
-                <p className="font-semibold text-indigo-900">{t("Publishing Contract")}</p>
+              <div className="bg-indigo-50 dark:bg-indigo-900 border border-indigo-100 dark:border-indigo-800 rounded-xl p-4 text-sm text-indigo-800 dark:text-indigo-200 space-y-1">
+                <p className="font-semibold text-indigo-900 dark:text-indigo-100">{t("Publishing Contract")}</p>
                 <p>{t("Book")}: <span className="font-medium">{bookTitle}</span></p>
                 <p>{t("Author Name")}: <span className="font-medium">{authorName}</span></p>
-                <p className="text-xs text-indigo-600 mt-2 leading-relaxed">
+                <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-2 leading-relaxed">
                   {t("By signing, you confirm that you own the copyright of this book and agree to Bookfly's publishing terms including a 20% platform commission.")}
                 </p>
               </div>
 
               {/* Canvas */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   {t("Draw your signature below")} <span className="text-red-500">*</span>
                 </label>
-                <div className="relative border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:border-indigo-400 transition-colors">
+                <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors">
                   <canvas
                     ref={canvasRef}
                     width={500}
@@ -152,7 +154,7 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
                   <button
                     type="button"
                     onClick={clearSignature}
-                    className="text-xs text-red-500 hover:text-red-700 cursor-pointer font-medium"
+                    className="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-600 cursor-pointer font-medium"
                   >
                     {t("Clear")}
                   </button>
@@ -164,7 +166,7 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="cursor-pointer flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm"
+                  className="cursor-pointer flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors text-sm"
                 >
                   {t("Cancel")}
                 </button>
@@ -172,7 +174,7 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
                   type="button"
                   disabled={!signature || isPreviewLoading}
                   onClick={handlePreview}
-                  className="cursor-pointer flex-1 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="cursor-pointer flex-1 py-2.5 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-800 font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isPreviewLoading ? (
                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
@@ -184,10 +186,10 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
           ) : (
             <>
               {/* PDF Preview Step */}
-              <div className="border border-gray-200 rounded-lg overflow-hidden h-96 bg-gray-50">
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden h-96 bg-gray-50 dark:bg-gray-800">
                 <iframe src={pdfPreviewUrl} className="w-full h-full" title="Contract Preview" />
               </div>
-              <p className="text-xs text-center text-gray-500">
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                 {t("Please review your generated contract before final submission.")}
               </p>
 
@@ -195,7 +197,7 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="cursor-pointer flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm"
+                  className="cursor-pointer flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors text-sm"
                 >
                   {t("Back to Edit Signature")}
                 </button>
@@ -228,6 +230,77 @@ const AddAuthorBook = () => {
   const [showSignModal, setShowSignModal] = useState(false);
   const [formData, setFormData] = useState(null); // stores prepared FormData
   const { t, i18n } = useTranslation();
+  const [isDirty, setIsDirty] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+
+  const {
+    registerBlocker,
+    showWarningModal,
+    pendingPath,
+    confirmLeave,
+    cancelLeave,
+  } = useNavigation();
+
+  // Register blocker with navigation context
+  useEffect(() => {
+    registerBlocker(isDirty, null);
+    return () => registerBlocker(false, null);
+  }, [isDirty, registerBlocker]);
+
+  // Handle navigation context modal
+  useEffect(() => {
+    if (showWarningModal && pendingPath) {
+      setShowLeaveModal(true);
+      setPendingNavigation(pendingPath);
+    }
+  }, [showWarningModal, pendingPath]);
+
+  // Handle browser back button
+  useEffect(() => {
+    if (!isDirty) return;
+    const handlePopState = (e) => {
+      e.preventDefault();
+      window.history.pushState(null, "", window.location.pathname);
+      setShowLeaveModal(true);
+      setPendingNavigation("back");
+    };
+    window.history.pushState(null, "", window.location.pathname);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [isDirty]);
+
+  // Handle browser refresh/close
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
+  const handleLeave = () => {
+    setIsDirty(false);
+    setShowLeaveModal(false);
+    if (showWarningModal) {
+      const path = confirmLeave();
+      if (path) navigate(path);
+    } else if (pendingNavigation === "back") {
+      window.history.go(-2);
+    } else if (pendingNavigation) {
+      navigate(pendingNavigation);
+    }
+    setPendingNavigation(null);
+  };
+
+  const handleStay = () => {
+    setShowLeaveModal(false);
+    setPendingNavigation(null);
+    if (showWarningModal) cancelLeave();
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -240,6 +313,14 @@ const AddAuthorBook = () => {
     };
     fetchCategories();
   }, []);
+
+  const toggleCategory = (categoryId) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
   // Step 1: validate + prepare data, then show signature modal
   const handleFormSubmit = async (e) => {
@@ -287,6 +368,7 @@ const AddAuthorBook = () => {
       if (data.get("pdf")?.size > 0) bookData.append("pdf", data.get("pdf"));
 
       await submitAuthorBook(bookData);
+      setIsDirty(false);
       navigate("/author-dashboard");
     } catch (err) {
       console.error(err);
@@ -300,13 +382,13 @@ const AddAuthorBook = () => {
   const [previewTitle, setPreviewTitle] = useState("");
 
   return (
-    <div dir={i18n.dir()} className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div dir={i18n.dir()} className="min-h-screen bg-zinc-50  dark:bg-zinc-900 p-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{t("Publish New Book")}</h1>
-            <p className="text-gray-500 text-sm flex items-center gap-1 mt-0.5">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("Publish New Book")}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 mt-0.5">
               <ClockIcon className="h-4 w-4 text-amber-500" />
               {t("Your book will be reviewed by admin before going live")}
             </p>
@@ -314,71 +396,74 @@ const AddAuthorBook = () => {
         </div>
 
         {/* Pending notice */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 flex items-start gap-3">
-          <ClockIcon className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-amber-700">
+        <div className="bg-amber-50 dark:bg-amber-900 border border-amber-200 dark:border-amber-600 rounded-xl px-5 py-3 flex items-start gap-3">
+          <ClockIcon className="h-5 w-5 text-amber-500 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-700 dark:text-amber-400">
             {t("After submission, your book will appear as Pending in your dashboard until an admin approves it. Only approved books are visible to readers.")}
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <form onSubmit={handleFormSubmit} className="space-y-6">
+        <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 p-6">
+          <form onSubmit={handleFormSubmit} onChange={() => setIsDirty(true)} className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center border-b pb-2">
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center border-b border-gray-200 dark:border-gray-600 pb-2">
                 <BookOpenIcon className="h-5 w-5 mr-2 text-indigo-600" />
                 {t("Book Information")}
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Title")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     name="title"
                     required
                     onChange={(e) => setPreviewTitle(e.target.value)}
-                    className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     placeholder={t("Enter book title")}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Author Name")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     name="author"
                     required
                     defaultValue={user?.name || ""}
-                    className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     placeholder="Enter author name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Price")} ({t("EGP")}) <span className="text-red-500">*</span>
                   </label>
+                  <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     name="price"
                     type="number"
                     step="0.01"
                     required
                     min="0"
-                    className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 pl-10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     placeholder="0.00"
                   />
+                    </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Publication Year")}
                   </label>
                   <input
                     name="year"
                     type="number"
-                    className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     placeholder={new Date().getFullYear()}
                     min="1000"
                     max={new Date().getFullYear() + 1}
@@ -386,72 +471,68 @@ const AddAuthorBook = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">ISBN</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">ISBN</label>
                   <input
                     name="isbn"
-                    className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     placeholder="ISBN"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("Edition")}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("Edition")}</label>
                   <input
                     name="edition"
-                    className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     placeholder="e.g. 2nd"
                   />
                 </div>
 
                 <div className="lg:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     {t("Categories")} <span className="text-red-500">*</span>
                   </label>
-                  <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto bg-white">
+                  <div className="rounded-lg bg-white dark:bg-zinc-800">
                     {categories.length === 0 ? (
-                      <p className="text-sm text-gray-500">{t("Loading categories...")}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t("Loading categories...")}</p>
                     ) : (
-                      <div className="grid grid-cols-2 gap-2">
-                        {categories.map((c) => (
-                          <label
-                            key={c._id}
-                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-50 cursor-pointer transition-colors"
-                          >
-                            <input
-                              type="checkbox"
-                              value={c._id}
-                              checked={selectedCategories.includes(c._id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedCategories((prev) => [...prev, c._id]);
-                                } else {
-                                  setSelectedCategories((prev) => prev.filter((id) => id !== c._id));
-                                }
-                              }}
-                              className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                            />
-                            <span className="text-sm text-gray-700">{t(c.name)}</span>
-                          </label>
-                        ))}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {categories.map((c) => {
+                          const isSelected = selectedCategories.includes(c._id);
+                          return (
+                            <button
+                              key={c._id}
+                              type="button"
+                              onClick={() => toggleCategory(c._id)}
+                              className={`touch-area px-4 py-3 rounded-xl border-2 transition-all duration-200 cursor-pointer font-medium text-sm ${
+                                isSelected
+                                  ? "bg-indigo-600 dark:bg-indigo-500 border-indigo-600 dark:border-indigo-500 text-white shadow-md scale-105"
+                                  : "bg-white dark:bg-zinc-700 border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-zinc-600"
+                              }`}
+                            >
+                              {t(c.name)}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
                   {selectedCategories.length > 0 && (
-                    <p dir="auto" className="text-xs text-indigo-600 mt-1">
+                    <p dir="auto" className="text-xs text-indigo-600 dark:text-indigo-200 mt-2">
                       {selectedCategories.length} {t("category selected")}
                     </p>
                   )}
                 </div>
 
                 <div className="lg:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Description")} <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="description"
                     required
                     rows="4"
-                    className="w-full border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all"
+                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all"
                     placeholder={t("Enter book description...")}
                   />
                 </div>
@@ -459,12 +540,12 @@ const AddAuthorBook = () => {
             </div>
 
             {/* Files */}
-            <div className="border-t border-gray-200 pt-6">
+            <div className="border-t border-gray-200 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  pt-6">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">{t("Files & Media")}</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
                   <label className="block cursor-pointer">
-                    <div className="text-sm font-medium text-gray-700 mb-2">
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {t("Cover Image")} <span className="text-red-500">*</span>
                     </div>
                     <input
@@ -472,15 +553,15 @@ const AddAuthorBook = () => {
                       name="image"
                       accept="image/*"
                       required
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                      className="w-full text-sm text-gray-500 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900 file:text-indigo-700 dark:file:text-indigo-200 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800"
                     />
-                    <p className="text-xs text-gray-500 mt-2">{t("Recommended: 600×900px, max 5MB")}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t("Recommended: 600×900px, max 5MB")}</p>
                   </label>
                 </div>
 
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
+                <div className="cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors bg-gray-50 dark:bg-zinc-700">
                   <label className="block cursor-pointer">
-                    <div className="text-sm font-medium text-gray-700 mb-2">
+                    <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {t("PDF File")} <span className="text-red-500">*</span>
                     </div>
                     <input
@@ -488,18 +569,18 @@ const AddAuthorBook = () => {
                       name="pdf"
                       accept="application/pdf"
                       required
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                      className="w-full text-sm text-gray-500 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900 file:text-indigo-700 dark:file:text-indigo-200 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800"
                     />
-                    <p className="text-xs text-gray-500 mt-2">{t("Upload the complete book in PDF format")}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t("Upload the complete book in PDF format")}</p>
                   </label>
                 </div>
               </div>
             </div>
 
             {/* Signature notice */}
-            <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-3 flex items-start gap-3">
+            <div className="bg-indigo-50 dark:bg-indigo-900 border border-indigo-200 dark:border-indigo-600 rounded-xl px-5 py-3 flex items-start gap-3">
               <PencilIcon className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-indigo-700">
+              <p className="text-sm text-indigo-700 dark:text-indigo-200">
                 {t("You will be asked to sign a digital publishing contract before submitting.")}
               </p>
             </div>
@@ -510,14 +591,14 @@ const AddAuthorBook = () => {
                 type="button"
                 disabled={isUploading}
                 onClick={() => navigate("/author-dashboard")}
-                className="cursor-pointer px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors disabled:opacity-50"
+                className="cursor-pointer px-6 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  text-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors disabled:opacity-50"
               >
                 {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={isUploading}
-                className="cursor-pointer px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-md"
+                className="cursor-pointer px-6 py-2.5 bg-indigo-600 text-white dark:text-gray-200 rounded-lg hover:bg-indigo-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-md"
               >
                 {isUploading ? (
                   <>
@@ -548,6 +629,52 @@ const AddAuthorBook = () => {
           onConfirm={handleSignatureConfirm}
           onCancel={() => setShowSignModal(false)}
         />
+      )}
+      {showLeaveModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div
+            dir={i18n.dir()}
+            className="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  {t("Unsaved Changes")}
+                </h3>
+              </div>
+              <button
+                onClick={handleStay}
+                className="touch-area text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              {t(
+                "You have unsaved book information. If you leave this page, all your entered data will be lost.",
+              )}
+            </p>
+
+            <div dir="rtl" className="flex gap-3">
+              <button
+                onClick={handleStay}
+                className="touch-area flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
+              >
+                {t("Stay on Page")}
+              </button>
+              <button
+                onClick={handleLeave}
+                className="touch-area flex-1 px-4 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors cursor-pointer"
+              >
+                {t("Leave Page")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
