@@ -47,7 +47,7 @@ const SimpleBarChart = ({ data }) => {
 const StatCard = ({ icon, label, value, sub, color }) => {
   const I = icon;
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-5 flex items-center gap-4 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm p-5 flex items-center gap-4 border border-gray-100 dark:border-zinc-700 hover:shadow-md transition-shadow">
       <div
         className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}
       >
@@ -67,7 +67,7 @@ const BookRow = ({ book }) => {
   const { t } = useTranslation();
   const categories = book.categories?.map((c) => c.name || c).join(", ") || "—";
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+    <tr className="hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors">
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           {book.image ? (
@@ -77,7 +77,7 @@ const BookRow = ({ book }) => {
               className="h-12 w-9 object-cover rounded-lg shadow-sm flex-shrink-0"
             />
           ) : (
-            <div className="h-12 w-9 bg-indigo-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="h-12 w-9 bg-indigo-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center flex-shrink-0">
               <BookOpenIcon className="h-5 w-5 text-indigo-400 dark:text-gray-200" />
             </div>
           )}
@@ -236,7 +236,7 @@ const AuthorDashboard = () => {
 
       {/* Charts + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-zinc-700">
           <div className="flex items-center gap-2 mb-6">
             <ChartBarIcon className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -249,7 +249,7 @@ const AuthorDashboard = () => {
           <SimpleBarChart data={monthlyData} />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-zinc-700">
           <div className="flex items-center gap-2 mb-6">
             <ArrowTrendingUpIcon className="h-5 w-5 text-purple-500 dark:text-purple-400" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -323,9 +323,9 @@ const AuthorDashboard = () => {
         </div>
       </div>
       {/* Books Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden">
         {/* Header */}
-        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-zinc-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <BookOpenIcon className="h-5 w-5 text-indigo-500 flex-shrink-0" />
 
@@ -354,8 +354,8 @@ const AuthorDashboard = () => {
                         scrollbarWidth: "thin",
                         scrollbarColor: "#818cf8 transparent",
                       }} className="hidden md:block w-full overflow-x-auto">
-              <table className="min-w-[750px] w-full divide-y divide-gray-100">
-                <thead className="bg-gray-50 dark:bg-gray-800">
+              <table className="min-w-[750px] w-full divide-y divide-gray-100 dark:divide-zinc-700">
+                <thead className="bg-gray-50 dark:bg-zinc-800">
                   <tr>
                     {[
                       "Book",
@@ -376,7 +376,7 @@ const AuthorDashboard = () => {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-zinc-700">
                   {books.map((book) => (
                     <BookRow key={book._id} book={book} />
                   ))}
@@ -389,7 +389,7 @@ const AuthorDashboard = () => {
               {books.map((book) => (
                 <div
                   key={book._id}
-                  className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 shadow-sm"
+                  className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl p-4 shadow-sm"
                 >
                   {/* Title */}
                   <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm mb-2">

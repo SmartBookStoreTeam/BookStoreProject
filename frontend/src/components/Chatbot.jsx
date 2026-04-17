@@ -174,13 +174,13 @@ const Chatbot = () => {
                       : "bg-indigo-600 text-white"
                   }`}
                 >
-                  {m.text}
+                  {t(m.text)}
                 </div>
               </div>
             ))}
             {isTyping && (
               <div className="text-xs opacity-60 text-zinc-600 dark:text-zinc-400">
-                Typing…
+                {t("Typing...")}
               </div>
             )}
             <div ref={messagesEndRef} />

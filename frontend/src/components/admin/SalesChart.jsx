@@ -62,21 +62,21 @@ const SalesChart = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
-        <div className="h-48 bg-gray-200 rounded"></div>
+      <div className="bg-white dark:bg-zinc-800 border border-transparent dark:border-zinc-700 rounded-xl shadow-sm p-6 animate-pulse transition-colors">
+        <div className="h-8 bg-gray-200 dark:bg-zinc-700 rounded w-1/3 mb-6"></div>
+        <div className="h-48 bg-gray-200 dark:bg-zinc-700 rounded"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-white dark:bg-zinc-800 border border-transparent dark:border-zinc-700 rounded-xl shadow-sm p-6 transition-colors">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
             Sales Overview
           </h3>
-          <p className="text-sm text-gray-600">Last 7 days performance</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Last 7 days performance</p>
         </div>
         <div className="flex items-center space-x-2">
           <ArrowTrendingUpIcon
@@ -105,30 +105,30 @@ const SalesChart = () => {
                   className="w-10 bg-linear-to-t from-blue-500 to-blue-400 rounded-t-lg transition-all duration-300 hover:opacity-80"
                   style={{ height: `${Math.max(height, 5)}%` }}
                 >
-                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 dark:bg-zinc-900 text-white dark:text-gray-200 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                     {data.sales.toLocaleString()} EGP
                   </div>
                 </div>
               </div>
-              <div className="text-sm text-gray-600">{data.day}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{data.day}</div>
             </div>
           );
         })}
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-zinc-700">
         <div className="text-center">
-          <div className="text-2xl font-bold text-gray-800">
+          <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
             {stats.totalSales.toLocaleString()} EGP
           </div>
-          <div className="text-sm text-gray-600">Total Sales</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Total Sales</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-gray-800">
+          <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
             {Math.round(stats.dailyAverage).toLocaleString()} EGP
           </div>
-          <div className="text-sm text-gray-600">Daily Average</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Daily Average</div>
         </div>
         <div className="text-center">
           <div
@@ -137,7 +137,7 @@ const SalesChart = () => {
             {stats.weeklyGrowth >= 0 ? "+" : ""}
             {stats.weeklyGrowth.toFixed(1)}%
           </div>
-          <div className="text-sm text-gray-600">Weekly Growth</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Weekly Growth</div>
         </div>
       </div>
     </div>

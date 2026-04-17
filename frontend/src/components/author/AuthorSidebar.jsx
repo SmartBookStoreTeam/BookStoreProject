@@ -1,5 +1,5 @@
-import { NavLink } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getMyAuthorBooks } from "../../api/adminApi";
 import { useTranslation } from "react-i18next";
@@ -11,12 +11,30 @@ import {
   UserCircleIcon,
   ArrowLeftIcon,
   PencilIcon,
+  ChevronUpDownIcon,
+  ArrowTopRightOnSquareIcon,
+  CogIcon,
+  ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+import { useNavigation } from "../../context/NavigationContext";
 
 const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
   const { t } = useTranslation();
+  const { requestNavigation } = useNavigation();
+
+  const handleNavClick = (e, path, originalOnClick) => {
+    if (!requestNavigation(path)) {
+      e.preventDefault();
+      return;
+    }
+    if (originalOnClick) originalOnClick();
+  };
+
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const fetchPending = async () => {
@@ -55,6 +73,28 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
     },
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -67,7 +107,7 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-indigo-900 dark:bg-indigo-900/20 border-r border-indigo-700 dark:border-indigo-700/20 text-white transform ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-indigo-900 dark:bg-zinc-950 border-r border-indigo-700 dark:border-indigo-700/20 text-white transform ${
           sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full md:-translate-x-full"
@@ -77,13 +117,8 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
           {/* Logo */}
           <div className="flex items-center justify-between p-6 border-b border-indigo-700 dark:border-gray-700">
             <div className="flex items-center space-x-3">
-              <PencilIcon className="h-8 w-8 text-indigo-300 dark:text-indigo-200" />
-              <div>
-                <h1 className="text-xl font-bold">{t("Author Studio")}</h1>
-                <p className="text-xs text-indigo-300 dark:text-indigo-200">
-                  {user?.name || t("Author")}
-                </p>
-              </div>
+              <PencilIcon className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+              <h1 className="text-xl font-bold">{t("Author Studio")}</h1>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -106,10 +141,12 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 key={item.name}
                 to={item.path}
                 end={item.exact}
-                onClick={item.onClick}
+                onClick={(e) => handleNavClick(e, item.path, item.onClick)}
                 className={({ isActive }) =>
                   `flex items-center justify-between px-4 py-3 rounded-lg transition-colors dark:text-gray-200 ${
-                    isActive
+                    item.isSubmissions && !isActive
+                      ? "text-amber-300 hover:text-amber-600  hover:bg-amber-600/20"
+                      : isActive
                       ? "bg-indigo-600 text-white dark:bg-indigo-700"
                       : "hover:bg-indigo-700/50 text-indigo-100 dark:hover:bg-gray-700"
                   }`
@@ -128,30 +165,96 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
             ))}
           </nav>
 
-          {/* Return to Profile */}
-          <div className="group p-4 border-t border-indigo-700 dark:border-gray-700">
-            <NavLink
-              to="/profile"
-              className="flex items-center space-x-3 px-4 py-3 rounded-full text-indigo-200 hover:bg-indigo-600/30 transition-colors"
-            >
-              <UserCircleIcon className="h-5 w-5" />
-              <span>{t("Back to Profile")}</span>
-            </NavLink>
-          </div>
+          {/* Footer Section */}
+          <div className="mt-auto border-t border-indigo-700 dark:border-zinc-900 bg-indigo-950/20 dark:bg-zinc-950/20">
+            {/* Back to Profile / Store Navigation */}
+            <div className="px-4 py-2">
+              <NavLink
+                to="/profile"
+                onClick={(e) => handleNavClick(e, "/profile")}
+                className="group flex items-center space-x-3 px-4 py-3 rounded-xl text-indigo-100 dark:text-gray-300 hover:bg-indigo-700/50 dark:hover:bg-gray-700 transition-all duration-200"
+              >
+                <ArrowLeftIcon className="h-5 w-5 group-hover:-translate-x-1 transition-transform text-indigo-300" />
+                <span className="text-sm font-medium">{t("Back to Profile")}</span>
+              </NavLink>
+            </div>
 
-          {/* User Card */}
-          <div className="p-4 border-t border-indigo-700 dark:border-gray-700">
-            <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center font-semibold text-white">
-                {user?.name?.[0]?.toUpperCase() || "A"}
-              </div>
-              <div className="min-w-0">
-                <p className="font-medium truncate">
-                  {user?.name || t("Author")}
-                </p>
-                <p className="text-xs text-indigo-300 truncate">
-                  {user?.email}
-                </p>
+            {/* User Profile Card */}
+            <div className="p-4 relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className={`w-full flex items-center p-3 rounded-2xl transition-all duration-300 cursor-pointer ${
+                  dropdownOpen 
+                    ? "bg-indigo-800 dark:bg-gray-700 shadow-lg ring-1 ring-indigo-700 dark:ring-gray-600" 
+                    : "hover:bg-indigo-800/50 dark:hover:bg-gray-700"
+                }`}
+              >
+                {/* Initial Avatar with Gradient */}
+                <div className="h-10 w-10 rounded-full bg-linear-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white shadow-md shrink-0">
+                  <span className="font-bold text-sm">
+                    {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : "AU"}
+                  </span>
+                </div>
+                
+                <div className="ml-3 flex-1 text-left overflow-hidden">
+                  <p className="text-sm font-bold text-white truncate">
+                    {user?.name || t("Author")}
+                  </p>
+                  <p className="text-xs text-indigo-300 dark:text-gray-400 truncate font-medium">
+                    {user?.email}
+                  </p>
+                </div>
+                
+                <ChevronUpDownIcon className={`h-5 w-5 text-indigo-300 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {/* Upward Dropdown Menu */}
+              <div
+                className={`absolute bottom-full left-4 right-4 mb-3 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300 transform origin-bottom ${
+                  dropdownOpen 
+                    ? "opacity-100 scale-100 translate-y-0" 
+                    : "opacity-0 scale-95 translate-y-4 pointer-events-none"
+                } z-50`}
+              >
+                <div className="p-2 space-y-1">
+                  <button
+                    onClick={() => {
+                      if (requestNavigation("/profile")) {
+                        navigate("/profile");
+                        setDropdownOpen(false);
+                      }
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <UserCircleIcon className="h-4 w-4 text-gray-400" />
+                    <span className="font-medium">{t("Profile")}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (requestNavigation("/")) {
+                        navigate("/");
+                        setDropdownOpen(false);
+                      }
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+                    <span className="font-medium">{t("View Store")}</span>
+                  </button>
+                  
+                  <div className="h-px bg-gray-100 dark:bg-gray-700 my-1 mx-2"></div>
+                  
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
+                    <span className="font-bold">{t("Logout")}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

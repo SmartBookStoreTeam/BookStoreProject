@@ -90,6 +90,7 @@ function App() {
                   <Route path="author/:name" element={<AuthorProfile />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="community" element={<AboutUs />} />
+                  <Route path="*" element={<NotFound />} />
                 </Route>
 
                 {/* PDF Viewer - Full Screen (Outside Layout) */}
@@ -139,7 +140,7 @@ function App() {
                   <Route path="books/add" element={<AddBook />} />
                   <Route path="books/edit/:id" element={<EditBook />} />
                   <Route path="orders" element={<AdminOrders />} />
-                  <Route path="customers" element={<AdminCustomers />} />
+                  <Route path="customers&authors" element={<AdminCustomers />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="coupons" element={<AdminCoupons />} />

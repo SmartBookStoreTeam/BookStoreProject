@@ -42,14 +42,14 @@ const AdminSettings = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Settings</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Manage your store settings and preferences
           </p>
         </div>
         <button
           onClick={handleSave}
-          className="mt-4 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition"
+          className="mt-4 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition shadow-sm"
         >
           <BookmarkSquareIcon className="h-5 w-5" />
           <span>Save Changes</span>
@@ -59,16 +59,16 @@ const AdminSettings = () => {
       {/* Settings Sections */}
       <div className="space-y-6">
         {/* Store Information */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <CogIcon className="h-6 w-6 text-blue-600" />
+            <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <CogIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                 Store Information
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Basic store details and contact information
               </p>
             </div>
@@ -76,19 +76,19 @@ const AdminSettings = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Store Name
               </label>
               <input
                 type="text"
                 value={settings.storeName}
                 onChange={(e) => handleChange("storeName", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Store Email
               </label>
               <div className="relative">
@@ -97,13 +97,13 @@ const AdminSettings = () => {
                   type="email"
                   value={settings.storeEmail}
                   onChange={(e) => handleChange("storeEmail", e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Store Phone
               </label>
               <div className="relative">
@@ -112,36 +112,36 @@ const AdminSettings = () => {
                   type="tel"
                   value={settings.storePhone}
                   onChange={(e) => handleChange("storePhone", e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Store Address
               </label>
               <textarea
                 value={settings.storeAddress}
                 onChange={(e) => handleChange("storeAddress", e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
             </div>
           </div>
         </div>
 
         {/* Business Settings */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <CreditCardIcon className="h-6 w-6 text-green-600" />
+            <div className="h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <CreditCardIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                 Business Settings
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Pricing and tax configurations for digital downloads
               </p>
             </div>
@@ -149,13 +149,13 @@ const AdminSettings = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Currency
               </label>
               <select
                 value={settings.currency}
                 onChange={(e) => handleChange("currency", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
                 <option value="EGP">EGP (EGP)</option>
                 <option value="USD">USD ($)</option>
@@ -166,7 +166,7 @@ const AdminSettings = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Tax Rate (%)
               </label>
               <input
@@ -176,23 +176,23 @@ const AdminSettings = () => {
                 onChange={(e) =>
                   handleChange("taxRate", parseFloat(e.target.value))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
             </div>
           </div>
         </div>
 
         {/* Notification Settings */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <BellIcon className="h-6 w-6 text-purple-600" />
+            <div className="h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+              <BellIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                 Notifications
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Configure how you receive alerts and updates
               </p>
             </div>
@@ -201,8 +201,8 @@ const AdminSettings = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-800">Email Notifications</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-medium text-gray-800 dark:text-gray-200">Email Notifications</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Receive order and system notifications via email
                 </p>
               </div>
@@ -210,7 +210,7 @@ const AdminSettings = () => {
                 onClick={() =>
                   handleChange(
                     "emailNotifications",
-                    !settings.emailNotifications
+                    !settings.emailNotifications,
                   )
                 }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full ${
@@ -229,8 +229,8 @@ const AdminSettings = () => {
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-800">SMS Notifications</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-medium text-gray-800 dark:text-gray-200">SMS Notifications</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Receive urgent alerts via SMS
                 </p>
               </div>
@@ -238,8 +238,8 @@ const AdminSettings = () => {
                 onClick={() =>
                   handleChange("smsNotifications", !settings.smsNotifications)
                 }
-                className={`relative inline-flex h-6 w-11 items-center rounded-full ${
-                  settings.smsNotifications ? "bg-blue-600" : "bg-gray-300"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  settings.smsNotifications ? "bg-blue-600" : "bg-gray-300 dark:bg-zinc-600"
                 }`}
               >
                 <span
@@ -255,14 +255,14 @@ const AdminSettings = () => {
         </div>
 
         {/* Security Settings */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-6 transition-colors">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
-              <ShieldCheckIcon className="h-6 w-6 text-red-600" />
+            <div className="h-10 w-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+              <ShieldCheckIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">Security</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Security</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Manage security preferences and access controls
               </p>
             </div>
@@ -272,12 +272,12 @@ const AdminSettings = () => {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center space-x-2">
-                  <LockClosedIcon className="h-5 w-5 text-gray-500" />
-                  <p className="font-medium text-gray-800">
+                  <LockClosedIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <p className="font-medium text-gray-800 dark:text-gray-200">
                     Two-Factor Authentication
                   </p>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Add an extra layer of security to your account
                 </p>
               </div>
@@ -285,8 +285,8 @@ const AdminSettings = () => {
                 onClick={() =>
                   handleChange("twoFactorAuth", !settings.twoFactorAuth)
                 }
-                className={`relative inline-flex h-6 w-11 items-center rounded-full ${
-                  settings.twoFactorAuth ? "bg-green-600" : "bg-gray-300"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  settings.twoFactorAuth ? "bg-green-600" : "bg-gray-300 dark:bg-zinc-600"
                 }`}
               >
                 <span
@@ -300,10 +300,10 @@ const AdminSettings = () => {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center space-x-2">
-                  <GlobeAltIcon className="h-5 w-5 text-gray-500" />
-                  <p className="font-medium text-gray-800">Maintenance Mode</p>
+                  <GlobeAltIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <p className="font-medium text-gray-800 dark:text-gray-200">Maintenance Mode</p>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Temporarily disable public access to your store
                 </p>
               </div>
@@ -311,8 +311,8 @@ const AdminSettings = () => {
                 onClick={() =>
                   handleChange("maintenanceMode", !settings.maintenanceMode)
                 }
-                className={`relative inline-flex h-6 w-11 items-center rounded-full ${
-                  settings.maintenanceMode ? "bg-yellow-600" : "bg-gray-300"
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  settings.maintenanceMode ? "bg-yellow-600" : "bg-gray-300 dark:bg-zinc-600"
                 }`}
               >
                 <span

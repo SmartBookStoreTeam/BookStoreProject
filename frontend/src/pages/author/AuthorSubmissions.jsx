@@ -124,7 +124,7 @@ const AuthorSubmissions = () => {
 
       {/* Book list */}
       {books.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 py-20 text-center">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-900 py-20 text-center">
           <BookOpenIcon className="h-12 w-12 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-500 dark:text-gray-400 font-medium">{t("No submissions yet")}</p>
           <Link
@@ -143,8 +143,8 @@ const AuthorSubmissions = () => {
             return (
               <div
                 key={book._id}
-                className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden ${
-                  currentStatus === "rejected" ? "border-red-200" : "border-gray-100 dark:border-gray-700"
+                className={`bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-700 overflow-hidden ${
+                  currentStatus === "rejected" ? "border-red-200" : "border-gray-100 dark:border-zinc-700"
                 }`}
               >
                 <div className="flex items-start gap-4 p-5">
