@@ -29,7 +29,13 @@ const VerifyEmail = () => {
     const result = await verifyEmail(email, code);
 
     if (result.success) {
-      navigate("/");
+      let redirectPath = "/";
+      if (result.user?.role === "admin") {
+        redirectPath = "/admin";
+      } else if (result.user?.role === "author") {
+        redirectPath = "/author-dashboard";
+      }
+      navigate(redirectPath);
     } else {
       setError(result.error);
     }
