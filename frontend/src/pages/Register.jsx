@@ -494,7 +494,7 @@ const stopDrawing = (e) => {
                     ref={canvasRef}
                     width={500}
                     height={150}
-                    className="w-full h-[150px] cursor-crosshair touch-none bg-white dark:bg-zinc-800 rounded-lg"
+                    className="w-full h-[150px] cursor-crosshair touch-none bg-white rounded-lg"
                     onPointerDown={startDrawing}
                     onPointerMove={draw}
                     onPointerUp={stopDrawing}
@@ -504,7 +504,7 @@ const stopDrawing = (e) => {
                     onTouchEnd={stopDrawing}
                   />
                    {!hasDrawn && (
-    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-400 pointer-events-none">
+    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-600 pointer-events-none">
       {t("Draw your signature")}
     </div>
   )}
