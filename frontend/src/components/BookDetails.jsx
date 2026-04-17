@@ -561,7 +561,7 @@ const BookDetails = () => {
                     <Languages
                       className={`w-4 h-4 ${isTranslating ? "animate-pulse" : "group-hover:rotate-12"}`}
                     />
-                    <span dir="auto" className="text-[10px] font-bold uppercase tracking-wider">
+                    <span dir="auto" className="text-[15px] font-bold uppercase tracking-wider">
                       {isTranslating
                         ? (isArabic(book.title) ? "Translating..." : "جاري الترجمة...")
                         : (isArabic(book.title) ? "View Translate" : "عرض الترجمة")}
