@@ -19,6 +19,7 @@ import {
   Tag,
   FileText,
   Eye,
+  Languages,
 } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
 
@@ -52,6 +53,11 @@ const getCategoryNames = (book, t) => {
     return [c?.name || t("uncategorized")];
   }
   return [t("uncategorized")];
+};
+
+const isArabic = (text) => {
+  const arabicRegex = /[\u0600-\u06FF]/;
+  return arabicRegex.test(text);
 };
 
 const fillMissingBookData = (book, t, actualPages = null) => {
@@ -129,7 +135,8 @@ const getArabicOrdinal = (num) => {
 const BookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, userBooks, cartItems, isBookPurchased, purchasedBooks } = useCart();
+  const { addToCart, userBooks, cartItems, isBookPurchased, purchasedBooks } =
+    useCart();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -138,9 +145,17 @@ const BookDetails = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState("cart"); // 'cart' or 'preview'
   const [isImageHovered, setIsImageHovered] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedTitle, setTranslatedTitle] = useState(null);
+  const [translatedDescription, setTranslatedDescription] = useState(null);
   const { setIsLoading } = useGlobalLoading();
 
   const [isFirstOrder, setIsFirstOrder] = useState(false);
+
+  useEffect(() => {
+    setTranslatedTitle(null);
+    setTranslatedDescription(null);
+  }, [i18n.language]);
 
   useEffect(() => {
     const checkFirstOrder = async () => {
@@ -148,7 +163,8 @@ const BookDetails = () => {
         try {
           const res = await getMyOrders();
           const hasOrders = Array.isArray(res) && res.length > 0;
-          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          const hasBooksInLibrary =
+            Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
           setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
         } catch {
           setIsFirstOrder(false);
@@ -368,6 +384,41 @@ const BookDetails = () => {
     }
   };
 
+  const handleTranslate = async () => {
+    if (translatedTitle && translatedDescription) {
+      setTranslatedTitle(null);
+      setTranslatedDescription(null);
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      // If content is Arabic, translate to English. Otherwise, translate to Arabic.
+      const targetLang = isArabic(book.title) ? "en" : "ar";
+
+      const translateText = async (text) => {
+        if (!text) return "";
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        return data[0].map((item) => item[0]).join("");
+      };
+
+      const [titleRes, descRes] = await Promise.all([
+        translateText(book.title),
+        translateText(book.description || book.desc),
+      ]);
+
+      setTranslatedTitle(titleRes);
+      setTranslatedDescription(descRes);
+    } catch (error) {
+      toast.error(t("Translation failed. Please try again."));
+      console.error("Translation failed:", error);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   if (loading) return <SkeletonLoading />;
 
   if (error || !book) {
@@ -494,12 +545,29 @@ const BookDetails = () => {
 
               {/* Info */}
               <div className="flex flex-col order-2">
-                <h1
-                  dir="auto"
-                  className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 dark:text-gray-200"
-                >
-                  {t(book.title)}
-                </h1>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <h1
+                    dir="auto"
+                    className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-200"
+                  >
+                    {translatedTitle || t(book.title)}
+                  </h1>
+                  <button
+                    onClick={handleTranslate}
+                    disabled={isTranslating}
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all cursor-pointer flex-shrink-0 border border-indigo-100 dark:border-indigo-800"
+                    title={t("Translate")}
+                  >
+                    <Languages
+                      className={`w-4 h-4 ${isTranslating ? "animate-pulse" : "group-hover:rotate-12"}`}
+                    />
+                    <span dir="auto" className="text-[15px] font-bold uppercase tracking-wider">
+                      {isTranslating
+                        ? (isArabic(book.title) ? "Translating..." : "جاري الترجمة...")
+                        : (isArabic(book.title) ? "View Translate" : "عرض الترجمة")}
+                    </span>
+                  </button>
+                </div>
 
                 <Link
                   to={`/author/${encodeURIComponent(book.author)}`}
@@ -576,19 +644,21 @@ const BookDetails = () => {
 
                 {/* Categories */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {(book.categoryNames || [t("uncategorized")]).map((name, idx) => (
-                    <span
-                      key={idx}
-                      className={`inline-flex items-center text-sm font-medium px-3 py-1 rounded-full ${
-                        name === t("uncategorized")
-                          ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                          : "bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200"
-                      }`}
-                    >
-                      <Tag className="w-4 h-4 mr-1 ml-1" />
-                      {t(name)}
-                    </span>
-                  ))}
+                  {(book.categoryNames || [t("uncategorized")]).map(
+                    (name, idx) => (
+                      <span
+                        key={idx}
+                        className={`inline-flex items-center text-sm font-medium px-3 py-1 rounded-full ${
+                          name === t("uncategorized")
+                            ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                            : "bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-gray-200"
+                        }`}
+                      >
+                        <Tag className="w-4 h-4 mr-1 ml-1" />
+                        {t(name)}
+                      </span>
+                    ),
+                  )}
                 </div>
 
                 {/* Description */}
@@ -602,7 +672,7 @@ const BookDetails = () => {
                       dir="auto"
                       className="text-gray-700 leading-relaxed dark:text-gray-300"
                     >
-                      {t(book.description || book.desc)}
+                      {translatedDescription || book.description || book.desc}
                     </p>
                   </div>
                 </div>

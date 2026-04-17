@@ -128,8 +128,8 @@ const AdminCoupons = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Coupon Management</h1>
-          <p className="text-gray-600">Create and manage discount coupons for your store</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Coupon Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">Create and manage discount coupons for your store</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -153,16 +153,16 @@ const AdminCoupons = () => {
             icon: ArrowPathIcon,
           },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl shadow-sm p-4">
+          <div key={stat.label} className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm text-gray-600">{stat.label}</p>
-                <p className={`text-xl sm:text-2xl font-bold mt-1 text-${stat.color}-600`}>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
+                <p className={`text-xl sm:text-2xl font-bold mt-1 text-${stat.color}-600 dark:text-${stat.color === 'gray' ? 'gray-300' : stat.color + '-400'}`}>
                   {stat.value}
                 </p>
               </div>
-              <div className={`h-10 w-10 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
-                <stat.icon className={`h-5 w-5 text-${stat.color}-600`} />
+              <div className={`h-10 w-10 bg-${stat.color}-100 dark:bg-${stat.color === 'gray' ? 'zinc-700' : stat.color + '-900/30'} rounded-lg flex items-center justify-center`}>
+                <stat.icon className={`h-5 w-5 text-${stat.color}-600 dark:text-${stat.color === 'gray' ? 'gray-400' : stat.color + '-400'}`} />
               </div>
             </div>
           </div>
@@ -171,25 +171,25 @@ const AdminCoupons = () => {
 
       {/* Create Coupon Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-indigo-100 dark:border-zinc-800 p-6 transition-colors">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <SparklesIcon className="h-5 w-5 text-indigo-600" />
+            <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center">
+              <SparklesIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-800">Create New Coupon</h3>
-              <p className="text-sm text-gray-500">Fill in the details below</p>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Create New Coupon</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Fill in the details below</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Auto-generate toggle */}
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-700/50 rounded-lg border border-transparent dark:border-zinc-700/50">
               <button
                 type="button"
                 onClick={() => handleFormChange("autoGenerate", !form.autoGenerate)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                  form.autoGenerate ? "bg-indigo-600" : "bg-gray-300"
+                  form.autoGenerate ? "bg-indigo-600" : "bg-gray-300 dark:bg-zinc-600"
                 }`}
               >
                 <span
@@ -198,7 +198,7 @@ const AdminCoupons = () => {
                   }`}
                 />
               </button>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Auto-generate coupon code
               </span>
             </div>
@@ -207,22 +207,22 @@ const AdminCoupons = () => {
               {/* Code */}
               {!form.autoGenerate && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Coupon Code <span className="text-gray-400">(optional)</span>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Coupon Code <span className="text-gray-400 dark:text-gray-500">(optional)</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. SUMMER20"
                     value={form.code}
                     onChange={(e) => handleFormChange("code", e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono uppercase"
+                    className="w-full px-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono uppercase transition-colors"
                   />
                 </div>
               )}
 
               {/* Discount Percent */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Discount Percent <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -233,10 +233,10 @@ const AdminCoupons = () => {
                     placeholder="e.g. 20"
                     value={form.discountPercent}
                     onChange={(e) => handleFormChange("discountPercent", e.target.value)}
-                    className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 pr-8 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     required
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 font-bold">
                     %
                   </span>
                 </div>
@@ -244,7 +244,7 @@ const AdminCoupons = () => {
 
               {/* Expiry Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Expiry Date <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -252,15 +252,15 @@ const AdminCoupons = () => {
                   value={form.expiresAt}
                   min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => handleFormChange("expiresAt", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                   required
                 />
               </div>
 
               {/* Max Uses */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Max Uses <span className="text-gray-400">(leave empty for unlimited)</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Max Uses <span className="text-gray-400 dark:text-gray-500">(leave empty for unlimited)</span>
                 </label>
                 <input
                   type="number"
@@ -268,7 +268,7 @@ const AdminCoupons = () => {
                   placeholder="Unlimited"
                   value={form.maxUses}
                   onChange={(e) => handleFormChange("maxUses", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 />
               </div>
             </div>
@@ -289,7 +289,7 @@ const AdminCoupons = () => {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="cursor-pointer px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                className="cursor-pointer px-6 py-2.5 rounded-xl border border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
               >
                 Cancel
               </button>
@@ -299,16 +299,16 @@ const AdminCoupons = () => {
       )}
 
       {/* Coupons Table */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex items-center gap-2">
-          <TagIcon className="h-5 w-5 text-indigo-500" />
-          <h3 className="font-semibold text-gray-800">All Coupons</h3>
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm overflow-hidden border border-transparent dark:border-zinc-800 transition-colors">
+        <div className="p-4 border-b border-gray-100 dark:border-zinc-700 flex items-center gap-2">
+          <TagIcon className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
+          <h3 className="font-semibold text-gray-800 dark:text-white">All Coupons</h3>
         </div>
 
         {loading ? (
           <div className="p-8 text-center">
             <ArrowPathIcon className="h-8 w-8 animate-spin text-indigo-400 mx-auto mb-2" />
-            <p className="text-gray-500">Loading coupons...</p>
+            <p className="text-gray-500 dark:text-gray-400">Loading coupons...</p>
           </div>
         ) : coupons.length === 0 ? (
           <div className="p-12 text-center">
@@ -318,14 +318,14 @@ const AdminCoupons = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
+            <table className="w-full divide-y divide-gray-100 dark:divide-zinc-700">
+              <thead className="bg-gray-50 dark:bg-zinc-900/50">
                 <tr>
                   {["Code", "Discount", "Expires", "Max Uses", "Status", "Created", "Actions"].map(
                     (h) => (
                       <th
                         key={h}
-                        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         {h}
                       </th>
@@ -333,20 +333,20 @@ const AdminCoupons = () => {
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-zinc-700">
                 {coupons.map((coupon) => {
                   const expired = isExpired(coupon.expiresAt);
                   return (
-                    <tr key={coupon._id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={coupon._id} className="hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors">
                       {/* Code */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">
+                          <span className="font-mono text-sm font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-zinc-700 px-2 py-0.5 rounded">
                             {coupon.code}
                           </span>
                           <button
                             onClick={() => copyCode(coupon.code)}
-                            className="text-gray-400 hover:text-gray-700 transition-colors"
+                            className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
                             title="Copy code"
                           >
                             <ClipboardDocumentIcon className="h-4 w-4" />
@@ -356,7 +356,7 @@ const AdminCoupons = () => {
 
                       {/* Discount */}
                       <td className="px-4 py-3">
-                        <span className="text-lg font-bold text-indigo-600">
+                        <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                           {coupon.discountPercent}%
                         </span>
                       </td>
@@ -364,11 +364,11 @@ const AdminCoupons = () => {
                       {/* Expires */}
                       <td className="px-4 py-3">
                         <span
-                          className={`text-sm ${expired ? "text-red-600 font-semibold" : "text-gray-700"}`}
+                          className={`text-sm ${expired ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-700 dark:text-gray-300"}`}
                         >
                           {new Date(coupon.expiresAt).toLocaleDateString()}
                           {expired && (
-                            <span className="ml-1 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
+                            <span className="ml-1 text-xs bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded">
                               Expired
                             </span>
                           )}
@@ -376,9 +376,9 @@ const AdminCoupons = () => {
                       </td>
 
                       {/* Max Uses */}
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                         {coupon.maxUses !== null ? coupon.maxUses : (
-                          <span className="text-gray-400 italic">Unlimited</span>
+                          <span className="text-gray-400 dark:text-gray-500 italic">Unlimited</span>
                         )}
                       </td>
 
@@ -387,8 +387,8 @@ const AdminCoupons = () => {
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
                             coupon.isActive && !expired
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-500"
+                              ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
+                              : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400"
                           }`}
                         >
                           {coupon.isActive && !expired ? (
@@ -405,7 +405,7 @@ const AdminCoupons = () => {
                       </td>
 
                       {/* Created */}
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                         {new Date(coupon.createdAt).toLocaleDateString()}
                       </td>
 
@@ -416,8 +416,8 @@ const AdminCoupons = () => {
                             onClick={() => handleToggle(coupon._id)}
                             className={`cursor-pointer p-1.5 rounded-lg transition-colors ${
                               coupon.isActive
-                                ? "text-yellow-600 hover:bg-yellow-50"
-                                : "text-green-600 hover:bg-green-50"
+                                ? "text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                                : "text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
                             }`}
                             title={coupon.isActive ? "Deactivate" : "Activate"}
                           >
@@ -425,7 +425,7 @@ const AdminCoupons = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(coupon._id, coupon.code)}
-                            className="cursor-pointer p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                            className="cursor-pointer p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             title="Delete coupon"
                           >
                             <TrashIcon className="h-4 w-4" />
