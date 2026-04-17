@@ -128,7 +128,14 @@ export const reviewApplication = asyncHandler(async (req, res) => {
 
   // ── On APPROVAL: upgrade user role to "author" ─────────────────────────────
   if (status === "approved") {
-    await User.findByIdAndUpdate(application.user._id, { role: "author" });
+    await User.findByIdAndUpdate(application.user._id, { 
+      role: "author",
+      applicationStatus: "approved"
+    });
+  } else if (status === "rejected") {
+    await User.findByIdAndUpdate(application.user._id, { 
+      applicationStatus: "rejected"
+    });
   }
 
   await application.save();
