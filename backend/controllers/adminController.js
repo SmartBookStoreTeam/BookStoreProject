@@ -114,10 +114,10 @@ export const createBook = async (req, res, next) => {
       previewKey = previewUpload.key;
     }
 
-    // For meta.json, use the name of the first category
-    const firstCatId = Array.isArray(categories) ? categories[0] : categories;
-    const categoryDoc = await Category.findById(firstCatId).select("name").lean();
-    const categoryName = categoryDoc?.name || null;
+    // For meta.json, fetch all category names
+    const catArray = Array.isArray(categories) ? categories : (categories ? [categories] : []);
+    const categoryDocs = await Category.find({ _id: { $in: catArray } }).select("name").lean();
+    const categoryNames = categoryDocs.map(c => c.name);
 
     // 7) create meta.json
     const aiMeta = {
@@ -126,7 +126,7 @@ export const createBook = async (req, res, next) => {
       title,
       author,
       description,
-      category: categoryName,
+      category: categoryNames,
       price: Number(price),
       year,
       isbn,
@@ -253,6 +253,41 @@ export const updateBook = async (req, res, next) => {
 
     if (!updatedBook)
       return res.status(404).json({ message: "Book not found" });
+
+    // ✅ Refresh meta.json in S3 so that updated fields (like category array) take effect
+    if (updatedBook.s3Folder) {
+      await updatedBook.populate("categories", "name");
+      const categoryNames = updatedBook.categories?.map(c => c.name) || [];
+
+      const aiMeta = {
+        bookId: String(updatedBook._id),
+        s3Folder: updatedBook.s3Folder,
+        title: updatedBook.title,
+        author: updatedBook.author,
+        description: updatedBook.description,
+        category: categoryNames,
+        price: updatedBook.price,
+        year: updatedBook.year,
+        isbn: updatedBook.isbn,
+        edition: updatedBook.edition || "",
+        pdfKey: updatedBook.pdf,
+        previewPdfKey: updatedBook.previewPdf,
+        pages: updatedBook.fileMeta?.pages || 0,
+      };
+
+      const metaUpload = await uploadToS3(
+        Buffer.from(JSON.stringify(aiMeta, null, 2)),
+        "meta.json",
+        "application/json",
+        { folder: "books", subfolder: updatedBook.s3Folder },
+      );
+
+      // Save aiMetaKey if it wasn't there
+      if (!updatedBook.aiMetaKey) {
+        updatedBook.aiMetaKey = metaUpload.key;
+        await updatedBook.save();
+      }
+    }
 
     res.json({
       success: true,

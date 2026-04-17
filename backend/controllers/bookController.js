@@ -1,5 +1,6 @@
 import Book from "../models/Book.js";
 import Category from "../models/Category.js";
+import mongoose from "mongoose";
 
 // @desc    Get all books
 // @route   GET /api/books
@@ -11,7 +12,16 @@ export const getBooks = async (req, res, next) => {
 
     const filter = { isActive: true, status: "available" };
 
-    if (req.query.category) filter.categories = req.query.category;
+    const categoryQuery = req.query.category || req.query["category[]"];
+    if (categoryQuery) {
+      const cats = (Array.isArray(categoryQuery) ? categoryQuery : [categoryQuery])
+        .filter(c => c && c !== "all" && mongoose.Types.ObjectId.isValid(c));
+      
+      if (cats.length > 0) {
+        filter.categories = { $in: cats.map(c => new mongoose.Types.ObjectId(String(c))) };
+      }
+    }
+
     if (req.query.author) {
       filter.author = { $regex: req.query.author, $options: "i" };
     }
@@ -81,12 +91,19 @@ export const searchBooks = async (req, res, next) => {
     const page = Number(req.query.page) || 1;
 
     const q = req.query.q?.trim();
-    const category = req.query.category;
     const sort = req.query.sort || "-createdAt"; // title, -price, ...etc
 
     const filter = { isActive: true };
 
-    if (category) filter.categories = category;
+    const categoryQuery = req.query.category || req.query["category[]"];
+    if (categoryQuery) {
+      const cats = (Array.isArray(categoryQuery) ? categoryQuery : [categoryQuery])
+        .filter(c => c && c !== "all" && mongoose.Types.ObjectId.isValid(c));
+      
+      if (cats.length > 0) {
+        filter.categories = { $in: cats.map(c => new mongoose.Types.ObjectId(String(c))) };
+      }
+    }
 
     if (req.query.minPrice)
       filter.price = { ...filter.price, $gte: Number(req.query.minPrice) };
@@ -235,6 +252,52 @@ export const rateBook = async (req, res, next) => {
         ratings: book.ratingAvg,
         numReviews: book.ratingCount,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get categories with book counts
+// @route   GET /api/books/categories/stats
+// @access  Public
+export const getCategoriesWithStats = async (req, res, next) => {
+  try {
+    const stats = await Book.aggregate([
+      { $match: { isActive: true, status: "available" } },
+      { $unwind: "$categories" },
+      {
+        $group: {
+          _id: "$categories",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "categoryInfo",
+        },
+      },
+      { $unwind: "$categoryInfo" },
+      {
+        $project: {
+          _id: 1,
+          count: 1,
+          name: "$categoryInfo.name",
+          slug: "$categoryInfo.slug",
+        },
+      },
+      { $sort: { name: 1 } },
+    ]);
+
+    const totalBooks = await Book.countDocuments({ isActive: true, status: "available" });
+
+    res.json({
+      success: true,
+      data: stats,
+      total: totalBooks,
     });
   } catch (error) {
     next(error);
