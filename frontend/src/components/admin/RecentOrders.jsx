@@ -59,13 +59,13 @@ const RecentOrders = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">
+      <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-900 rounded-xl shadow-sm p-6 transition-colors">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
           Recent Orders
         </h3>
         <div className="animate-pulse space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-12 bg-gray-200 rounded"></div>
+            <div key={i} className="h-12 bg-gray-200 dark:bg-zinc-700/50 rounded"></div>
           ))}
         </div>
       </div>
@@ -73,57 +73,57 @@ const RecentOrders = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-900 rounded-xl shadow-sm p-6 transition-colors">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-800">Recent Orders</h3>
-        <Link to="/admin/orders" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Recent Orders</h3>
+        <Link to="/admin/orders" className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-600 font-medium">
           View All →
         </Link>
       </div>
 
       <div className="overflow-x-auto -mx-6 sm:mx-0">
         <div className="inline-block min-w-full align-middle px-6 sm:px-0">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-zinc-800">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Order ID
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Customer
                 </th>
-                <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Total
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Items
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
               {recentOrders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50">
+                <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
                   <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-blue-600">
+                    <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
                       #{order._id.slice(-6).toUpperCase()}
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                       {order.user?.name || "Unknown"}
                     </div>
                   </td>
-                  <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-500">
+                  <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-sm font-bold text-gray-900">
+                    <div className="text-sm font-bold text-gray-900 dark:text-gray-200">
                       {order.total.toFixed(2)} EGP
                     </div>
                   </td>
@@ -140,7 +140,7 @@ const RecentOrders = () => {
                     </div>
                   </td>
                   <td className="hidden md:table-cell px-4 py-3">
-                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                    <span className="px-3 py-1 text-xs rounded-full bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-gray-200">
                       {order.books?.length || 0} items
                     </span>
                   </td>
@@ -152,13 +152,13 @@ const RecentOrders = () => {
       </div>
 
       {/* Summary */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-zinc-800">
         <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             Showing <span className="font-bold">{recentOrders.length}</span>{" "}
             recent orders
           </div>
-          <div className="text-sm font-medium text-gray-800">
+          <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
             Total:{" "}
             {recentOrders
               .reduce((sum, order) => sum + order.total, 0)

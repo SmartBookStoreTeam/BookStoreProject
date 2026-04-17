@@ -22,8 +22,8 @@ const Landing = () => {
   const [landingBookImages, setLandingBookImages] = useState([]);
   const [landingImagesAvailable, setLandingImagesAvailable] = useState(false);
 
-  const fullText = t("landingIntro", "Buy and sell your books online");
-  const fullText2 = t("landingIntro2", "for the best prices");
+  const fullText = t("Buy and Publish your books ");
+  const fullText2 = t("online");
 
   // Fetch landing images from available books
   useEffect(() => {

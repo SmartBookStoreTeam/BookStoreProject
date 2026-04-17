@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { deleteMyAccount, getMyAuthorBooks } from "../api/adminApi";
-import { getCategories } from "../api/categoriesApi";
 import { useNavigate, Link } from "react-router-dom";
 import {
   User,
@@ -34,51 +33,13 @@ const Profile = () => {
     name: user?.name || "",
     email: user?.email || "",
   });
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [authorBooks, setAuthorBooks] = useState([]);
   const [authorBooksLoading, setAuthorBooksLoading] = useState(false);
 
-  // Category modal: show on first profile visit per user
-  const firstVisitKey = user ? `categoryModalShown_${user._id || user.email}` : null;
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await getCategories();
-        if (response.success && Array.isArray(response.data)) {
-          // Map API data to the format used in UI ({ value: _id, label: name })
-          const formattedCategories = response.data.map((cat) => ({
-            value: cat._id,
-            label: cat.name,
-          }));
-          setCategories(formattedCategories);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchCategories();
-
-    // Load saved category preferences from localStorage
-    const savedCategories = localStorage.getItem("categoryPreferences");
-    if (savedCategories) {
-      try {
-        setSelectedCategories(JSON.parse(savedCategories));
-      } catch (error) {
-        console.error("Error loading category preferences:", error);
-      }
-    }
-
-    // Show category modal on first profile visit
-    if (firstVisitKey && !localStorage.getItem(firstVisitKey)) {
-      setShowCategoryModal(true);
-    }
 
     // Fetch author's published books if user is an author
+    (()=> {
     if (user?.role === "author") {
       setAuthorBooksLoading(true);
       getMyAuthorBooks()
@@ -93,7 +54,7 @@ const Profile = () => {
         .catch(console.error)
         .finally(() => setAuthorBooksLoading(false));
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  },[]); 
 
   if (!user) {
     navigate("/register");
@@ -202,46 +163,7 @@ const Profile = () => {
     }
   };
 
-  // Toggle category selection
-  const toggleCategory = (category) => {
-    setSelectedCategories((prev) => {
-      if (prev.includes(category)) {
-        return prev.filter((cat) => cat !== category);
-      } else {
-        return [...prev, category];
-      }
-    });
-  };
-
-  // Save category preferences
-  const saveCategoryPreferences = () => {
-    localStorage.setItem(
-      "categoryPreferences",
-      JSON.stringify(selectedCategories),
-    );
-    toast.success(t("Preferences saved successfully!"), {
-      duration: 1500,
-      style: {
-        background: "#333",
-        color: "#fff",
-        direction: i18n.dir(),
-      },
-    });
-  };
-
-  // Handle saving from modal and marking as shown
-  const handleSaveCategoryModal = () => {
-    saveCategoryPreferences();
-    if (firstVisitKey) localStorage.setItem(firstVisitKey, "true");
-    setShowCategoryModal(false);
-  };
-
-  // Handle skipping the modal
-  const handleSkipCategoryModal = () => {
-    if (firstVisitKey) localStorage.setItem(firstVisitKey, "true");
-    setShowCategoryModal(false);
-  };
-
+  
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-5 transition-colors duration-300">
       <div className="w-full max-w-337.5 mx-auto px-4">
@@ -448,7 +370,7 @@ const Profile = () => {
                               });
                             }
                           }}
-                          className="touch-area bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                          className="touch-area bg-gray-200 hover:bg-gray-300 dark:hover:bg-gray-900 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                           title={t("Download PDF")}
                         >
                           <Download className="" size={16} />
@@ -582,67 +504,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Category Preferences Modal (first visit) */}
-      {showCategoryModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl">
-            {/* Header */}
-            <div className="flex justify-between items-start mb-2">
-              <div dir={i18n.dir()}>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-                   {t("Welcome")}, {user.name.split(" ")[0]}!
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {t("Select Your Favorite Book Categories")}
-                </p>
-              </div>
-              <button
-                onClick={handleSkipCategoryModal}
-                className="touch-area p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Category Pills */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-6">
-              {categories.map((category) => {
-                const isSelected = selectedCategories.includes(category.value);
-                return (
-                  <button
-                    key={category.value}
-                    onClick={() => toggleCategory(category.value)}
-                    className={`touch-area px-4 py-3 rounded-xl border-2 transition-all duration-200 cursor-pointer font-medium text-sm ${
-                      isSelected
-                        ? "bg-indigo-600 dark:bg-indigo-500 border-indigo-600 dark:border-indigo-500 text-white shadow-md scale-105"
-                        : "bg-white dark:bg-zinc-700 border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-zinc-600"
-                    }`}
-                  >
-                    {t(category.label)}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleSkipCategoryModal}
-                className="touch-area flex-1 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 py-2.5 rounded-xl transition-colors cursor-pointer font-medium"
-              >
-                {t("Skip")}
-              </button>
-              <button
-                onClick={handleSaveCategoryModal}
-                disabled={selectedCategories.length === 0}
-                className="touch-area flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-800 disabled:cursor-not-allowed text-white py-2.5 rounded-xl transition-colors cursor-pointer font-medium"
-              >
-                {t("Save Preferences")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Edit Profile Modal */}
       {showEditModal && (

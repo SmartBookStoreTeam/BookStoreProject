@@ -87,7 +87,7 @@ const QuickStats = () => {
         {[...Array(4)].map((_, index) => (
           <div
             key={index}
-            className="bg-white rounded-xl shadow-sm p-5 animate-pulse"
+            className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-900 rounded-xl shadow-sm p-5 animate-pulse"
           >
             <div className="h-20"></div>
           </div>
@@ -99,12 +99,12 @@ const QuickStats = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => (
-        <div key={index} className="bg-white rounded-xl shadow-sm p-5">
+        <div key={index} className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-900 rounded-xl shadow-sm p-5 transition-colors">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">{stat.title}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{stat.title}</p>
               <div className="flex items-baseline mt-2">
-                <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-gray-200">{stat.value}</p>
                 {stat.change && (
                   <div className={`flex items-center ml-3 ${stat.changeColor}`}>
                     {stat.trend === "up" ? (
@@ -112,7 +112,7 @@ const QuickStats = () => {
                     ) : stat.trend === "down" ? (
                       <ArrowDownIcon className="h-4 w-4" />
                     ) : null}
-                    <span className="text-sm font-medium ml-1">
+                    <span className="text-sm font-medium ml-1 dark:text-gray-200">
                       {stat.change}
                     </span>
                   </div>
@@ -120,7 +120,7 @@ const QuickStats = () => {
               </div>
             </div>
             <div className={`${stat.color} p-3 rounded-xl`}>
-              <stat.icon className="h-6 w-6 text-white" />
+              <stat.icon className="h-6 w-6 text-white dark:text-gray-200" />
             </div>
           </div>
         </div>
