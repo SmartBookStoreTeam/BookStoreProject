@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import {
   Upload,
@@ -13,24 +14,13 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useCart } from "../hooks/useCart";
 import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "../context/NavigationContext";
 import AuthModal from "../components/AuthModal";
 import { useLocation, useNavigate } from "react-router-dom";
+import { submitAuthorBook } from "../api/adminApi";
+import { getCategories } from "../api/categoriesApi";
 
-// Helper to get initial form data from sessionStorage
-const getInitialFormData = () => {
-  const saved = sessionStorage.getItem("publishFormData");
-  if (saved) {
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return null;
-    }
-  }
-  return null;
-};
 
 const getInitialStep = () => {
   const saved = sessionStorage.getItem("publishCurrentStep");
@@ -43,56 +33,33 @@ const hasFormData = (formData) => {
     formData.title.trim() !== "" ||
     formData.author.trim() !== "" ||
     formData.description.trim() !== "" ||
-    formData.category !== "" ||
+    formData.categories.length > 0 ||
     formData.price !== "" ||
     formData.isbn.trim() !== "" ||
     formData.images.length > 0 ||
-    formData.sellerName.trim() !== "" ||
-    formData.sellerEmail.trim() !== "" ||
-    formData.sellerPhone.trim() !== "" ||
-    formData.sellerLocation.trim() !== "" ||
-    formData.edition.trim() !== "" ||
-    formData.publisher.trim() !== "" ||
-    formData.year !== "" ||
-    formData.pages !== ""
+    formData.pdfFile !== null ||
+    formData.year !== ""
   );
 };
 
 const Publish = () => {
   const { t, i18n } = useTranslation();
-  const { addUserBook } = useCart();
   const { user } = useAuth();
-  const [formData, setFormData] = useState(
-    () =>
-      getInitialFormData() || {
-        // Book Information
-        title: "",
-        author: "",
-        description: "",
-        category: "",
-        price: "",
-        condition: "excellent",
-        isbn: "",
-
-        // Book Images
-        images: [],
-
-        // Seller Information
-        sellerName: "",
-        sellerEmail: "",
-        sellerPhone: "",
-        sellerLocation: "",
-
-        // Additional Details
-        edition: "",
-        publisher: "",
-        year: "",
-        pages: "",
-        language: "english",
-      },
-  );
 
   const [currentStep, setCurrentStep] = useState(getInitialStep);
+  const [formData, setFormData] = useState({
+    title: "",
+    author: "",
+    description: "",
+    categories: [],
+    price: "",
+    isbn: "",
+    images: [],
+    pdfFile: null,
+    year: "",
+    language: "english",
+  });
+  const [categoriesList, setCategoriesList] = useState([]);
   // const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [errors, setErrors] = useState({});
@@ -208,18 +175,19 @@ const Publish = () => {
     sessionStorage.setItem("publishCurrentStep", currentStep.toString());
   }, [currentStep]);
 
-  const categories = [
-    { value: "", label: "Select Category" },
-    { value: "cooking", label: "Cooking" },
-    { value: "health", label: "Health & Nutrition" },
-    { value: "fiction", label: "Fiction" },
-    { value: "non-fiction", label: "Non-Fiction" },
-    { value: "academic", label: "Academic" },
-    { value: "children", label: "Children's Books" },
-    { value: "art", label: "Art & Photography" },
-    { value: "biography", label: "Biography" },
-    { value: "programming", label: "Programming" },
-  ];
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategoriesList(Array.isArray(data) ? data : data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+        setCategoriesList([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const languages = [
     { value: "english", label: "English" },
@@ -231,64 +199,8 @@ const Publish = () => {
     { value: "other", label: "Other" },
   ];
 
-  // Validation functions
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
 
-  const validatePhone = (phone) => {
-    if (!phone) return true; // Phone is optional
-
-    // Remove all spaces, hyphens, parentheses, and plus signs for cleaning
-    // eslint-disable-next-line no-useless-escape
-    const cleanPhone = phone.replace(/[\s\-\(\)\+]/g, "");
-
-    // Egyptian phone number patterns:
-    // 1) Mobile numbers: 01XXXXXXXXX (11 digits starting with 01)
-    //    - 010, 011, 012, 015
-    // 2) Landlines: 0X XXXXXXXX (varied lengths)
-
-    // Check if it's a valid Egyptian number
-    const mobileRegex = /^(01[0-25])([0-9]{8})$/; // 010, 011, 012, 015 followed by 8 digits
-    const landlineRegex = /^(0[2-8])([0-9]{7,8})$/; // 02-08 followed by 7-8 digits
-
-    // Check for mobile numbers (11 digits total)
-    if (cleanPhone.length === 11 && mobileRegex.test(cleanPhone)) {
-      return true;
-    }
-
-    // Check for landline numbers (8-9 digits total)
-    if (
-      (cleanPhone.length === 8 || cleanPhone.length === 9) &&
-      landlineRegex.test(cleanPhone)
-    ) {
-      return true;
-    }
-
-    // Check for numbers with country code (+20)
-    if (cleanPhone.startsWith("20")) {
-      const withoutCountryCode = cleanPhone.substring(2);
-
-      // Mobile with country code: 201XXXXXXXXX (10 digits after 20)
-      if (
-        withoutCountryCode.length === 10 &&
-        mobileRegex.test("0" + withoutCountryCode)
-      ) {
-        return true;
-      }
-
-      // Landline with country code: 20X XXXXXXX (8-9 digits after 20)
-      if (
-        (withoutCountryCode.length === 8 || withoutCountryCode.length === 9) &&
-        landlineRegex.test("0" + withoutCountryCode)
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  };
+  
 
   const validateISBN = (isbn) => {
     if (!isbn) return true; // ISBN is optional
@@ -307,19 +219,6 @@ const Publish = () => {
     return year >= 1900 && year <= currentYear;
   };
 
-  const validatePages = (pages) => {
-    if (!pages) return true; // Optional field
-    return pages > 0 && pages < 50000; // Reasonable page count
-  };
-
-  const validateName = (name) => {
-    const nameRegex = /^[a-zA-Z\s]{2,50}$/;
-    return nameRegex.test(name.trim());
-  };
-
-  const validateLocation = (location) => {
-    return location.trim().length >= 2 && location.trim().length <= 100;
-  };
 
   const validateTitle = (title) => {
     return title.trim().length >= 2 && title.trim().length <= 200;
@@ -368,6 +267,54 @@ const Publish = () => {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
+      }));
+    }
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const handleCategoryChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions).map(
+      (option) => option.value
+    );
+    setFormData((prev) => ({
+      ...prev,
+      categories: selectedOptions,
+    }));
+
+    // Clear error when user selects
+    if (errors.categories) {
+      setErrors((prev) => ({
+        ...prev,
+        categories: "",
+      }));
+    }
+  };
+
+  const handlePdfUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== "application/pdf") {
+      showToast(t("Only PDF files are allowed"), "error");
+      return;
+    }
+
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      showToast(t("PDF size should be less than 50MB"), "error");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      pdfFile: file,
+    }));
+
+    if (errors.pdfFile) {
+      setErrors((prev) => ({
+        ...prev,
+        pdfFile: "",
       }));
     }
   };
@@ -433,9 +380,9 @@ const Publish = () => {
           );
         }
 
-        // Category validation
-        if (!formData.category) {
-          newErrors.category = t("Please select a category");
+        // Category validation (multiple)
+        if (formData.categories.length === 0) {
+          newErrors.categories = t("Please select at least one category");
         }
 
         // Price validation
@@ -457,16 +404,17 @@ const Publish = () => {
           );
         }
 
-        // Pages validation
-        if (formData.pages && !validatePages(formData.pages)) {
-          newErrors.pages = t("Please enter a valid page count");
-        }
 
         // Description validation
         if (!validateDescription(formData.description)) {
           newErrors.description = t(
             "Description must be less than 1000 characters",
           );
+        }
+
+        // PDF file validation
+        if (!formData.pdfFile) {
+          newErrors.pdfFile = t("Please upload a PDF file of your book");
         }
 
         break;
@@ -479,37 +427,7 @@ const Publish = () => {
         break;
 
       case 3:
-        // Seller name validation
-        if (!formData.sellerName.trim()) {
-          newErrors.sellerName = t("Your name is required");
-        } else if (!validateName(formData.sellerName)) {
-          newErrors.sellerName = t(
-            "Please enter a valid name (2-50 characters, letters only)",
-          );
-        }
-
-        // Email validation
-        if (!formData.sellerEmail.trim()) {
-          newErrors.sellerEmail = t("Email address is required");
-        } else if (!validateEmail(formData.sellerEmail)) {
-          newErrors.sellerEmail = t("Please enter a valid email address");
-        }
-
-        // Phone validation
-        if (formData.sellerPhone && !validatePhone(formData.sellerPhone)) {
-          newErrors.sellerPhone = t(
-            "Please enter a valid Egyptian phone number",
-          );
-        }
-
-        // Location validation
-        if (!formData.sellerLocation.trim()) {
-          newErrors.sellerLocation = t("Location is required");
-        } else if (!validateLocation(formData.sellerLocation)) {
-          newErrors.sellerLocation = t(
-            "Please enter a valid location (2-100 characters)",
-          );
-        }
+        // Additional validation can be added here
         break;
 
       default:
@@ -638,46 +556,37 @@ const Publish = () => {
     setIsPublishing(true);
 
     try {
-      // Convert images to base64 for persistent storage
-      const processedImages = await Promise.all(
-        formData.images.map(async (image) => {
-          if (image.file) {
-            const base64 = await convertToBase64(image.file);
-            return {
-              base64,
-              name: image.file.name,
-              type: image.file.type,
-            };
-          }
-          return image; // If it's already processed
-        }),
-      );
+      // Prepare FormData for multipart submission
+      const formDataToSubmit = new FormData();
 
-      // Prepare book data for storage
-      const bookData = {
-        title: formData.title.trim(),
-        author: formData.author.trim(),
-        description: formData.description.trim(),
-        category:
-          formData.category.charAt(0).toUpperCase() +
-          formData.category.slice(1),
-        price: parseFloat(formData.price),
-        condition: formData.condition,
-        isbn: formData.isbn.trim(),
-        images: processedImages, // Use processed images
-        sellerName: formData.sellerName.trim(),
-        sellerEmail: formData.sellerEmail.trim(),
-        sellerPhone: formData.sellerPhone.trim(),
-        sellerLocation: formData.sellerLocation.trim(),
-        edition: formData.edition.trim(),
-        publisher: formData.publisher.trim(),
-        year: formData.year,
-        pages: formData.pages,
-        language: formData.language,
-      };
+      // Add basic fields
+      formDataToSubmit.append("title", formData.title.trim());
+      formDataToSubmit.append("author", formData.author.trim());
+      formDataToSubmit.append("description", formData.description.trim());
+      formDataToSubmit.append("price", parseFloat(formData.price));
+      formDataToSubmit.append("language", formData.language);
+      
+      // Add optional fields
+      if (formData.isbn) formDataToSubmit.append("isbn", formData.isbn.trim());
+      if (formData.year) formDataToSubmit.append("year", formData.year);
 
-      // Save to context (which saves to localStorage)
-      addUserBook(bookData);
+      // Add categories (as JSON array string)
+      formDataToSubmit.append("categories", JSON.stringify(formData.categories));
+
+      // Add PDF file
+      if (formData.pdfFile) {
+        formDataToSubmit.append("pdfFile", formData.pdfFile);
+      }
+
+      // Add images
+      formData.images.forEach((image, index) => {
+        if (image.file) {
+          formDataToSubmit.append(`images`, image.file);
+        }
+      });
+
+      // Submit to backend
+      const response = await submitAuthorBook(formDataToSubmit);
 
       showToast(`${t("Your book has been published successfully!")}`);
 
@@ -686,18 +595,12 @@ const Publish = () => {
         title: "",
         author: "",
         description: "",
-        category: "",
+        categories: [],
         price: "",
         isbn: "",
         images: [],
-        sellerName: "",
-        sellerEmail: "",
-        sellerPhone: "",
-        sellerLocation: "",
-        edition: "",
-        publisher: "",
+        pdfFile: null,
         year: "",
-        pages: "",
         language: "english",
       });
       setCurrentStep(1);
@@ -705,8 +608,17 @@ const Publish = () => {
       // Clear sessionStorage after successful publish
       sessionStorage.removeItem("publishFormData");
       sessionStorage.removeItem("publishCurrentStep");
+
+      // Redirect to author dashboard or books page
+      setTimeout(() => {
+        navigate("/author/books");
+      }, 1500);
     } catch (error) {
-      showToast(t("Failed to publish your book. Please try again"), error);
+      showToast(
+        t("Failed to publish your book. Please try again"),
+        "error"
+      );
+      console.error("Publish error:", error);
     } finally {
       setIsPublishing(false);
     }
@@ -724,9 +636,8 @@ const Publish = () => {
 
   const steps = [
     { number: 1, title: "Book Details" },
-    { number: 2, title: "Upload Images" },
-    { number: 3, title: "Publisher Info" },
-    { number: 4, title: "Review & Publish" },
+    { number: 2, title: "Upload Cover and PDF" },
+    { number: 3, title: "Review & Publish" },
   ];
 
   // Helper function to render error message
@@ -925,28 +836,59 @@ const Publish = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Category")} *
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
+                        {t("Categories")} * <span className="text-xs text-gray-500">(Select one or more)</span>
                       </label>
-                      <div className="touch-area relative rounded-lg">
-                        <select
-                          name="category"
-                          value={formData.category}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-1 ${
-                            errors.category
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-indigo-500"
-                          }`}
-                        >
-                          {categories.map((cat) => (
-                            <option key={cat.value} value={cat.value}>
-                              {t(cat.label)}
-                            </option>
-                          ))}
-                        </select>
+                      <div className={`border rounded-lg p-4 ${
+                        errors.categories
+                          ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                          : "border-gray-300 dark:border-zinc-600"
+                      }`}>
+                        {categoriesList.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {categoriesList.map((cat) => (
+                              <label
+                                key={cat._id || cat.id}
+                                className="flex items-center p-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={formData.categories.includes(cat._id || cat.id)}
+                                  onChange={(e) => {
+                                    const categoryId = cat._id || cat.id;
+                                    if (e.target.checked) {
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        categories: [...prev.categories, categoryId],
+                                      }));
+                                    } else {
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        categories: prev.categories.filter((id) => id !== categoryId),
+                                      }));
+                                    }
+                                    if (errors.categories) {
+                                      setErrors((prev) => ({
+                                        ...prev,
+                                        categories: "",
+                                      }));
+                                    }
+                                  }}
+                                  className="w-5 h-5 rounded border-gray-300 text-indigo-600 cursor-pointer accent-indigo-600 dark:border-zinc-600 dark:bg-zinc-700 focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium">
+                                  {cat.name}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                            {t("Loading categories...")}
+                          </p>
+                        )}
                       </div>
-                      {renderError("category")}
+                      {renderError("categories")}
                     </div>
 
                     <div>
@@ -1059,22 +1001,6 @@ const Publish = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Edition")}
-                      </label>
-                      <div className="touch-area relative rounded-lg">
-                        <input
-                          type="text"
-                          name="edition"
-                          value={formData.edition}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                          placeholder="e.g., 1st, 2nd"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                         {t("Publication Year")}
                       </label>
                       <div className="touch-area relative rounded-lg">
@@ -1096,224 +1022,148 @@ const Publish = () => {
                       {renderError("year")}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Publisher")}
-                      </label>
-                      <div className="touch-area relative rounded-lg">
-                        <input
-                          type="text"
-                          name="publisher"
-                          value={formData.publisher}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                          placeholder={t("Publisher name")}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Number of Pages")}
-                      </label>
-                      <div className="touch-area relative rounded-lg">
-                        <input
-                          type="number"
-                          name="pages"
-                          value={formData.pages}
-                          onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 dark:scheme-dark focus:outline-none focus:ring-1 ${
-                            errors.pages
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-indigo-500"
-                          }`}
-                          placeholder={t("Number of Pages")}
-                          min="1"
-                        />
-                      </div>
-                      {renderError("pages")}
-                    </div>
-                  </div>
                 </div>
               )}
 
-              {/* Step 2: Upload Images */}
+              {/* Step 2: Upload Cover and PDF */}
               {currentStep === 2 && (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200 mb-6">
-                    {t("Upload Book Images")}
+                    {t("Upload Cover and PDF")}
                   </h2>
 
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-8 text-center ${
-                      errors.images
+                  {/* Book Cover Images */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-4">
+                      {t("Book Cover Images")}
+                    </h3>
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-8 text-center ${
+                        errors.images
+                          ? "border-red-300 dark:border-red-500 bg-red-50 dark:bg-red-950/20"
+                          : "border-gray-300 dark:border-zinc-600"
+                      }`}
+                    >
+                      <Image className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-500 mb-4" />
+                      <p className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
+                        {t("Upload Book Cover Images")}
+                      </p>
+                      <p className="text-gray-500 dark:text-gray-300 mb-4">
+                        {t(
+                          "uploadImagesHint",
+                          "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each).",
+                        )}
+                      </p>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <label
+                        htmlFor="image-upload"
+                        className="touch-area inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
+                      >
+                        <Upload className="w-5 h-5 mr-2" />
+                        {t("Choose Images")}
+                      </label>
+                      {renderError("images")}
+                    </div>
+
+                    {/* Preview Images */}
+                    {formData.images.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-4">
+                          {t("Preview")} ({formData.images.length}/5)
+                        </h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                          {formData.images.map((image, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={image.preview}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="touch-area absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PDF File Upload */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-4">
+                      {t("Book PDF File")}
+                    </h3>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      {t("Book PDF File")} * <span className="text-xs text-gray-500">(Max 50MB)</span>
+                    </label>
+                    <div className={`border-2 border-dashed rounded-lg p-4 text-center ${
+                      errors.pdfFile
                         ? "border-red-300 dark:border-red-500 bg-red-50 dark:bg-red-950/20"
                         : "border-gray-300 dark:border-zinc-600"
-                    }`}
-                  >
-                    <Image className="mx-auto w-12 h-12 text-gray-400 dark:text-gray-500 mb-4" />
-                    <p className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
-                      {t("Upload Book Images")}
-                    </p>
-                    <p className="text-gray-500 dark:text-gray-300 mb-4">
-                      {t(
-                        "uploadImagesHint",
-                        "Upload clear photos of the front cover, back cover, and any notable pages. Maximum 5 images (5MB each).",
-                      )}
-                    </p>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label
-                      htmlFor="image-upload"
-                      className="touch-area inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
-                    >
-                      <Upload className="w-5 h-5 mr-2" />
-                      {t("Choose Images")}
-                    </label>
-                    {renderError("images")}
-                  </div>
-
-                  {/* Preview Images */}
-                  {formData.images.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-4">
-                        {t("Preview")} ({formData.images.length}/5)
-                      </h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {formData.images.map((image, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={image.preview}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImage(index)}
-                              className="touch-area absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                            >
-                              ×
-                            </button>
+                    }`}>
+                      {formData.pdfFile ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                              <span className="text-red-600 font-bold text-xs">PDF</span>
+                            </div>
+                            <div className="text-left">
+                              <p className="font-medium text-gray-900 dark:text-gray-200">{formData.pdfFile.name}</p>
+                              <p className="text-xs text-gray-500">{(formData.pdfFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 3: Publisher Information */}
-              {currentStep === 3 && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200 mb-6">
-                    {t("Publisher Info", "Publisher Information")}
-                  </h2>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Your Name")} *
-                      </label>
-                      <div className="touch-area relative rounded-lg">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                          type="text"
-                          name="sellerName"
-                          value={formData.sellerName}
-                          onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
-                            errors.sellerName
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-indigo-500"
-                          }`}
-                          placeholder={t("Enter your full name")}
-                        />
-                      </div>
-                      {renderError("sellerName")}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Email Address")} *
-                      </label>
-                      <div className="touch-area relative rounded-lg">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                          type="email"
-                          name="sellerEmail"
-                          value={formData.sellerEmail}
-                          onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
-                            errors.sellerEmail
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-indigo-500"
-                          }`}
-                          placeholder={t("Enter your email")}
-                        />
-                      </div>
-                      {renderError("sellerEmail")}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Phone Number") + " "}
-                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-                          {`(${t("Optional")})`}
-                        </span>
-                      </label>
-                      <div className="touch-area relative rounded-lg">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                          type="tel"
-                          name="sellerPhone"
-                          value={formData.sellerPhone}
-                          onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
-                            errors.sellerPhone
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-indigo-500"
-                          }`}
-                          placeholder="e.g., 01012345678 or 0212345678"
-                        />
-                      </div>
-                      {renderError("sellerPhone")}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                        {t("Location/City")} *
-                      </label>
-                      <div className="touch-area relative rounded-lg">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                          type="text"
-                          name="sellerLocation"
-                          value={formData.sellerLocation}
-                          onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-gray-200 dark:placeholder-gray-500 focus:outline-none focus:ring-1 ${
-                            errors.sellerLocation
-                              ? "border-red-500 focus:ring-red-500"
-                              : "border-gray-300 focus:ring-indigo-500"
-                          }`}
-                          placeholder={t("Enter your city")}
-                        />
-                      </div>
-                      {renderError("sellerLocation")}
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, pdfFile: null }))}
+                            className="text-red-500 hover:text-red-700 font-medium"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">
+                            {t("Upload Book PDF")}
+                          </p>
+                          <p className="text-gray-500 dark:text-gray-300 mb-4 text-sm">
+                            {t("Upload the complete PDF file of your book")}
+                          </p>
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            onChange={handlePdfUpload}
+                            className="hidden"
+                            id="pdf-upload"
+                          />
+                          <label
+                            htmlFor="pdf-upload"
+                            className="touch-area inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition cursor-pointer"
+                          >
+                            <Upload className="w-5 h-5 mr-2" />
+                            {t("Choose PDF")}
+                          </label>
+                        </>
+                      )}
+                      {renderError("pdfFile")}
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Step 4: Review & Publish */}
-              {currentStep === 4 && (
+              {/* Step 3: Review & Publish */}
+              {currentStep === 3 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -1354,10 +1204,10 @@ const Publish = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {t("Category")}:
+                              {t("Categories")}:
                             </span>
                             <p className="text-gray-900 dark:text-gray-200 text-right capitalize">
-                              {formData.category}
+                              {formData.categories.join(", ")}
                             </p>
                           </div>
                           <div className="flex justify-between">
@@ -1395,8 +1245,7 @@ const Publish = () => {
                       {/* Additional Book Details */}
                       {(formData.isbn ||
                         formData.edition ||
-                        formData.year ||
-                        formData.pages) && (
+                        formData.year) && (
                         <div className="bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-lg">
                           <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-3">
                             {t("Additional Details")}
@@ -1432,76 +1281,15 @@ const Publish = () => {
                                 </span>
                               </div>
                             )}
-                            {formData.pages && (
-                              <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                  {t("Pages")}:
-                                </span>
-                                <span className="text-gray-900 dark:text-gray-200">
-                                  {formData.pages}
-                                </span>
-                              </div>
-                            )}
-                            {formData.publisher && (
-                              <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-400">
-                                  Publisher:
-                                </span>
-                                <span className="text-gray-900 dark:text-gray-200">
-                                  {formData.publisher}
-                                </span>
-                              </div>
-                            )}
+                           
+                            
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Seller Information Summary */}
+                    {/* Images Preview and Files */}
                     <div className="space-y-6">
-                      <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-4 flex items-center">
-                          <User className="w-5 h-5 mr-2" />
-                          {t("Publisher Info", "Publisher Information")}
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {t("Name")}:
-                            </span>
-                            <p className="text-gray-900 dark:text-gray-200 text-right">
-                              {formData.sellerName}
-                            </p>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {t("Email")}:
-                            </span>
-                            <p className="text-gray-900 dark:text-gray-200 text-right">
-                              {formData.sellerEmail}
-                            </p>
-                          </div>
-                          {formData.sellerPhone && (
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-700 dark:text-gray-300">
-                                {t("Phone")}:
-                              </span>
-                              <p className="text-gray-900 dark:text-gray-200 text-right">
-                                {formData.sellerPhone}
-                              </p>
-                            </div>
-                          )}
-                          <div className="flex justify-between">
-                            <span className="font-medium text-gray-700 dark:text-gray-300">
-                              {t("Location")}:
-                            </span>
-                            <p className="text-gray-900 dark:text-gray-200 text-right">
-                              {formData.sellerLocation}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
                       {/* Images Preview */}
                       {formData.images.length > 0 && (
                         <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg">
@@ -1518,6 +1306,24 @@ const Publish = () => {
                                 className="w-full h-20 object-cover rounded-lg border"
                               />
                             ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* PDF File Preview */}
+                      {formData.pdfFile && (
+                        <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-200 mb-3">
+                            {t("Book PDF File")}
+                          </h4>
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                              <span className="text-red-600 dark:text-red-400 font-bold text-sm">PDF</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-gray-200">{formData.pdfFile.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{(formData.pdfFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1575,7 +1381,7 @@ const Publish = () => {
                   className={`touch-area px-6 py-3 rounded-lg font-medium ${
                     currentStep === 1
                       ? " bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : currentStep === 4
+                      : currentStep === 3
                         ? "hidden sm:block bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
                         : "bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
                   }`}
@@ -1583,13 +1389,13 @@ const Publish = () => {
                   {t("Previous")}
                 </button>
 
-                {currentStep < 4 ? (
+                {currentStep < 3 ? (
                   <button
                     type="button"
                     onClick={nextStep}
                     className="touch-area px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 cursor-pointer"
                   >
-                    {currentStep === 3 ? t("Review & Publish") : t("Next")}
+                    {currentStep === 2 ? t("Review & Publish") : t("Next")}
                   </button>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-4">

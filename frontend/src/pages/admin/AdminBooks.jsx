@@ -12,6 +12,7 @@ import {
   BookOpenIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
+import Loading from "../../components/Loading";
 
 const AdminBooks = () => {
   const [books, setBooks] = useState([]);
@@ -114,19 +115,19 @@ const AdminBooks = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+          <div className="bg-white/10 cursor-pointer hover:bg-white/20  backdrop-blur rounded-lg p-4">
             <div className="text-2xl font-bold">{books.length}</div>
             <div className="text-sm text-blue-100">Total Books</div>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+          <div className="bg-white/10 cursor-pointer hover:bg-white/20  backdrop-blur rounded-lg p-4">
             <div className="text-2xl font-bold">{filteredBooks.length}</div>
             <div className="text-sm text-blue-100">Filtered</div>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+          <div className="bg-white/10 cursor-pointer hover:bg-white/20  backdrop-blur rounded-lg p-4">
             <div className="text-2xl font-bold">{categories.length}</div>
             <div className="text-sm text-blue-100">Categories</div>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-lg p-4 relative">
+          <div className="bg-white/10 cursor-pointer hover:bg-white/20  backdrop-blur rounded-lg p-4">
             <div className="text-2xl font-bold">
               {books.filter((b) => b.status === "available").length}
             </div>
@@ -136,23 +137,23 @@ const AdminBooks = () => {
       </div>
 
       {/* ================= SEARCH & FILTER ================= */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-zinc-700">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-200" />
             <input
               type="text"
               placeholder="Search by title or author..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className=" cursor-pointer  w-full pl-10 pr-4 py-3 border border-gray-300 dark:bg-zinc-900 dark:text-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-50"
+            className=" cursor-pointer border border-gray-300 dark:bg-zinc-900 dark:text-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-50"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -165,46 +166,42 @@ const AdminBooks = () => {
       </div>
 
       {/* ================= TABLE ================= */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-zinc-700">
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                   Book
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                   Category
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                   Price
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-200">
-              {filteredBooks.length === 0 ? (
+            <tbody className="divide-y divide-gray-200 dark:divide-zinc-700">
+              {books.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-12 text-center">
-                    <BookOpenIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 font-medium">No books found</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Try adjusting your search or filters
-                    </p>
+                   <Loading animate={true} height={"h-50"} />
                   </td>
                 </tr>
               ) : (
                 filteredBooks.map((book) => (
                   <tr
                     key={book._id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -222,14 +219,14 @@ const AdminBooks = () => {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-gray-900 truncate hover:text-blue-600 cursor-pointer max-w-50">
+                          <div className="font-semibold text-gray-900 dark:text-gray-200 truncate hover:text-blue-600 cursor-pointer max-w-50">
                             {book.title}
                           </div>
-                          <div className="text-sm text-gray-500 truncate mt-1 cursor-pointer">
+                          <div className="text-sm text-gray-500 dark:text-gray-200 truncate mt-1 cursor-pointer">
                             {book.author}
                           </div>
                           {book.year && (
-                            <div className="text-xs text-gray-400 mt-1 cursor-pointer">
+                            <div className="text-xs text-gray-400 dark:text-gray-200 mt-1 cursor-pointer">
                               Published: {book.year}
                             </div>
                           )}
@@ -238,7 +235,7 @@ const AdminBooks = () => {
                     </td>
 
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-100 text-indigo-800">
                         {Array.isArray(book.categories) && book.categories.length > 0
                           ? book.categories.map((c) => (typeof c === "object" ? c.name : c)).join(", ")
                           : book.category?.name || "Uncategorized"}
@@ -246,7 +243,7 @@ const AdminBooks = () => {
                     </td>
 
                     <td className="px-6 py-4">
-                      <span className="font-bold text-gray-900">
+                      <span className="font-bold text-gray-900 dark:text-gray-200">
                         {Number(book.price || 0).toFixed(2)} EGP
                       </span>
                     </td>
@@ -255,8 +252,8 @@ const AdminBooks = () => {
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium capitalize ${
                           book.status === "available"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-red-500"
+                            ? "bg-green-100 text-green-800 dark:bg-green-500/40 dark:text-green-100"
+                            : "bg-gray-100 text-red-500 dark:bg-gray-900 dark:text-red-500"
                         }`}
                       >
                         {book.status || "available"}
@@ -268,7 +265,7 @@ const AdminBooks = () => {
                         <button
                           onClick={() => navigate(`/admin/books/${book._id}`)}
                           title="View Details"
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-400/30 rounded-lg transition-colors cursor-pointer"
                         >
                           <EyeIcon className="h-5 w-5" />
                         </button>
@@ -277,14 +274,14 @@ const AdminBooks = () => {
                             navigate(`/admin/books/edit/${book._id}`)
                           }
                           title="Edit Book"
-                          className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-gray-600 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-400/30 rounded-lg transition-colors cursor-pointer"
                         >
                           <PencilIcon className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(book._id)}
                           title="Delete Book"
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-gray-600 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/30 rounded-lg transition-colors cursor-pointer"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>
@@ -298,20 +295,16 @@ const AdminBooks = () => {
         </div>
 
         {/* Mobile Card View */}
-        <div className="md:hidden divide-y divide-gray-200">
-          {filteredBooks.length === 0 ? (
+        <div className="md:hidden divide-y divide-gray-200 dark:divide-zinc-700">
+          {books.length === 0 ? (
             <div className="px-4 py-12 text-center">
-              <BookOpenIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">No books found</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Try adjusting your search or filters
-              </p>
+              <Loading animate={true} height={"h-50"} />
             </div>
           ) : (
             filteredBooks.map((book) => (
               <div
                 key={book._id}
-                className="p-4 hover:bg-gray-50 transition-colors"
+                className="p-4 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
               >
                 <div className="flex gap-3">
                   <div className="shrink-0">
@@ -329,17 +322,17 @@ const AdminBooks = () => {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate text-sm">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-200 truncate text-sm">
                       {book.title}
                     </h3>
-                    <p className="text-sm text-gray-500 truncate mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-200 truncate mt-1">
                       by {book.author}
                     </p>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="font-bold text-gray-900 text-sm">
+                      <span className="font-bold text-gray-900 dark:text-gray-200 text-sm">
                         {Number(book.price || 0).toFixed(2)} EGP
                       </span>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-100 text-indigo-800">
                         {Array.isArray(book.categories) && book.categories.length > 0
                           ? book.categories.map((c) => (typeof c === "object" ? c.name : c)).join(", ")
                           : book.category?.name || "Uncategorized"}
@@ -349,8 +342,8 @@ const AdminBooks = () => {
                       <span
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize ${
                           book.status === "available"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-100"
+                            : "bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-100"
                         }`}
                       >
                         {book.status || "available"}
@@ -359,7 +352,7 @@ const AdminBooks = () => {
                       <div className="flex gap-1">
                         <button
                           onClick={() => navigate(`/admin/books/${book._id}`)}
-                          className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          className="p-1.5 text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-400/30 rounded transition-colors"
                           title="View Details"
                         >
                           <EyeIcon className="h-4 w-4" />
@@ -368,14 +361,14 @@ const AdminBooks = () => {
                           onClick={() =>
                             navigate(`/admin/books/edit/${book._id}`)
                           }
-                          className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                          className="p-1.5 text-gray-600 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-400/30 rounded transition-colors"
                           title="Edit Book"
                         >
                           <PencilIcon className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(book._id)}
-                          className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-1.5 text-gray-600 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-400/30 rounded transition-colors"
                           title="Delete Book"
                         >
                           <TrashIcon className="h-4 w-4" />

@@ -9,9 +9,6 @@ const Chatbot = () => {
   const { user } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [hasBeenOpened, setHasBeenOpened] = useState(() => {
-    return sessionStorage.getItem("chatbotHasBeenOpened") === "true";
-  });
 
   const firstName = user?.name?.split(" ")[0];
   const [messages, setMessages] = useState([
@@ -54,38 +51,19 @@ const Chatbot = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /* delay text appearance after button appears */
+  /* auto-hide welcome message after 5 seconds */
   useEffect(() => {
-    let showTimer;
-    let hideTimer;
-
-    if (showLabel) {
-      // Show text after button appears
-      showTimer = setTimeout(() => {
-        setShowText(true);
-        // Hide it after 30 seconds
-        hideTimer = setTimeout(() => {
-          setShowText(false);
-        }, 10000);
-      }, 500);
-    } else {
-      setShowText(false);
+    if (showLabel && !isOpen) {
+      setShowText(true);
+      const timer = setTimeout(() => {
+        setShowText(false);
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      if (showTimer) clearTimeout(showTimer);
-      if (hideTimer) clearTimeout(hideTimer);
-    };
-  }, [showLabel]);
+  }, [showLabel, isOpen]);
 
   const toggleChat = () => {
-    setIsOpen((v) => {
-      if (!v) {
-        setHasBeenOpened(true);
-        sessionStorage.setItem("chatbotHasBeenOpened", "true");
-      }
-      return !v;
-    });
+    setIsOpen((v) => !v);
   };
 
   const handleSendMessage = async (e) => {
@@ -196,13 +174,13 @@ const Chatbot = () => {
                       : "bg-indigo-600 text-white"
                   }`}
                 >
-                  {m.text}
+                  {t(m.text)}
                 </div>
               </div>
             ))}
             {isTyping && (
               <div className="text-xs opacity-60 text-zinc-600 dark:text-zinc-400">
-                Typing…
+                {t("Typing...")}
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -256,7 +234,7 @@ const Chatbot = () => {
         {/* Label Text */}
         <div
           className={`transition-all duration-300 ${
-            showText && !isOpen && !hasBeenOpened
+            showText
               ? "opacity-100 translate-x-0"
               : "opacity-0 translate-x-4 pointer-events-none"
           }`}
