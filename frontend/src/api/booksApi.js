@@ -248,3 +248,17 @@ export const downloadBook = async (bookId) => {
   }
 };
 
+// Get categories with book counts
+export const getCategoryStats = async () => {
+  try {
+    const res = await api.get("/books/categories/stats");
+    return res.data;
+  } catch (error) {
+    console.error("API Error in getCategoryStats:", error);
+    return {
+      success: false,
+      data: [],
+      total: 0,
+    };
+  }
+};

@@ -15,7 +15,7 @@ const AuthorLayout = () => {
   }, []);
 
   return (
-<div className="flex h-screen bg-gray-50 overflow-x-hidden">
+<div className="flex h-screen bg-gray-50 dark:bg-zinc-900 overflow-x-hidden">
       <AuthorSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <div

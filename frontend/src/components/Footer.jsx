@@ -1,8 +1,20 @@
 import { assets } from "../assets/assets";
 import { FaFacebook, FaTwitter, FaLinkedin } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
+import { useNavigation } from "../context/NavigationContext";
+
 const Footer = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { requestNavigation } = useNavigation();
+
+  const handleSafeNavigation = (e, to) => {
+    e.preventDefault();
+    if (requestNavigation(to)) {
+      navigate(to);
+    }
+  };
   return (
     <div dir={i18n.dir()} className="bg-black text-white py-12">
       <div className="w-full max-w-337.5 mx-auto px-4">
@@ -13,7 +25,7 @@ const Footer = () => {
             <p className="text-gray-300 text-sm leading-relaxed max-w-xs">
               {t(
                 "booksDelivered",
-                "Books Delivered. Imagination Unlimited. Your one-stop destination for all your reading needs."
+                "Books Delivered. Imagination Unlimited. Your one-stop destination for all your reading needs.",
               )}
               .
             </p>
@@ -24,36 +36,40 @@ const Footer = () => {
             <h1 className="text-xl font-semibold mb-4">{t("Quick Links")}</h1>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="/"
+                <Link
+                  to="/"
+                  onClick={(e) => handleSafeNavigation(e, "/")}
                   className="touch-area text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   {t("Home")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/community"
+                <Link
+                  to="/community"
+                  onClick={(e) => handleSafeNavigation(e, "/community")}
                   className="touch-area text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   {t("About Us")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/community"
+                <Link
+                  to="/community"
+                  onClick={(e) => handleSafeNavigation(e, "/community")}
                   className="touch-area text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   {t("Contact")}
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/shop"
+                <Link
+                  to="/shop"
+                  onClick={(e) => handleSafeNavigation(e, "/shop")}
                   className="touch-area text-gray-300 hover:text-white hover:underline transition-colors duration-200"
                 >
                   {t("All Books")}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -126,8 +142,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
           <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} Bookfly. {t("All rights reserved")}
-            .
+            © {new Date().getFullYear()} Bookfly. {t("All rights reserved")}.
           </p>
         </div>
       </div>

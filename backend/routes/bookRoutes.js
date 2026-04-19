@@ -5,6 +5,7 @@ import {
   searchBooks,
   getTopBooks,
   rateBook,
+  getCategoriesWithStats,
 } from "../controllers/bookController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -46,6 +47,18 @@ router.get("/", getBooks);
  *         description: Top books returned
  */
 router.get("/top", getTopBooks);
+
+/**
+ * @swagger
+ * /api/books/categories/stats:
+ *   get:
+ *     summary: Get categories with book counts
+ *     tags: [Books]
+ *     responses:
+ *       200:
+ *         description: Category stats returned
+ */
+router.get("/categories/stats", getCategoriesWithStats);
 
 /**
  * @swagger
