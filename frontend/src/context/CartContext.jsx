@@ -1,4 +1,4 @@
-import { createContext, useReducer, useEffect, useRef } from "react";
+import { createContext, useReducer, useEffect, useRef, useCallback } from "react";
 import { getMyLibrary } from "../api/ordersApi";
 import { useAuth } from "../context/AuthContext";
 import * as cartApi from "../api/cartApi";
@@ -323,6 +323,16 @@ export const CartProvider = ({ children }) => {
         return [...state, ...newBooks];
       }
 
+      case "UPDATE_BOOK_PROGRESS": {
+        const { bookId, lastReadPage } = action.payload;
+        return state.map((book) => {
+          if (book._id === bookId || book.id === bookId) {
+            return { ...book, lastReadPage };
+          }
+          return book;
+        });
+      }
+
       default:
         return state;
     }
@@ -360,6 +370,10 @@ export const CartProvider = ({ children }) => {
     purchasedBooksDispatch({ type: "ADD_PURCHASED_BOOKS", payload: books });
   };
 
+  const updatePurchasedBookProgress = useCallback((bookId, lastReadPage) => {
+    purchasedBooksDispatch({ type: "UPDATE_BOOK_PROGRESS", payload: { bookId, lastReadPage } });
+  }, []);
+
   const isBookPurchased = (bookId) => {
     if (!purchasedBooks || purchasedBooks.length === 0) return false;
     return purchasedBooks.some(
@@ -383,6 +397,7 @@ export const CartProvider = ({ children }) => {
     addPurchasedBooks,
     isBookPurchased,
     fetchPurchasedBooks,
+    updatePurchasedBookProgress,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
