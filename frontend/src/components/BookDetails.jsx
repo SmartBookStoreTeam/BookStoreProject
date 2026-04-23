@@ -158,7 +158,7 @@ const BookDetails = () => {
   useEffect(() => {
     setTranslatedTitle(null);
     setTranslatedDescription(null);
-  }, [i18n.language]);
+  }, [i18n.language, id]);
 
   useEffect(() => {
     const checkFirstOrder = async () => {
@@ -180,6 +180,13 @@ const BookDetails = () => {
   }, [user, purchasedBooks]);
   const [actualPages, setActualPages] = useState(null);
   const [pagesLoading, setPagesLoading] = useState(false);
+
+  // Read last-read page from purchased books
+  const lastReadPage = (() => {
+    if (!purchasedBooks || purchasedBooks.length === 0) return 0;
+    const purchasedBook = purchasedBooks.find(b => String(b._id || b.id) === String(id));
+    return purchasedBook?.lastReadPage || 0;
+  })();
 
   // Sync local loading with global loading bar
   useEffect(() => {
@@ -491,7 +498,7 @@ const BookDetails = () => {
           </button>
 
           <div className="overflow-hidden">
-            <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_340px] gap-6 lg:gap-10 p-2 bg-gray-50 dark:bg-zinc-900 lg:p-10">
+            <div className="flex flex-col md:grid md:grid-cols-[300px_1fr] xl:grid-cols-[350px_1fr_380px] gap-6 lg:gap-10 p-4 md:p-8 xl:p-12 bg-gray-50 dark:bg-zinc-900">
               {/* Image */}
               <div className="touch-area flex flex-col items-center lg:items-start order-1">
                 <div
@@ -516,7 +523,9 @@ const BookDetails = () => {
                         className="touch-area px-6 py-3 border border-indigo-400 bg-transparent text-indigo-100 rounded-xl font-semibold text-lg flex items-center gap-2 hover:scale-105 hover:border-indigo-500 hover:text-indigo-300 hover:shadow-lg transition-transform shadow-xl"
                       >
                         <BookOpen className="w-5 h-5" />
-                        {isBookPurchased(bookId)
+                        {isBookPurchased(bookId) && lastReadPage > 0
+                          ? t("Continue Reading")
+                          : isBookPurchased(bookId)
                           ? t("Start Reading")
                           : t("Preview Book")}
                       </Link>
@@ -548,7 +557,7 @@ const BookDetails = () => {
 
               {/* Info */}
               <div className="flex flex-col order-2">
-                <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4">
                   <h1
                     dir="auto"
                     className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-200"
@@ -689,9 +698,9 @@ const BookDetails = () => {
               </div>
 
               {/* Price & Actions */}
-              <div className="flex flex-col space-y-4 order-3 lg:w-full">
+              <div className="flex flex-col space-y-4 order-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 xl:flex xl:flex-col xl:space-y-4 xl:w-full md:col-span-2 xl:col-span-1">
                 {!isBookPurchased(bookId) && (
-                  <div className="hidden md:block p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
+                  <div className="hidden md:block md:col-span-2 xl:col-span-1 p-4 lg:p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700">
                     {isFirstOrder ? (
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
@@ -715,7 +724,7 @@ const BookDetails = () => {
                 )}
 
                 {book.pdf && !isBookPurchased(bookId) && (
-                  <div dir={i18n.dir()} className="touch-area">
+                  <div dir={i18n.dir()} className="touch-area md:col-span-2 xl:col-span-1">
                     <Link
                       to={`/pdf-viewer/${bookId}`}
                       className="touch-area inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-400 text-base font-semibold transition-colors cursor-pointer hover:underline"
@@ -732,10 +741,17 @@ const BookDetails = () => {
                   book.pdf && (
                     <Link
                       to={`/pdf-viewer/${bookId}`}
-                      className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-green-600 hover:bg-green-700 text-white active:scale-95 cursor-pointer shadow-lg hover:shadow-xl"
+                      className="touch-area w-full md:col-span-2 xl:col-span-1 px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-green-600 hover:bg-green-700 text-white active:scale-95 cursor-pointer shadow-lg hover:shadow-xl"
                     >
                       <BookOpen className="w-6 h-6" />
-                      {t("Start Reading")}
+                      <span>
+                        {lastReadPage > 0 ? t("Continue Reading") : t("Start Reading")}
+                      </span>
+                      {lastReadPage > 0 && (
+                        <span className="ml-1 text-xs font-normal bg-white/20 px-2 py-0.5 rounded-full">
+                          {t("Page")} {lastReadPage}
+                        </span>
+                      )}
                     </Link>
                   )
                 ) : (
@@ -745,7 +761,7 @@ const BookDetails = () => {
                       e.stopPropagation();
                       handleAddToCart(book);
                     }}
-                    className="touch-area w-full px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white active:scale-95 dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
+                    className="touch-area w-full md:col-span-2 xl:col-span-1 px-6 py-4 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-all bg-gray-900 hover:bg-gray-800 text-white active:scale-95 dark:bg-indigo-600 dark:hover:bg-indigo-700 cursor-pointer shadow-lg hover:shadow-xl"
                   >
                     {isBookInCart ? (
                       <>
@@ -763,11 +779,11 @@ const BookDetails = () => {
 
                 <div
                   dir={i18n.dir()}
-                  className="grid grid-cols-1 lg:grid-cols-1 gap-3"
+                  className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-3 md:col-span-2 xl:col-span-1"
                 >
                   <Link
                     to="/shop"
-                    className="touch-area hidden md:block w-full text-center px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-gray-200 font-medium"
+                    className="touch-area hidden md:flex items-center justify-center w-full text-center px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-gray-200 font-medium"
                   >
                     {t("Continue Shopping")}
                   </Link>

@@ -17,3 +17,9 @@ export const getMyLibrary = async () => {
   const res = await api.get("/orders/my-library");
   return res.data;
 };
+
+// Update reading progress
+export const updateReadingProgress = async (bookId, lastReadPage) => {
+  const res = await api.put(`/orders/my-library/${bookId}/progress`, { lastReadPage });
+  return res.data;
+};

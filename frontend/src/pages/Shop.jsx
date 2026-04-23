@@ -62,6 +62,7 @@ const Shop = () => {
         const res = await getCategoryStats();
         if (res.success) {
           setCategoryStats(res.data);
+          setTotalBooks(res.totalBooks || 0);
         }
       } catch (err) {
         console.error("Failed to fetch category stats:", err);
@@ -100,6 +101,8 @@ const Shop = () => {
           const hasOrders = Array.isArray(res) && res.length > 0;
           const hasBooksInLibrary =
             Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          const hasBooksInLibrary =
+            Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
           setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
         } catch {
           setIsFirstOrder(false);
@@ -133,7 +136,7 @@ const Shop = () => {
         };
 
         if (selectedCategories.length > 0) {
-          params.category = selectedCategories;
+          params.category = selectedCategories.join(",");
         }
 
         const res = debouncedSearch
@@ -183,19 +186,22 @@ const Shop = () => {
 
   // categories list derived from fetched stats
   const categories = useMemo(() => {
+    const filteredStats = categoryStats.filter((cat) => cat.count > 0);
     return [
       {
         value: "all",
-        label: "All Categories", // Keep raw key for translation later
-        count: categoryStats.length,
+        label: "All Categories",
+        count: filteredStats.length,
       },
-      ...categoryStats.map((cat) => ({
+      ...filteredStats.map((cat) => ({
         value: cat._id,
-        label: cat.name, // DB name
+        label: cat.name,
         count: cat.count,
       })),
     ];
-  }, [categoryStats]);
+     
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryStats, totalBooks]);
 
   const bookTypes = [
     { value: "all", label: "All Books" },
@@ -343,7 +349,10 @@ const Shop = () => {
                   const isAll = category.value === "all";
                   const isSelected = isAll
                     ? selectedCategories.length === 0
+                  const isSelected = isAll
+                    ? selectedCategories.length === 0
                     : selectedCategories.includes(category.value);
+
 
                   const handleToggle = () => {
                     if (isAll) {
@@ -355,7 +364,16 @@ const Shop = () => {
                             (c) => c !== category.value,
                           ),
                         );
+                        setSelectedCategories(
+                          selectedCategories.filter(
+                            (c) => c !== category.value,
+                          ),
+                        );
                       } else {
+                        setSelectedCategories([
+                          ...selectedCategories,
+                          category.value,
+                        ]);
                         setSelectedCategories([
                           ...selectedCategories,
                           category.value,

@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useAuth } from "./AuthContext";
 import { getMyOrders } from "../api/ordersApi";
-import { getMyAuthorApplication } from "../api/authorApi";
+import { getMyAuthorApplication, getMyAuthorBooks } from "../api/authorApi";
 import AuthorStatusModal from "../components/AuthorStatusModal";
 
 const NotificationContext = createContext();
@@ -27,6 +27,8 @@ export const NotificationProvider = ({ children }) => {
   const pollingIntervalRef = useRef(null);
   const authorStatusPollingIntervalRef = useRef(null);
   const userProfilePollingIntervalRef = useRef(null);
+  const approvedBooksPollingIntervalRef = useRef(null);
+  const processedBookIds = useRef(new Set());
   const lastAuthorStatus = useRef(null);
   const lastUserRole = useRef(user?.role);
 
@@ -181,6 +183,74 @@ export const NotificationProvider = ({ children }) => {
        
     } catch (error) {
       // Silent fail for notifications to avoid console spam
+    }
+  };
+
+  // Check for approved or rejected books
+  const checkForApprovedBooks = async () => {
+    if (!user || user.role !== "author") return;
+
+    try {
+      const response = await getMyAuthorBooks();
+      let booksArray = [];
+      if (Array.isArray(response)) {
+        booksArray = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        booksArray = response.data;
+      } else if (response?.books && Array.isArray(response.books)) {
+        booksArray = response.books;
+      }
+
+      const deletedNotifications = getDeletedNotifications(user._id);
+      const readNotifications = getReadNotifications(user._id);
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const processedBooks = booksArray.filter((book) => {
+        if (book.approvalStatus === "pending") return false;
+
+        const updatedAt = book.updatedAt ? new Date(book.updatedAt) : new Date();
+
+        if (processedBookIds.current.has(book._id)) {
+          return false;
+        }
+
+        if (updatedAt > twentyFourHoursAgo) {
+          return true;
+        }
+
+        return false;
+      });
+
+      processedBooks.forEach((book) => {
+        const notificationId = `book-status-${book._id}-${book.approvalStatus}`;
+
+        if (deletedNotifications.includes(notificationId)) {
+          return;
+        }
+
+        const isRead = readNotifications.includes(notificationId);
+
+        const notification = {
+          id: notificationId,
+          type: "book_status",
+          status: book.approvalStatus,
+          bookTitle: book.title,
+          timestamp: book.updatedAt ? new Date(book.updatedAt) : new Date(),
+          read: isRead,
+        };
+
+        setNotifications((prev) => {
+          const exists = prev.some((n) => n.id === notification.id);
+          if (!exists) {
+            return [notification, ...prev];
+          }
+          return prev;
+        });
+
+        processedBookIds.current.add(book._id);
+      });
+    } catch (error) {
+      // Silent fail
     }
   };
 
@@ -339,6 +409,9 @@ export const NotificationProvider = ({ children }) => {
       if (userProfilePollingIntervalRef.current) {
         clearInterval(userProfilePollingIntervalRef.current);
       }
+      if (approvedBooksPollingIntervalRef.current) {
+        clearInterval(approvedBooksPollingIntervalRef.current);
+      }
       lastAuthorStatus.current = null;
       lastUserRole.current = null;
     }
@@ -373,6 +446,12 @@ export const NotificationProvider = ({ children }) => {
       checkForRoleChanges();
     }, 120000);
 
+    // Initial books check
+    checkForApprovedBooks();
+    approvedBooksPollingIntervalRef.current = setInterval(() => {
+      checkForApprovedBooks();
+    }, 30000);
+
     return () => {
       clearTimeout(initialTimeout);
       if (pollingIntervalRef.current) {
@@ -383,6 +462,9 @@ export const NotificationProvider = ({ children }) => {
       }
       if (userProfilePollingIntervalRef.current) {
         clearInterval(userProfilePollingIntervalRef.current);
+      }
+      if (approvedBooksPollingIntervalRef.current) {
+        clearInterval(approvedBooksPollingIntervalRef.current);
       }
     };
 

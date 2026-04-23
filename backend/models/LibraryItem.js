@@ -13,6 +13,8 @@ const libraryItemSchema = new mongoose.Schema(
       index: true,
     },
 
+    lastReadPage: { type: Number, default: 0 },
+
     purchasedAt: { type: Date, default: Date.now, index: true },
   },
   { timestamps: true }
