@@ -41,11 +41,46 @@ export const getMyLibrary = async (req, res, next) => {
         ratingCount: item.book.ratingCount,
         sales: item.book.sales,
         purchasedAt: item.purchasedAt,
+        lastReadPage: item.lastReadPage,
       }));
 
     res.json({
       success: true,
       data: books,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Update reading progress for a book
+// @route   PUT /api/orders/my-library/:bookId/progress
+// @access  Private
+export const updateReadingProgress = async (req, res, next) => {
+  try {
+    const userId = req.user?._id;
+    const { bookId } = req.params;
+    const { lastReadPage } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const libraryItem = await LibraryItem.findOneAndUpdate(
+      { user: userId, book: bookId },
+      { lastReadPage: parseInt(lastReadPage) || 0 },
+      { new: true }
+    );
+
+    if (!libraryItem) {
+      return res.status(404).json({ success: false, message: "Book not found in your library" });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        lastReadPage: libraryItem.lastReadPage
+      }
     });
   } catch (err) {
     next(err);
