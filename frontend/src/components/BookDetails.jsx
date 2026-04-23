@@ -10,6 +10,8 @@ import AuthModal from "./AuthModal";
 import AuthorBooks from "./AuthorBooks";
 import { getMyOrders } from "../api/ordersApi";
 import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
+import { useTrackView } from "../hooks/useTracking";
+
 import {
   Star,
   ShoppingCart,
@@ -134,6 +136,7 @@ const getArabicOrdinal = (num) => {
 
 const BookDetails = () => {
   const { id } = useParams();
+  useTrackView(id);
   const navigate = useNavigate();
   const { addToCart, userBooks, cartItems, isBookPurchased, purchasedBooks } =
     useCart();
@@ -564,16 +567,23 @@ const BookDetails = () => {
                   <button
                     onClick={handleTranslate}
                     disabled={isTranslating}
-                    className="group flex items-center gap-2 w-fit px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all cursor-pointer flex-shrink-0 border border-indigo-100 dark:border-indigo-800"
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all cursor-pointer shrink-0 border border-indigo-100 dark:border-indigo-800"
                     title={t("Translate")}
                   >
                     <Languages
                       className={`w-4 h-4 ${isTranslating ? "animate-pulse" : "group-hover:rotate-12"}`}
                     />
-                    <span dir="auto" className="text-xs sm:text-[15px] font-bold uppercase tracking-wider whitespace-nowrap">
+                    <span
+                      dir="auto"
+                      className="text-[15px] font-bold uppercase tracking-wider"
+                    >
                       {isTranslating
-                        ? (isArabic(book.title) ? "Translating..." : "جاري الترجمة...")
-                        : (isArabic(book.title) ? "View Translate" : "عرض الترجمة")}
+                        ? isArabic(book.title)
+                          ? "Translating..."
+                          : "جاري الترجمة..."
+                        : isArabic(book.title)
+                          ? "View Translate"
+                          : "عرض الترجمة"}
                     </span>
                   </button>
                 </div>

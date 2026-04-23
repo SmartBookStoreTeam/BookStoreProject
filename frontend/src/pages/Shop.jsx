@@ -14,6 +14,7 @@ import { useGlobalLoading } from "../context/LoadingContext";
 import { motion } from "framer-motion";
 import { getMyOrders } from "../api/ordersApi";
 import BookCard from "../components/BookCard";
+import { useTrackSearch } from "../hooks/useTracking";
 
 //fixed sortMap
 const sortMap = {
@@ -51,7 +52,8 @@ const Shop = () => {
   const { setIsLoading } = useGlobalLoading();
   const navigate = useNavigate();
   const [categoryStats, setCategoryStats] = useState([]);
-  const [totalBooks, setTotalBooks] = useState(0);
+
+  useTrackSearch(debouncedSearch);
 
   // fetch category stats once
   useEffect(() => {
@@ -60,7 +62,6 @@ const Shop = () => {
         const res = await getCategoryStats();
         if (res.success) {
           setCategoryStats(res.data);
-          setTotalBooks(res.totalBooks || 0);
         }
       } catch (err) {
         console.error("Failed to fetch category stats:", err);
@@ -195,9 +196,7 @@ const Shop = () => {
         count: cat.count,
       })),
     ];
-     
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryStats, totalBooks]);
+  }, [categoryStats]);
 
   const bookTypes = [
     { value: "all", label: "All Books" },
@@ -357,7 +356,16 @@ const Shop = () => {
                             (c) => c !== category.value,
                           ),
                         );
+                        setSelectedCategories(
+                          selectedCategories.filter(
+                            (c) => c !== category.value,
+                          ),
+                        );
                       } else {
+                        setSelectedCategories([
+                          ...selectedCategories,
+                          category.value,
+                        ]);
                         setSelectedCategories([
                           ...selectedCategories,
                           category.value,
@@ -380,7 +388,7 @@ const Shop = () => {
                         {isAll ? t(category.label) : t(category.label)}
                       </span>
                       <span
-                        className={`flex items-center justify-center min-w-[18px] h-4 px-1 rounded-md text-[10px] font-bold ${
+                        className={`flex items-center justify-center min-w-4.5 h-4 px-1 rounded-md text-[10px] font-bold ${
                           isSelected
                             ? "bg-white/20 text-white"
                             : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400"

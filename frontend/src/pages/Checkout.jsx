@@ -51,7 +51,8 @@ const Checkout = () => {
           const res = await getMyOrders();
           // getMyOrders returns the array directly (not wrapped in {data:[]})
           const hasOrders = Array.isArray(res) && res.length > 0;
-          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          const hasBooksInLibrary =
+            Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
           setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
         } catch {
           setIsFirstOrder(false);
@@ -131,6 +132,9 @@ const Checkout = () => {
       );
 
       if (response.success && response.data?.iframeUrl) {
+        // ✅ SAVE CART BEFORE REDIRECT (VERY IMPORTANT)
+        localStorage.setItem("lastCart", JSON.stringify(currentBooks));
+
         // Redirect to Paymob iframe payment page
         window.location.href = response.data.iframeUrl;
       } else {
@@ -184,7 +188,11 @@ const Checkout = () => {
     try {
       const res = await applyCoupon(code);
       const data = res?.data;
-      if (!res?.success || !data?.code || typeof data?.discountPercent !== "number") {
+      if (
+        !res?.success ||
+        !data?.code ||
+        typeof data?.discountPercent !== "number"
+      ) {
         throw new Error("Invalid coupon response");
       }
       setCouponData({ code: data.code, discountPercent: data.discountPercent });
@@ -283,7 +291,9 @@ const Checkout = () => {
                   <input
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    disabled={couponStatus === "applying" || Boolean(couponData)}
+                    disabled={
+                      couponStatus === "applying" || Boolean(couponData)
+                    }
                     placeholder={t("Enter coupon code")}
                     className="w-full flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-60"
                   />
@@ -297,7 +307,9 @@ const Checkout = () => {
                     }
                     className="touch-area w-full sm:w-auto px-6 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-zinc-700 dark:disabled:text-zinc-400 cursor-pointer disabled:cursor-not-allowed transition-colors"
                   >
-                    {couponStatus === "applying" ? t("Applying...") : t("Apply")}
+                    {couponStatus === "applying"
+                      ? t("Applying...")
+                      : t("Apply")}
                   </button>
                 </div>
 
@@ -308,7 +320,8 @@ const Checkout = () => {
                 )}
                 {couponData?.code && (
                   <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-                    {t("Applied")}: {couponData.code} ({couponData.discountPercent}%)
+                    {t("Applied")}: {couponData.code} (
+                    {couponData.discountPercent}%)
                   </p>
                 )}
               </div>

@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBooks, searchBooks } from "../api/booksApi";
 import { getImageSrc } from "../utils/imageUtils";
+import { useTrackSearch } from "../hooks/useTracking";
 
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -25,6 +26,17 @@ const Landing = () => {
   const fullText = t("Buy and Publish your books ");
   const fullText2 = t("online");
 
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 300);
+
+    return () => clearTimeout(id);
+  }, [searchTerm]);
+
+  useTrackSearch(debouncedSearch); // ✅ الأفضل
   // Fetch landing images from available books
   useEffect(() => {
     let cancelled = false;
@@ -244,7 +256,9 @@ const Landing = () => {
             {/* Text Content */}
             <div
               className={`w-full text-center space-y-6 flex flex-col justify-center order-2 lg:order-1 ${
-                landingImagesAvailable ? "lg:max-w-xl lg:text-left" : "max-w-2xl"
+                landingImagesAvailable
+                  ? "lg:max-w-xl lg:text-left"
+                  : "max-w-2xl"
               }`}
             >
               <h1 className="relative text-4xl sm:text-5xl lg:text-[56px] font-bold text-indigo-950 dark:text-indigo-100 leading-tight transition-colors duration-300">

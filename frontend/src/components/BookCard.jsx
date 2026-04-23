@@ -64,7 +64,7 @@ const BookCard = memo(({
         <div
           className={
             viewMode === "grid"
-              ? "touch-area relative w-full aspect-[5/4] rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800"
+              ? "touch-area relative w-full aspect-5/4 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800"
               : "touch-area relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-700"
           }
         >
