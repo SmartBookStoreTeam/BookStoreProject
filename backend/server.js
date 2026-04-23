@@ -30,6 +30,9 @@ import adminAuthorApplicationRoutes from "./routes/adminAuthorApplicationRoutes.
 import authorDashboardRoutes from "./routes/authorDashboardRoutes.js";
 import authorBookRoutes from "./routes/authorBookRoutes.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
+import recommendationRoutes from "./routes/recommendationRoutes.js";
+import trackingRoutes from "./routes/trackingRoutes.js";
+
 
 dotenv.config();
 connectDB();
@@ -52,7 +55,7 @@ app.use(
     origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization","x-session-id"],
   }),
 );
 
@@ -90,6 +93,8 @@ app.use("/api/admin/author-applications", adminAuthorApplicationRoutes);
 app.use("/api/author/dashboard", authorDashboardRoutes);
 app.use("/api/author", authorBookRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/tracking", trackingRoutes);
 
 // Error handlers
 app.use(notFound);
