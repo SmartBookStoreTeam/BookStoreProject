@@ -9,8 +9,9 @@ const GuestRoute = ({ children }) => {
     return <Loading height="h-screen" />;
   }
 
-  // If user is already logged in, redirect them to the home page
   if (user) {
+    if (user.role === "admin") return <Navigate to="/admin" replace />;
+    if (user.role === "author") return <Navigate to="/author-dashboard" replace />;
     return <Navigate to="/" replace />;
   }
 

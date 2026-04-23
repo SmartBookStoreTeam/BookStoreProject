@@ -209,11 +209,11 @@ const Header = () => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-800 z-50 border-b border-zinc-200 dark:border-zinc-900/10 transition-all duration-300 bg-zinc-200 dark:bg-zinc-900/95 backdrop-blur-md ${
+        className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-900/50 z-50 border-b transition-all duration-300 ${
           isVisible ? "translate-y-0" : "-translate-y-full"
-        }`}
+        } bg-indigo-900/90 dark:bg-zinc-900/20 backdrop-blur-md border-indigo-800/50 dark:border-zinc-800`}
       >
-        <div className="absolute inset-0 overflow-hidden pointer-events-none text-indigo-600/[0.07] dark:text-white/[0.05]">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none text-white/[0.07] dark:text-white/[0.05]">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <pattern
               id="pattern-triangles"
@@ -284,18 +284,7 @@ const Header = () => {
                   <rect x="88" y="20" width="7" height="18" rx="1" />
                 </g>
 
-                {/* Open Book */}
-                <path
-                  d="M 102 30 Q 106 26 110 30 V 38 Q 106 34 102 38 Z"
-                  fill="currentColor"
-                  fillOpacity="0.05"
-                />
-                <path
-                  d="M 110 30 Q 114 26 118 30 V 38 Q 114 34 110 38 Z"
-                  fill="currentColor"
-                  fillOpacity="0.05"
-                />
-                <line x1="110" y1="30" x2="110" y2="38" opacity="0.5" />
+
               </g>
             </pattern>
             <rect
@@ -315,7 +304,7 @@ const Header = () => {
             <Link
               to="/"
               onClick={(e) => handleSafeNavigation(e, "/")}
-              className={`touch-area relative flex items-center gap-3 text-2xl font-bold tracking-tight text-white`}
+              className={`touch-area relative flex items-center gap-3 text-2xl font-bold tracking-tight transition-colors duration-300`}
               onContextMenu={handleContextMenu}
             >
               {/* Occasion Logo Decor */}
@@ -345,7 +334,7 @@ const Header = () => {
                   </span>
 
                   <span className="absolute -top-3.5 -right-3 text-xl animate-swing scale-x-[-1] origin-bottom drop-shadow-sm pointer-events-none">
-                    <FaMoon className="text-white/80" />
+                    <FaMoon className="text-indigo-600 dark:text-indigo-400" />
                   </span>
                 </>
               )}
@@ -369,29 +358,79 @@ const Header = () => {
                   </span>
                 </>
               )}
-              <span className="text-gray-900 dark:text-indigo-200">Bookfly</span>
+              <span className="relative">
+                <span className="text-2xl text-indigo-50 dark:text-indigo-200 font-extrabold">
+                  Bookfly
+                </span>
+                {/* Book icon above "y" */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 28 22"
+                  className="absolute -top-2 -right-2 w-5 h-4 drop-shadow-sm pointer-events-none"
+                  fill="none"
+                >
+                  <defs>
+                    <linearGradient
+                      id="bookfly-grad"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="100%"
+                    >
+                      <stop
+                        offset="0%"
+                        className="[stop-color:var(--color-indigo-50)] dark:[stop-color:var(--color-indigo-200)]"
+                      />
+                      <stop
+                        offset="100%"
+                        className="[stop-color:var(--color-indigo-50)] dark:[stop-color:var(--color-indigo-200)]"
+                      />
+                    </linearGradient>
+                  </defs>
+                  {/* Open book */}
+                  <path
+                    d="M 6 10 Q 10 6 14 10 V 18 Q 10 14 6 18 Z"
+                    fill="url(#bookfly-grad)"
+                    opacity="0.85"
+                  />
+                  <path
+                    d="M 14 10 Q 18 6 22 10 V 18 Q 18 14 14 18 Z"
+                    fill="url(#bookfly-grad)"
+                    opacity="0.65"
+                  />
+                  <line
+                    x1="14"
+                    y1="10"
+                    x2="14"
+                    y2="18"
+                    stroke="url(#bookfly-grad)"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    opacity="0.5"
+                  />
+                </svg>
+              </span>
             </Link>
 
             {/* Desktop Links */}
             <nav className="hidden md:flex items-center gap-8">
-              <ul
-                className="flex gap-4 md:gap-3 lg:gap-6 font-medium"
-              >
+              <ul className="flex gap-2 md:gap-1 lg:gap-2 font-medium">
                 {links.map(({ label, to, icon }) => (
-                  <li key={to} className="relative">
+                  <li
+                    key={to}
+                    className={`relative ${
+                      label === "Community" ? "hidden lg:block" : ""
+                    }`}
+                  >
                     <NavLink
                       to={to}
                       onClick={(e) => handleSafeNavigation(e, to)}
                       className={({ isActive }) =>
-                        `flex items-center gap-2 relative pb-1 after:absolute after:left-0 after:bottom-0 
-                  after:h-0.5 after:w-full after:bg-indigo-600 dark:after:bg-indigo-300 
-                  after:transition-transform after:duration-300 after:scale-x-0 
-                  hover:after:scale-x-100 after:origin-right hover:after:origin-left
-                  ${
-                    isActive
-                      ? `text-indigo-600 dark:text-indigo-300 font-semibold after:scale-x-100`
-                      : "text-gray-800 dark:text-white/70 hover:text-indigo-500 dark:hover:text-indigo-400"
-                  }`
+                        `flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                          isActive
+                            ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold"
+                            : "text-indigo-100 dark:text-zinc-400 hover:bg-white/10 dark:hover:bg-zinc-800/80 hover:text-white dark:hover:text-indigo-300"
+                        }`
                       }
                       onContextMenu={handleContextMenu}
                     >
@@ -416,12 +455,16 @@ const Header = () => {
                         markAllAsRead();
                       }
                     }}
-                    className={`relative p-2 rounded-full transition duration-300 cursor-pointer bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-indigo-100 hover:bg-zinc-200 dark:hover:bg-zinc-700`}
+                    className={`relative p-2.5 rounded-full transition duration-300 cursor-pointer border border-white/10 dark:border-zinc-700/50 ${
+                      openNotifications
+                        ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold"
+                        : "bg-white/5 dark:bg-zinc-800/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80"
+                    }`}
                   >
-                    <Bell size={24} />
+                    <Bell size={22} />
                     {unreadCount > 0 && (
                       <span
-                        className={`absolute -top-1 -right-1 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center bg-red-500`}
+                        className={`absolute -top-1 -right-1 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 shadow-sm border-2 border-white dark:border-zinc-900`}
                       >
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
@@ -437,7 +480,7 @@ const Header = () => {
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between p-4 border-b border-zinc-100 dark:border-zinc-700">
-                        <h3 className="font-semibold text-indigo-950 dark:text-indigo-200">
+                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
                           {t("Notifications")}
                         </h3>
                         {notifications.length > 0 && (
@@ -496,20 +539,22 @@ const Header = () => {
                                   }}
                                 >
                                   <div className="flex-1 pr-6">
-                                    <p className="text-sm text-indigo-950 dark:text-indigo-200">
-                                      {notification.type === "author_status" ? (
-                                        i18n.language === "ar"
+                                    <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                                      {notification.type === "author_status"
+                                        ? i18n.language === "ar"
                                           ? `تم ${notification.status === "approved" ? "قبول" : "رفض"} طلب انضمامك كمؤلف.`
                                           : `Your author application has been ${notification.status === "approved" ? "approved" : "rejected"}.`
-                                      ) : notification.type === "role_change" ? (
-                                        i18n.language === "ar"
-                                          ? `مبروك! تم ترقية حسابك إلى مؤلف. يمكنك الآن البدء بنشر كتبك.`
-                                          : `Congratulations! Your account has been promoted to Author. You can now start publishing your books.`
-                                      ) : (
-                                        i18n.language === "ar"
-                                          ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
-                                          : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`
-                                      )}
+                                        : notification.type === "role_change"
+                                          ? i18n.language === "ar"
+                                            ? `مبروك! تم ترقية حسابك إلى مؤلف. يمكنك الآن البدء بنشر كتبك.`
+                                            : `Congratulations! Your account has been promoted to Author. You can now start publishing your books.`
+                                          : notification.type === "book_status"
+                                            ? i18n.language === "ar"
+                                              ? `تم ${notification.status === "approved" ? "الموافقة على" : "رفض"} كتابك "${notification.bookTitle}".`
+                                              : `Your book "${notification.bookTitle}" has been ${notification.status === "approved" ? "approved" : "rejected"}.`
+                                            : i18n.language === "ar"
+                                              ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
+                                              : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
                                     </p>
                                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                                       {new Date(
@@ -542,24 +587,30 @@ const Header = () => {
               )}
 
               {/* Cart */}
-              <Link
+              <NavLink
                 to="/cart"
                 onClick={(e) => handleSafeNavigation(e, "/cart")}
-                className="relative"
+                className={({ isActive }) =>
+                  `relative p-2.5 rounded-full transition duration-300 cursor-pointer border border-white/10 dark:border-zinc-700/50 ${
+                    isActive
+                      ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold"
+                      : "bg-white/5 dark:bg-zinc-800/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80"
+                  }`
+                }
                 onContextMenu={handleContextMenu}
               >
                 <ShoppingCart
-                  size={24}
-                  className={`transition cursor-pointer text-zinc-600 dark:text-indigo-100 hover:text-indigo-600 dark:hover:text-indigo-300`}
+                  size={20}
+                  className={`transition cursor-pointer`}
                 />
                 {getCartItemsCount() > 0 && (
                   <span
-                    className={`absolute -top-2 -right-2 text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center bg-indigo-600 text-white shadow-sm`}
+                    className={`absolute -top-1 -right-1 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center bg-indigo-600 text-white shadow-sm border-2 border-white dark:border-zinc-900`}
                   >
                     {getCartItemsCount()}
                   </span>
                 )}
-              </Link>
+              </NavLink>
               {/* Settings preferance */}
               <div
                 dir="auto"
@@ -568,8 +619,10 @@ const Header = () => {
               >
                 <button
                   onClick={toggleSettings}
-                  className={`p-2 rounded-full transition duration-300 cursor-pointer bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-indigo-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 ${
-                    openSettings ? "rotate-180" : "rotate-0"
+                  className={`p-2.5 rounded-full transition duration-300 cursor-pointer border border-white/10 dark:border-zinc-700/50 ${
+                    openSettings
+                      ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold rotate-180"
+                      : "bg-white/5 dark:bg-zinc-800/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:bg-zinc-800/80 dark:hover:text-indigo-300 rotate-0"
                   }`}
                 >
                   <Settings size={20} />
@@ -577,7 +630,7 @@ const Header = () => {
 
                 {/* Dropdown */}
                 {openSettings && (
-                  <div className="absolute right-0 mt-13 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl p-2 z-50">
+                  <div className="absolute right-0 mt-13 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl p-2 z-50 animate-in fade-in zoom-in duration-200">
                     {/* Dark Mode */}
                     <div
                       onClick={toggleTheme}
@@ -586,16 +639,16 @@ const Header = () => {
                       <div className="flex items-center gap-2">
                         {theme === "light" ? (
                           <Sun
-                            className="text-indigo-950 dark:text-zinc-200 group-hover:rotate-360 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
+                            className="text-zinc-800 dark:text-zinc-200 group-hover:rotate-360 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
                             size={18}
                           />
                         ) : (
                           <Moon
-                            className="text-indigo-950 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
+                            className="text-zinc-800 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
                             size={18}
                           />
                         )}
-                        <span className="font-medium text-indigo-950 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300 whitespace-nowrap">
+                        <span className="font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition duration-300 whitespace-nowrap">
                           {t("Dark Mode")}
                         </span>
                       </div>
@@ -625,10 +678,10 @@ const Header = () => {
                       >
                         <div className="flex items-center gap-2">
                           <Languages
-                            className="text-indigo-950 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
+                            className="text-zinc-800 dark:text-zinc-200 group-hover:scale-125 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300"
                             size={18}
                           />
-                          <span className="font-medium text-indigo-950 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-200 transition duration-300 whitespace-nowrap">
+                          <span className="font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition duration-300 whitespace-nowrap">
                             {t("Language")}
                           </span>
                         </div>
@@ -636,7 +689,7 @@ const Header = () => {
                           dir="ltr"
                           className="relative inline-flex items-center gap-0.5 -ms-3 min-w-15 justify-end"
                         >
-                          <div className="text-indigo-950 dark:text-zinc-200 text-xs font-semibold relative h-4 w-14 flex items-center justify-end">
+                          <div className="text-zinc-800 dark:text-zinc-200 text-xs font-semibold relative h-4 w-14 flex items-center justify-end">
                             <span
                               className={`text-indigo-500 dark:text-indigo-200 absolute right-0 transition-all duration-500 ease-in-out transform-gpu ${
                                 i18n.language === "en"
@@ -658,7 +711,7 @@ const Header = () => {
                           </div>
                           <ChevronDown
                             size={16}
-                            className="text-indigo-950 dark:text-zinc-200 group-hover:translate-y-1 transition-all duration-500"
+                            className="text-zinc-800 dark:text-zinc-200 group-hover:translate-y-1 transition-all duration-500"
                           />
                         </div>
                       </div>
@@ -678,7 +731,7 @@ const Header = () => {
                                 : ""
                             }`}
                           >
-                            <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                            <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                               English
                             </span>
                             {i18n.language === "en" && (
@@ -697,7 +750,7 @@ const Header = () => {
                                 : ""
                             }`}
                           >
-                            <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                            <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                               عربي
                             </span>
                             {i18n.language === "ar" && (
@@ -715,11 +768,11 @@ const Header = () => {
                 <Link
                   to="/register"
                   onClick={(e) => handleSafeNavigation(e, "/register")}
-                  className={`flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 transition dark:text-gray-200 text-gray-900 dark:hover:text-gray-500 hover:text-gray-600 focus:ring-white`}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition duration-300 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg hover:shadow-indigo-600/20`}
                   onContextMenu={handleContextMenu}
                 >
-                  <User size={24} />
-                  {t("Register")}
+                  <User size={20} />
+                  <span className="font-semibold">{t("Register")}</span>
                 </Link>
               ) : (
                 <div
@@ -737,16 +790,20 @@ const Header = () => {
 
                   <button
                     onClick={toggleDropdown}
-                    className={`flex items-center gap-3 transition cursor-pointer hover:text-indigo-600 dark:text-indigo-100 dark:hover:text-indigo-200/90`}
+                    className={`md:hidden lg:flex items-center gap-2 transition cursor-pointer text-indigo-100 dark:text-zinc-300 hover:text-white dark:hover:text-indigo-400 font-medium`}
                   >
                     {firstName}
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform duration-300 ${openDropdown ? "rotate-180" : ""}`}
+                    />
                   </button>
 
                   {/* Dropdown */}
                   {openDropdown && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="absolute right-0 top-13 w-40 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg p-2 z-50"
+                      className="absolute right-0 top-13 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl p-2 z-50 animate-in fade-in zoom-in duration-200"
                     >
                       {/* admin Dashboard */}
                       {user?.role === "admin" && (
@@ -818,12 +875,16 @@ const Header = () => {
                         markAllAsRead();
                       }
                     }}
-                    className={`touch-area relative p-2 rounded-full transition duration-300 cursor-pointer bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-indigo-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95`}
+                    className={`touch-area relative p-2.5 rounded-full transition duration-300 cursor-pointer border border-white/10 dark:border-zinc-700/50 active:scale-95 ${
+                      openNotifications
+                        ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold"
+                        : "bg-white/5 dark:bg-zinc-800/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80"
+                    }`}
                   >
-                    <Bell size={24} />
+                    <Bell size={22} />
                     {unreadCount > 0 && (
                       <span
-                        className={`absolute -top-1 -right-1 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center bg-red-500`}
+                        className={`absolute -top-1 -right-1 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center bg-red-500 shadow-sm border-2 border-white dark:border-zinc-900`}
                       >
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
@@ -834,12 +895,12 @@ const Header = () => {
                   {openNotifications && (
                     <div
                       ref={mobileNotificationsDropdownRef}
-                      className="fixed top-16 right-4 w-80 bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-lg z-100 max-h-96 overflow-hidden flex flex-col"
+                      className="fixed top-16 right-4 w-80 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-100 max-h-96 overflow-hidden flex flex-col animate-in slide-in-from-top-2 duration-200"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {/* Header */}
-                      <div className="flex items-center justify-between p-4 border-b border-zinc-300 dark:border-zinc-700">
-                        <h3 className="font-semibold text-indigo-950 dark:text-indigo-200">
+                      <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
+                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
                           {t("Notifications")}
                         </h3>
                         {notifications.length > 0 && (
@@ -898,20 +959,18 @@ const Header = () => {
                               >
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex-1">
-                                    <p className="text-sm text-indigo-950 dark:text-indigo-200">
-                                      {notification.type === "author_status" ? (
-                                        i18n.language === "ar"
+                                    <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                                      {notification.type === "author_status"
+                                        ? i18n.language === "ar"
                                           ? `تم ${notification.status === "approved" ? "قبول" : "رفض"} طلب انضمامك كمؤلف.`
                                           : `Your author application has been ${notification.status === "approved" ? "approved" : "rejected"}.`
-                                      ) : notification.type === "role_change" ? (
-                                        i18n.language === "ar"
-                                          ? `مبروك! تم ترقية حسابك إلى مؤلف. يمكنك الآن البدء بنشر كتبك.`
-                                          : `Congratulations! Your account has been promoted to Author. You can now start publishing your books.`
-                                      ) : (
-                                        i18n.language === "ar"
-                                          ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
-                                          : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`
-                                      )}
+                                        : notification.type === "role_change"
+                                          ? i18n.language === "ar"
+                                            ? `مبروك! تم ترقية حسابك إلى مؤلف. يمكنك الآن البدء بنشر كتبك.`
+                                            : `Congratulations! Your account has been promoted to Author. You can now start publishing your books.`
+                                          : i18n.language === "ar"
+                                            ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
+                                            : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
                                     </p>
                                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                                       {new Date(
@@ -943,30 +1002,33 @@ const Header = () => {
               )}
 
               {/* Mobile Cart */}
-              <Link
+              <NavLink
                 to="/cart"
-                className="relative touch-area"
+                className={({ isActive }) =>
+                  `relative touch-area p-2.5 rounded-full transition duration-300 cursor-pointer border border-white/10 dark:border-zinc-700/50 ${
+                    isActive
+                      ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold"
+                      : "bg-white/5 dark:bg-zinc-800/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80"
+                  }`
+                }
                 onClick={closeMenu}
                 onContextMenu={handleContextMenu}
               >
-                <ShoppingCart
-                  size={24}
-                  className="text-zinc-600 dark:text-indigo-100 hover:text-indigo-600 dark:hover:text-indigo-300 transition cursor-pointer"
-                />
+                <ShoppingCart size={22} className="transition cursor-pointer" />
                 {getCartItemsCount() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-indigo-600 dark:bg-indigo-400 text-white dark:text-zinc-900 text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                  <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm border-2 border-white dark:border-zinc-900">
                     {getCartItemsCount()}
                   </span>
                 )}
-              </Link>
+              </NavLink>
 
               {/* Menu Toggle */}
               <button
                 ref={menuRef}
                 onClick={toggleMenu}
-                className={`touch-area transition text-zinc-600 dark:text-indigo-100 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95`}
+                className={`touch-area p-2.5 rounded-full transition duration-300 cursor-pointer bg-white/5 dark:bg-zinc-800/50 border border-white/10 dark:border-zinc-700/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80 active:scale-95`}
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
           </div>
@@ -1016,7 +1078,7 @@ const Header = () => {
       {/* Mobile Sidebar — outside <header> for the same reason */}
       <div
         ref={sidebarRef}
-        className={`md:hidden fixed top-0 left-0 w-3/4 max-w-xs bg-zinc-200 dark:bg-zinc-900 h-full flex flex-col border-r border-zinc-300 dark:border-zinc-700 transform transition-transform duration-300 z-[46] overflow-y-auto ${
+        className={`md:hidden fixed top-0 left-0 w-3/4 max-w-xs bg-white dark:bg-zinc-900 h-full flex flex-col border-r border-zinc-200 dark:border-zinc-800 transform transition-transform duration-300 z-[46] overflow-y-auto ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -1024,23 +1086,23 @@ const Header = () => {
           <Link
             to="/"
             onClick={(e) => handleSafeNavigation(e, "/", closeMenu)}
-            className="touch-area flex items-center gap-3 text-gray-600 dark:text-indigo-200 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-300 dark:border-zinc-700"
+            className="touch-area flex items-center gap-3 text-indigo-600 dark:text-indigo-400 text-xl font-bold tracking-tight mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800"
             onContextMenu={handleContextMenu}
           >
             <span>Bookfly</span>
           </Link>
 
-          <ul className="flex flex-col gap-4 text-indigo-950 dark:text-zinc-200 font-medium">
+          <ul className="flex flex-col gap-4 text-zinc-800 dark:text-zinc-200 font-medium">
             {links.map(({ label, to, icon }) => (
               <li key={to}>
                 <NavLink
                   to={to}
                   onClick={(e) => handleSafeNavigation(e, to, closeMenu)}
                   className={({ isActive }) =>
-                    `touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors ${
+                    `touch-area flex items-center gap-3 py-2 px-4 rounded-xl transition-colors ${
                       isActive
-                        ? "text-indigo-500 dark:text-indigo-400 font-semibold bg-zinc-100 dark:bg-zinc-800"
-                        : "hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                        ? "text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-50 dark:bg-indigo-900/20"
+                        : "hover:bg-zinc-100 dark:hover:bg-zinc-900"
                     }`
                   }
                   onContextMenu={handleContextMenu}
@@ -1081,7 +1143,7 @@ const Header = () => {
               >
                 <div className="flex items-center gap-3">
                   <Moon size={18} />
-                  <span className="text-indigo-950 dark:text-zinc-200 font-medium">
+                  <span className="text-zinc-800 dark:text-zinc-200 font-medium">
                     {t("Dark Mode")}
                   </span>
                 </div>
@@ -1125,7 +1187,7 @@ const Header = () => {
                     onClick={(e) =>
                       handleSafeNavigation(e, "/profile", closeMenu)
                     }
-                    className="touch-area flex items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:text-indigo-600 dark:text-indigo-100  dark:hover:text-indigo-100 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                    className="touch-area items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:text-indigo-600 dark:text-indigo-100  dark:hover:text-indigo-100 hover:bg-zinc-300 dark:hover:bg-zinc-700"
                     onContextMenu={handleContextMenu}
                   >
                     <UserAvatar user={user} size={32} className="shadow-md" />
@@ -1163,10 +1225,10 @@ const Header = () => {
               >
                 <div className="flex items-center gap-3">
                   <Languages
-                    className="text-indigo-950 dark:text-zinc-200"
+                    className="text-zinc-800 dark:text-zinc-200"
                     size={18}
                   />
-                  <span className="text-indigo-950 dark:text-zinc-200 font-medium">
+                  <span className="text-zinc-800 dark:text-zinc-200 font-medium">
                     {t("Language")}
                   </span>
                 </div>
@@ -1176,7 +1238,7 @@ const Header = () => {
                   </span>
                   <ChevronDown
                     size={16}
-                    className={`text-indigo-950 dark:text-zinc-200 transition-transform duration-200 ${
+                    className={`text-zinc-800 dark:text-zinc-200 transition-transform duration-200 ${
                       openLanguageDropdown ? "rotate-180" : ""
                     }`}
                   />
@@ -1196,7 +1258,7 @@ const Header = () => {
                         : ""
                     }`}
                   >
-                    <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                    <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                       English
                     </span>
                     {i18n.language === "en" && (
@@ -1215,7 +1277,7 @@ const Header = () => {
                         : ""
                     }`}
                   >
-                    <span className="text-sm font-medium text-indigo-950 dark:text-zinc-200">
+                    <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                       عربي
                     </span>
                     {i18n.language === "ar" && (

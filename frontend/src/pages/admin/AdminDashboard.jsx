@@ -5,6 +5,8 @@ import RecentOrders from "../../components/admin/RecentOrders";
 import TopBooks from "../../components/admin/TopBooks";
 import SalesChart from "../../components/admin/SalesChart";
 import api from "../../api/api";
+import UserAvatar from "../../components/UserAvatar";
+import { useAuth } from "../../context/AuthContext";
 
 const AdminDashboard = () => {
   const [performanceStats, setPerformanceStats] = useState(null);
@@ -24,14 +26,21 @@ const AdminDashboard = () => {
     fetchPerformanceStats();
   }, []);
 
+  const { user } = useAuth();
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Overview</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Welcome back! Here's what's happening with your store today.
-        </p>
+      {/* Welcome Bar */}
+      <div className="bg-white dark:bg-zinc-800 shadow-sm rounded-2xl p-6 border border-gray-100 dark:border-zinc-700 flex flex-col sm:flex-row gap-4 sm:items-center">
+        <UserAvatar user={user} size={64} className="ring-4 ring-blue-500/20 shadow-xl" />
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Welcome back, {user?.name?.split(" ")[0] || "Admin"}!
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Here's what's happening with your store today.
+          </p>
+        </div>
       </div>
 
       {/* Quick Stats */}
@@ -55,19 +64,19 @@ const AdminDashboard = () => {
         </h3>
         {performanceStats ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 dark:bg-zinc-900/50 rounded-lg">
+            <div className="text-center p-4 bg-blue-50 dark:bg-zinc-800/50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {performanceStats.totalBooks}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Active Books</div>
             </div>
-            <div className="text-center p-4 bg-green-50 dark:bg-zinc-900/50 rounded-lg">
+            <div className="text-center p-4 bg-green-50 dark:bg-zinc-800/50 rounded-lg">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {performanceStats.averageRating.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Average Rating</div>
             </div>
-            <div className="text-center p-4 bg-purple-50 dark:bg-zinc-900/50 rounded-lg">
+            <div className="text-center p-4 bg-purple-50 dark:bg-zinc-800/50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {performanceStats.returnCustomerPercentage.toFixed(0)}%
               </div>
@@ -79,7 +88,7 @@ const AdminDashboard = () => {
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="text-center p-4 bg-gray-50 dark:bg-zinc-900/50 rounded-lg animate-pulse"
+                className="text-center p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg animate-pulse"
               >
                 <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded mb-2"></div>
                 <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>

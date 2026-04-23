@@ -118,8 +118,14 @@ const getPosition = (e) => {
     setLoading(false);
   };
 
-  const handleGoogleSuccess = () => {
-    navigate(from, { replace: true });
+  const handleGoogleSuccess = (user) => {
+    let redirectPath = from;
+    if (user?.role === "admin") {
+      redirectPath = "/admin";
+    } else if (user?.role === "author") {
+      redirectPath = "/author-dashboard";
+    }
+    window.location.href = redirectPath;
   };
 
   const handleGoogleError = (error) => {
@@ -232,7 +238,7 @@ const stopDrawing = (e) => {
           </div>
         )}
 
-        {step === 1 && (
+        {step === 1 && roleType !== "author" && (
           <>
             <GoogleLoginButton
               onSuccess={handleGoogleSuccess}
@@ -488,7 +494,7 @@ const stopDrawing = (e) => {
                     ref={canvasRef}
                     width={500}
                     height={150}
-                    className="w-full h-[150px] cursor-crosshair touch-none bg-white dark:bg-zinc-800 rounded-lg"
+                    className="w-full h-[150px] cursor-crosshair touch-none bg-white rounded-lg"
                     onPointerDown={startDrawing}
                     onPointerMove={draw}
                     onPointerUp={stopDrawing}
@@ -498,7 +504,7 @@ const stopDrawing = (e) => {
                     onTouchEnd={stopDrawing}
                   />
                    {!hasDrawn && (
-    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-400 pointer-events-none">
+    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-600 pointer-events-none">
       {t("Draw your signature")}
     </div>
   )}

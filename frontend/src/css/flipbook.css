@@ -1,0 +1,656 @@
+/* ═══════════════════════════════════════════════════════════════
+   FlipBook Viewer — FlipHTML5-style Premium Book Experience
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Background & Container ─────────────────────────────────── */
+.flipbook-viewport {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 60%, #1e1b2e 0%, #0d0b14 100%);
+}
+
+.flipbook-viewport::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Book Area ──────────────────────────────────────────────── */
+.flipbook-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding: 10px;
+  transition: transform 0.3s ease;
+}
+
+.flipbook-book-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 25px 80px rgba(0, 0, 0, 0.6));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Page Styling ───────────────────────────────────────────── */
+.flipbook-page {
+  background: #faf8f3;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.flipbook-page-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e8 100%);
+}
+
+.flipbook-page-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.flipbook-page-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f0e8;
+  color: #6366f1;
+}
+
+.flipbook-page-number {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #999;
+  font-family: "Georgia", serif;
+  pointer-events: none;
+  user-select: none;
+}
+
+.flipbook-page-blur {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  backdrop-filter: blur(14px);
+  background: rgba(30, 27, 46, 0.15);
+}
+
+/* ─── Cover Pages ────────────────────────────────────────────── */
+.flipbook-page-inner.is-cover {
+  background: linear-gradient(145deg, #2d1b69 0%, #1a103f 40%, #0f0a26 100%);
+  border-right: 3px solid rgba(99, 102, 241, 0.3);
+}
+
+.flipbook-cover {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flipbook-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+}
+
+.flipbook-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(15, 10, 38, 0.85) 0%, transparent 60%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.flipbook-cover-title {
+  color: white;
+  font-size: clamp(14px, 3vw, 22px);
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  line-height: 1.3;
+}
+
+.flipbook-page-inner.is-back-cover {
+  background: linear-gradient(145deg, #1a103f 0%, #0f0a26 100%);
+  border-left: 3px solid rgba(99, 102, 241, 0.2);
+}
+
+.flipbook-back-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.flipbook-back-cover p {
+  font-family: "Georgia", serif;
+  font-size: 16px;
+  font-style: italic;
+}
+
+/* ─── Toolbar ────────────────────────────────────────────────── */
+.flipbook-toolbar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: rgba(10, 10, 20, 0.75);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.3s ease;
+}
+
+.flipbook-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.flipbook-toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.flipbook-toolbar-btn:active {
+  transform: scale(0.92);
+}
+
+.flipbook-toolbar-btn.active {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+}
+
+.flipbook-toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.flipbook-page-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.flipbook-page-indicator span {
+  color: white;
+  font-weight: 600;
+}
+
+/* ─── Navigation Arrows ──────────────────────────────────────── */
+.flipbook-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 20, 0.5);
+  backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  opacity: 0;
+}
+
+.flipbook-area:hover .flipbook-nav-arrow,
+.flipbook-nav-arrow:focus-visible {
+  opacity: 1;
+}
+
+.flipbook-nav-arrow:hover {
+  background: rgba(99, 102, 241, 0.3);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: white;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.flipbook-nav-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.flipbook-nav-prev {
+  left: 12px;
+}
+
+.flipbook-nav-next {
+  right: 12px;
+}
+
+/* ─── Thumbnail Panel ────────────────────────────────────────── */
+.flipbook-thumbnails-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease;
+}
+
+.flipbook-thumbnails-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 51;
+  max-height: 45%;
+  background: rgba(15, 12, 25, 0.95);
+  backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flipbook-thumbnails-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.flipbook-thumbnails-header h3 {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.flipbook-thumbnails-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.flipbook-thumbnails-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.flipbook-thumbnails-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.flipbook-thumbnail {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.flipbook-thumbnail:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: scale(1.05);
+}
+
+.flipbook-thumbnail.active {
+  border-color: #6366f1;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+.flipbook-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flipbook-thumbnail-number {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+.flipbook-header {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(10, 10, 20, 0.6);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.flipbook-header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.flipbook-header-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.flipbook-header-btn:active {
+  transform: scale(0.95);
+}
+
+.flipbook-header-title {
+  flex: 1;
+  text-align: center;
+  font-size: clamp(12px, 2.5vw, 16px);
+  font-weight: 600;
+  background: linear-gradient(to right, #e0e0e0, #a0a0a0, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding: 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* ─── Dropdown Menu ──────────────────────────────────────────── */
+.flipbook-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 44;
+  background: rgba(10, 10, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.flipbook-dropdown.open {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.flipbook-dropdown.closed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.flipbook-dropdown-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.flipbook-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(165, 180, 252, 0.8);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.flipbook-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #a5b4fc;
+}
+
+.flipbook-dropdown-item:active {
+  transform: scale(0.96);
+}
+
+/* ─── Loading Screen ─────────────────────────────────────────── */
+.flipbook-loading-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: radial-gradient(ellipse at 50% 60%, #1e1b2e 0%, #0d0b14 100%);
+}
+
+.flipbook-loading-book {
+  position: relative;
+  width: 60px;
+  height: 72px;
+}
+
+.flipbook-loading-book::before,
+.flipbook-loading-book::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 68px;
+  top: 2px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+}
+
+.flipbook-loading-book::before {
+  left: 2px;
+  transform-origin: right center;
+  animation: bookFlipLeft 1.2s ease-in-out infinite;
+}
+
+.flipbook-loading-book::after {
+  right: 2px;
+  transform-origin: left center;
+  animation: bookFlipRight 1.2s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+.flipbook-loading-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.flipbook-loading-bar {
+  width: 200px;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.flipbook-loading-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(to right, #6366f1, #8b5cf6);
+  transition: width 0.3s ease;
+}
+
+.flipbook-loading-text {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes bookFlipLeft {
+  0%, 100% { transform: rotateY(0deg); }
+  50% { transform: rotateY(-25deg); }
+}
+
+@keyframes bookFlipRight {
+  0%, 100% { transform: rotateY(0deg); }
+  50% { transform: rotateY(25deg); }
+}
+
+/* ─── react-pageflip overrides ───────────────────────────────── */
+.stf__wrapper {
+  margin: 0 auto;
+}
+
+.stf__parent {
+  overflow: visible !important;
+}
+
+/* Subtle page edge effect */
+.stf__block {
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Mobile Responsive ──────────────────────────────────────── */
+@media (max-width: 640px) {
+  .flipbook-toolbar {
+    bottom: 10px;
+    padding: 4px 8px;
+    gap: 2px;
+    border-radius: 12px;
+  }
+
+  .flipbook-toolbar-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .flipbook-page-indicator {
+    font-size: 11px;
+    padding: 0 4px;
+  }
+
+  .flipbook-nav-arrow {
+    width: 36px;
+    height: 36px;
+    opacity: 0.7;
+  }
+
+  .flipbook-thumbnails-grid {
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .flipbook-header {
+    padding: 4px 6px;
+  }
+}
+
+/* ─── Fullscreen Specifics ───────────────────────────────────── */
+:fullscreen .flipbook-viewport,
+:-webkit-full-screen .flipbook-viewport {
+  height: 100vh !important;
+}
+
+:fullscreen .flipbook-header,
+:-webkit-full-screen .flipbook-header {
+  display: none !important;
+}

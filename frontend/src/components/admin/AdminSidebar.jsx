@@ -20,6 +20,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { useNavigation } from "../../context/NavigationContext";
+import UserAvatar from "../UserAvatar";
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const { user, logout } = useAuth();
@@ -175,12 +176,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     : "hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
               >
-                {/* Initial Avatar with Gradient */}
-                <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shrink-0">
-                  <span className="font-bold text-sm">
-                    {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : "AD"}
-                  </span>
-                </div>
+                <UserAvatar user={user} size={40} className="shadow-md shrink-0" />
                 
                 <div className="ml-3 flex-1 text-left overflow-hidden">
                   <p className="text-sm font-bold text-gray-900 dark:text-white truncate">

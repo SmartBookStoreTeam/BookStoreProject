@@ -59,11 +59,24 @@ const Login = () => {
     }
 
     setLoading(false);
-    window.location.href = from; // Return to original page with full reload
+    
+    let redirectPath = from;
+    if (result.user?.role === "admin") {
+      redirectPath = "/admin";
+    } else if (result.user?.role === "author") {
+      redirectPath = "/author-dashboard";
+    }
+    window.location.href = redirectPath;
   };
 
-  const handleGoogleSuccess = () => {
-    window.location.href = from;
+  const handleGoogleSuccess = (user) => {
+    let redirectPath = from;
+    if (user?.role === "admin") {
+      redirectPath = "/admin";
+    } else if (user?.role === "author") {
+      redirectPath = "/author-dashboard";
+    }
+    window.location.href = redirectPath;
   };
 
   const handleGoogleError = (error) => {
