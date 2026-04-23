@@ -12,16 +12,10 @@ export const getBooks = async (req, res, next) => {
 
     const filter = { isActive: true, status: "available" };
 
-    const categoryQuery = req.query.category || req.query["category[]"];
-    if (categoryQuery) {
-      const cats = (Array.isArray(categoryQuery) ? categoryQuery : [categoryQuery])
-        .filter(c => c && c !== "all" && mongoose.Types.ObjectId.isValid(c));
-      
-      if (cats.length > 0) {
-        filter.categories = { $in: cats.map(c => new mongoose.Types.ObjectId(String(c))) };
-      }
+    if (req.query.category) {
+      const cats = typeof req.query.category === 'string' ? req.query.category.split(',') : (Array.isArray(req.query.category) ? req.query.category : [req.query.category]);
+      filter.categories = { $in: cats };
     }
-
     if (req.query.author) {
       filter.author = { $regex: req.query.author, $options: "i" };
     }
@@ -36,12 +30,33 @@ export const getBooks = async (req, res, next) => {
     const sort = req.query.sort || "-createdAt"; // e.g. price, -price, -ratings
 
     const total = await Book.countDocuments(filter);
-    const books = await Book.find(filter)
-      .select("+pdf") // ✅ Include PDF field
-      .populate("categories", "name slug")
-      .sort(sort)
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+    let books;
+
+    // Custom sorting if multiple categories are selected
+    if (req.query.category && typeof req.query.category === 'string' && req.query.category.includes(',')) {
+      const cats = req.query.category.split(',');
+      const allBooks = await Book.find(filter)
+        .select("+pdf")
+        .populate("categories", "name slug")
+        .lean();
+
+      allBooks.sort((a, b) => {
+        const aMatches = a.categories ? a.categories.filter(c => cats.includes(String(c._id))).length : 0;
+        const bMatches = b.categories ? b.categories.filter(c => cats.includes(String(c._id))).length : 0;
+        
+        // Sort by match count descending, then by createdAt descending
+        return bMatches - aMatches || new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+
+      books = allBooks.slice(pageSize * (page - 1), pageSize * page);
+    } else {
+      books = await Book.find(filter)
+        .select("+pdf") // ✅ Include PDF field
+        .populate("categories", "name slug")
+        .sort(sort)
+        .limit(pageSize)
+        .skip(pageSize * (page - 1));
+    }
 
     res.json({
       success: true,
@@ -95,14 +110,9 @@ export const searchBooks = async (req, res, next) => {
 
     const filter = { isActive: true };
 
-    const categoryQuery = req.query.category || req.query["category[]"];
-    if (categoryQuery) {
-      const cats = (Array.isArray(categoryQuery) ? categoryQuery : [categoryQuery])
-        .filter(c => c && c !== "all" && mongoose.Types.ObjectId.isValid(c));
-      
-      if (cats.length > 0) {
-        filter.categories = { $in: cats.map(c => new mongoose.Types.ObjectId(String(c))) };
-      }
+    if (category) {
+      const cats = typeof category === 'string' ? category.split(',') : (Array.isArray(category) ? category : [category]);
+      filter.categories = { $in: cats };
     }
 
     if (req.query.minPrice)
@@ -131,16 +141,31 @@ export const searchBooks = async (req, res, next) => {
 
     const total = await Book.countDocuments(filter);
 
-    let query = Book.find(filter).populate("categories", "name slug");
+    let books;
 
-    // Standard sort
-    query = query.sort(sort);
+    if (category && typeof category === 'string' && category.includes(',')) {
+      const cats = category.split(',');
+      let allBooks = await Book.find(filter)
+        .select("+pdf")
+        .populate("categories", "name slug")
+        .lean();
 
-    const books = await query
-      .select("+pdf") // ✅ Include PDF field
-      .populate("categories", "name slug")
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+      allBooks.sort((a, b) => {
+        const aMatches = a.categories ? a.categories.filter(c => cats.includes(String(c._id))).length : 0;
+        const bMatches = b.categories ? b.categories.filter(c => cats.includes(String(c._id))).length : 0;
+        return bMatches - aMatches || new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+
+      books = allBooks.slice(pageSize * (page - 1), pageSize * page);
+    } else {
+      let query = Book.find(filter).populate("categories", "name slug");
+      query = query.sort(sort);
+      books = await query
+        .select("+pdf") // ✅ Include PDF field
+        .populate("categories", "name slug")
+        .limit(pageSize)
+        .skip(pageSize * (page - 1));
+    }
 
     res.json({
       success: true,
@@ -258,38 +283,42 @@ export const rateBook = async (req, res, next) => {
   }
 };
 
-// @desc    Get categories with book counts
+// @desc    Get categories with their book counts
 // @route   GET /api/books/categories/stats
 // @access  Public
-export const getCategoriesWithStats = async (req, res, next) => {
+export const getCategoryStats = async (req, res, next) => {
   try {
-    const stats = await Book.aggregate([
-      { $match: { isActive: true, status: "available" } },
-      { $unwind: "$categories" },
-      {
-        $group: {
-          _id: "$categories",
-          count: { $sum: 1 },
-        },
-      },
+    const stats = await Category.aggregate([
+      { $match: { isActive: true } },
       {
         $lookup: {
-          from: "categories",
-          localField: "_id",
-          foreignField: "_id",
-          as: "categoryInfo",
-        },
+          from: "books",
+          let: { categoryId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ["$$categoryId", { $ifNull: ["$categories", []] }] },
+                    { $eq: ["$isActive", true] },
+                    { $eq: ["$status", "available"] }
+                  ]
+                }
+              }
+            }
+          ],
+          as: "books"
+        }
       },
-      { $unwind: "$categoryInfo" },
       {
         $project: {
           _id: 1,
-          count: 1,
-          name: "$categoryInfo.name",
-          slug: "$categoryInfo.slug",
-        },
+          name: 1,
+          slug: 1,
+          count: { $size: "$books" }
+        }
       },
-      { $sort: { name: 1 } },
+      { $sort: { name: 1 } }
     ]);
 
     const totalBooks = await Book.countDocuments({ isActive: true, status: "available" });
@@ -297,9 +326,10 @@ export const getCategoriesWithStats = async (req, res, next) => {
     res.json({
       success: true,
       data: stats,
-      total: totalBooks,
+      totalBooks
     });
   } catch (error) {
     next(error);
   }
 };
+
