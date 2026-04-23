@@ -41,7 +41,6 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "http://192.168.1.19:5173",
   "https://dn7prippnkodg.cloudfront.net",
 ];
 
