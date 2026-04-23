@@ -1,5 +1,5 @@
 import express from "express";
-import { previewBook } from "../controllers/previewController.js";
+import { previewBook, streamBook } from "../controllers/previewController.js";
 
 const router = express.Router();
 
@@ -30,5 +30,6 @@ const router = express.Router();
  *         description: Book not found or preview not available
  */
 router.get("/books/:id/preview", previewBook);
+router.post("/books/:id/pdf-stream", streamBook);
 
 export default router;
