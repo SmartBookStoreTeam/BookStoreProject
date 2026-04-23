@@ -284,18 +284,7 @@ const Header = () => {
                   <rect x="88" y="20" width="7" height="18" rx="1" />
                 </g>
 
-                {/* Open Book */}
-                <path
-                  d="M 102 30 Q 106 26 110 30 V 38 Q 106 34 102 38 Z"
-                  fill="currentColor"
-                  fillOpacity="0.05"
-                />
-                <path
-                  d="M 110 30 Q 114 26 118 30 V 38 Q 114 34 110 38 Z"
-                  fill="currentColor"
-                  fillOpacity="0.05"
-                />
-                <line x1="110" y1="30" x2="110" y2="38" opacity="0.5" />
+
               </g>
             </pattern>
             <rect
@@ -400,23 +389,24 @@ const Header = () => {
                   </defs>
                   {/* Open book */}
                   <path
-                    d="M6 18 Q10 14 14 17 L14 21 Q10 18 6 21 Z"
+                    d="M 6 10 Q 10 6 14 10 V 18 Q 10 14 6 18 Z"
                     fill="url(#bookfly-grad)"
                     opacity="0.85"
                   />
                   <path
-                    d="M22 18 Q18 14 14 17 L14 21 Q18 18 22 21 Z"
+                    d="M 14 10 Q 18 6 22 10 V 18 Q 18 14 14 18 Z"
                     fill="url(#bookfly-grad)"
                     opacity="0.65"
                   />
                   <line
                     x1="14"
-                    y1="17"
+                    y1="10"
                     x2="14"
-                    y2="21"
+                    y2="18"
                     stroke="url(#bookfly-grad)"
-                    strokeWidth="0.6"
-                    opacity="0.7"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    opacity="0.5"
                   />
                 </svg>
               </span>
@@ -558,13 +548,13 @@ const Header = () => {
                                           ? i18n.language === "ar"
                                             ? `مبروك! تم ترقية حسابك إلى مؤلف. يمكنك الآن البدء بنشر كتبك.`
                                             : `Congratulations! Your account has been promoted to Author. You can now start publishing your books.`
-                                        : notification.type === "book_status"
-                                          ? i18n.language === "ar"
-                                            ? `تم ${notification.status === "approved" ? "الموافقة على" : "رفض"} كتابك "${notification.bookTitle}".`
-                                            : `Your book "${notification.bookTitle}" has been ${notification.status === "approved" ? "approved" : "rejected"}.`
-                                          : i18n.language === "ar"
-                                            ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
-                                            : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
+                                          : notification.type === "book_status"
+                                            ? i18n.language === "ar"
+                                              ? `تم ${notification.status === "approved" ? "الموافقة على" : "رفض"} كتابك "${notification.bookTitle}".`
+                                              : `Your book "${notification.bookTitle}" has been ${notification.status === "approved" ? "approved" : "rejected"}.`
+                                            : i18n.language === "ar"
+                                              ? `تم شراء كتاب "${notification.bookTitle}" بنجاح! الآن يتوفر في مكتبتك على ملفك الشخصي.`
+                                              : `Book "${notification.bookTitle}" was purchased successfully! It’s now available in your library on your profile.`}
                                     </p>
                                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                                       {new Date(
@@ -1038,7 +1028,7 @@ const Header = () => {
                 onClick={toggleMenu}
                 className={`touch-area p-2.5 rounded-full transition duration-300 cursor-pointer bg-white/5 dark:bg-zinc-800/50 border border-white/10 dark:border-zinc-700/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80 active:scale-95`}
               >
-                {isMenuOpen ? <X size={22}  /> : <Menu size={22} />}
+                {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
               </button>
             </div>
           </div>
