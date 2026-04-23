@@ -1,0 +1,129 @@
+import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import { getSuggestions, getTrending } from "../api/trackingApi";
+import Carousel from "./Carousel";
+import Loading from "./Loading";
+
+const normalizeBook = (b) => {
+  const rating =
+    typeof b.ratingAvg === "number"
+      ? b.ratingAvg
+      : typeof b.ratings === "number"
+        ? b.ratings
+        : typeof b.rate === "number"
+          ? b.rate
+          : 0;
+
+  return {
+    ...b,
+    _id: b._id || b.id,
+    id: b._id || b.id,
+    desc: b.desc || b.description || "",
+    description: b.description || b.desc || "",
+    ratings: rating,
+    numReviews: b.ratingCount || b.numReviews || 0,
+  };
+};
+
+const PersonalizedBooks = () => {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+
+  const [books, setBooks] = useState([]);
+  const [title, setTitle] = useState("Our Suggestions");
+  const [loading, setLoading] = useState(true);
+
+  // track userId so we only re-fetch when user actually logs in/out
+  const userIdRef = useRef(user?._id || user?.id || null);
+
+  useEffect(() => {
+    const currentUserId = user?._id || user?.id || null;
+
+    // skip re-fetch if same user (prevents re-render loops)
+    if (currentUserId === userIdRef.current && books.length > 0) return;
+    userIdRef.current = currentUserId;
+
+    let cancelled = false;
+
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+
+        // fetch suggestions and trending in parallel
+        const [suggestionsRes, trendingRes] = await Promise.all([
+          getSuggestions(20),
+          getTrending(20),
+        ]);
+
+        if (cancelled) return;
+
+        if (suggestionsRes.success && suggestionsRes.data?.length > 0) {
+          const hasPersonalized = suggestionsRes.data.some(
+            (b) => b.suggestionType === "personalized",
+          );
+          const hasCategoryBased = suggestionsRes.data.some(
+            (b) => b.suggestionType === "category_based",
+          );
+
+          if (hasPersonalized) {
+            setTitle("Recommended For You");
+            setBooks(suggestionsRes.data.map(normalizeBook));
+          } else if (hasCategoryBased) {
+            setTitle("Based on Your Interests");
+            setBooks(suggestionsRes.data.map(normalizeBook));
+          } else if (trendingRes.success && trendingRes.data?.length > 0) {
+            setTitle("Trending Now");
+            setBooks(trendingRes.data.map(normalizeBook));
+          } else {
+            setTitle("Our Suggestions");
+            setBooks(suggestionsRes.data.map(normalizeBook));
+          }
+        } else if (trendingRes.success && trendingRes.data?.length > 0) {
+          setTitle("Trending Now");
+          setBooks(trendingRes.data.map(normalizeBook));
+        }
+      } catch (err) {
+        console.error("PersonalizedBooks error:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchBooks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 py-8 transition-colors duration-300">
+        <Loading
+          loading={t("Loading Suggestion books...")}
+          height="h-64"
+          animate={true}
+        />
+      </div>
+    );
+  }
+
+  if (books.length === 0) return null;
+
+  return (
+    <div
+      id="suggestions"
+      className="bg-white dark:bg-zinc-900 transition-colors duration-300 py-8"
+    >
+      <div className="w-full max-w-337.5 mx-auto px-4 relative">
+        <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+          {t(title)}
+        </h1>
+        <Carousel books={books} />
+      </div>
+    </div>
+  );
+};
+
+export default PersonalizedBooks;

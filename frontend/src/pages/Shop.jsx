@@ -14,6 +14,7 @@ import { useGlobalLoading } from "../context/LoadingContext";
 import { motion } from "framer-motion";
 import { getMyOrders } from "../api/ordersApi";
 import BookCard from "../components/BookCard";
+import { useTrackSearch } from "../hooks/useTracking";
 
 //fixed sortMap
 const sortMap = {
@@ -51,6 +52,8 @@ const Shop = () => {
   const { setIsLoading } = useGlobalLoading();
   const navigate = useNavigate();
   const [categoryStats, setCategoryStats] = useState([]);
+
+  useTrackSearch(debouncedSearch);
 
   // fetch category stats once
   useEffect(() => {
@@ -95,7 +98,8 @@ const Shop = () => {
           const res = await getMyOrders();
           // getMyOrders returns the array directly (not wrapped in {data:[]})
           const hasOrders = Array.isArray(res) && res.length > 0;
-          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          const hasBooksInLibrary =
+            Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
           setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
         } catch {
           setIsFirstOrder(false);
@@ -106,7 +110,6 @@ const Shop = () => {
     };
     checkFirstOrder();
   }, [user, purchasedBooks]);
-
 
   // reset page when filters change
   useEffect(() => {
@@ -177,7 +180,6 @@ const Shop = () => {
   const storeBooks = apiBooks || [];
 
   const shownBooks = storeBooks;
-
 
   // categories list derived from fetched stats
   const categories = useMemo(() => {
@@ -339,18 +341,25 @@ const Shop = () => {
               <div className="flex flex-wrap items-center gap-2">
                 {categories.map((category) => {
                   const isAll = category.value === "all";
-                  const isSelected = isAll 
-                    ? selectedCategories.length === 0 
+                  const isSelected = isAll
+                    ? selectedCategories.length === 0
                     : selectedCategories.includes(category.value);
-                  
+
                   const handleToggle = () => {
                     if (isAll) {
                       setSelectedCategories([]);
                     } else {
                       if (selectedCategories.includes(category.value)) {
-                        setSelectedCategories(selectedCategories.filter(c => c !== category.value));
+                        setSelectedCategories(
+                          selectedCategories.filter(
+                            (c) => c !== category.value,
+                          ),
+                        );
                       } else {
-                        setSelectedCategories([...selectedCategories, category.value]);
+                        setSelectedCategories([
+                          ...selectedCategories,
+                          category.value,
+                        ]);
                       }
                     }
                   };
@@ -365,12 +374,16 @@ const Shop = () => {
                           : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-zinc-700 hover:border-indigo-400"
                       }`}
                     >
-                      <span>{isAll ? t(category.label) : t(category.label)}</span>
-                      <span className={`flex items-center justify-center min-w-[18px] h-4 px-1 rounded-md text-[10px] font-bold ${
-                        isSelected 
-                          ? "bg-white/20 text-white" 
-                          : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400"
-                      }`}>
+                      <span>
+                        {isAll ? t(category.label) : t(category.label)}
+                      </span>
+                      <span
+                        className={`flex items-center justify-center min-w-4.5 h-4 px-1 rounded-md text-[10px] font-bold ${
+                          isSelected
+                            ? "bg-white/20 text-white"
+                            : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400"
+                        }`}
+                      >
                         {category.count}
                       </span>
                     </button>

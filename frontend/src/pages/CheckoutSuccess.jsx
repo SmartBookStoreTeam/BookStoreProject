@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { CheckCircle, XCircle, Mail, BookOpen, Loader } from "lucide-react";
+import { trackPurchase } from "../api/trackingApi";
 
 const CheckoutSuccess = () => {
   const { t, i18n } = useTranslation();
@@ -35,6 +36,18 @@ const CheckoutSuccess = () => {
           // non-critical — cart will also be cleared server-side by webhook
         }
         fetchPurchasedBooks();
+
+        // ✅ 🔥 ADD TRACKING HERE
+        try {
+          const books = JSON.parse(localStorage.getItem("lastCart") || "[]");
+
+          if (books.length > 0) {
+            await trackPurchase(books.map((b) => b._id));
+            localStorage.removeItem("lastCart"); // تنظيف بعد التراكينج
+          }
+        } catch (err) {
+          console.error("Tracking purchase failed:", err);
+        }
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,7 +66,7 @@ const CheckoutSuccess = () => {
     return (
       <div
         dir={i18n.dir()}
-        className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800 pt-10 pb-12 overflow-x-hidden"
+        className="min-h-screen bg-linear-to-br from-red-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800 pt-10 pb-12 overflow-x-hidden"
       >
         <div className="w-full max-w-337.5 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
@@ -91,7 +104,7 @@ const CheckoutSuccess = () => {
   return (
     <div
       dir={i18n.dir()}
-      className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 pt-10 pb-12 overflow-x-hidden"
+      className="min-h-screen bg-linear-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 pt-10 pb-12 overflow-x-hidden"
     >
       <div className="w-full max-w-337.5 mx-auto px-4 sm:px-6 lg:px-8">
         {/* Success Icon */}
