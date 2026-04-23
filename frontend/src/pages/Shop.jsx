@@ -62,7 +62,6 @@ const Shop = () => {
         const res = await getCategoryStats();
         if (res.success) {
           setCategoryStats(res.data);
-          setTotalBooks(res.totalBooks || 0);
         }
       } catch (err) {
         console.error("Failed to fetch category stats:", err);
@@ -99,8 +98,6 @@ const Shop = () => {
           const res = await getMyOrders();
           // getMyOrders returns the array directly (not wrapped in {data:[]})
           const hasOrders = Array.isArray(res) && res.length > 0;
-          const hasBooksInLibrary =
-            Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
           const hasBooksInLibrary =
             Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
           setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
@@ -199,9 +196,7 @@ const Shop = () => {
         count: cat.count,
       })),
     ];
-     
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryStats, totalBooks]);
+  }, [categoryStats]);
 
   const bookTypes = [
     { value: "all", label: "All Books" },
@@ -349,10 +344,7 @@ const Shop = () => {
                   const isAll = category.value === "all";
                   const isSelected = isAll
                     ? selectedCategories.length === 0
-                  const isSelected = isAll
-                    ? selectedCategories.length === 0
                     : selectedCategories.includes(category.value);
-
 
                   const handleToggle = () => {
                     if (isAll) {
