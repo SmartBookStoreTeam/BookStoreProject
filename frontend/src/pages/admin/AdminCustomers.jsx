@@ -118,7 +118,7 @@ const AdminCustomers = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
+        <div className="bg-white dark:bg-zinc-800 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Customers</p>
@@ -130,7 +130,7 @@ const AdminCustomers = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
+        <div className="bg-white dark:bg-zinc-800 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Authors</p>
@@ -142,7 +142,7 @@ const AdminCustomers = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
+        <div className="bg-white dark:bg-zinc-800 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
@@ -157,7 +157,7 @@ const AdminCustomers = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
+        <div className="bg-white dark:bg-zinc-800 border border-transparent dark:border-zinc-800 rounded-xl shadow-sm p-4 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Avg. Order Value</p>

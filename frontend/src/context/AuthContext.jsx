@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useRef } from "react";
 import api from "../api/api";
 import * as authApi from "../api/authApi";
 
@@ -17,16 +17,11 @@ const getStoredUser = () => {
   }
 };
 
-const getStoredToken = () => {
-  const token = localStorage.getItem("token");
-  return token || null;
-};
-
 /* ---------- provider ---------- */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(getStoredUser);
-  const [token, setToken] = useState(getStoredToken);
   const [logoutInProgress, setLogoutInProgress] = useState(false);
+  const logoutInProgressRef = useRef(false);
 
   /* ---------- register ---------- */
   const register = async (name, email, password, extraData = {}) => {
@@ -47,10 +42,8 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post("/auth/login", { email, password });
 
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
 
       setUser(res.data.user);
-      setToken(res.data.token);
 
       return { success: true, user: res.data.user };
     } catch (err) {
@@ -70,10 +63,8 @@ export const AuthProvider = ({ children }) => {
       });
 
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
 
       setUser(res.data.user);
-      setToken(res.data.token);
 
       return { success: true, user: res.data.user };
     } catch (err) {
@@ -90,10 +81,8 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post("/auth/verify-email", { email, code });
 
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
 
       setUser(res.data.user);
-      setToken(res.data.token);
 
       return { success: true, user: res.data.user };
     } catch (err) {
@@ -124,10 +113,10 @@ export const AuthProvider = ({ children }) => {
   /* ---------- refresh user ---------- */
   const refreshUser = async () => {
     try {
-      if (logoutInProgress) return { success: false };
+      if (logoutInProgressRef.current) return { success: false };
       const res = await api.get("/auth/me");
       const currentUser = res.data?.user || res.data;
-      if (currentUser && !logoutInProgress) {
+      if (currentUser && !logoutInProgressRef.current) {
         setUser(currentUser);
         localStorage.setItem("user", JSON.stringify(currentUser));
         return { success: true, user: currentUser };
@@ -142,18 +131,21 @@ export const AuthProvider = ({ children }) => {
   /* ---------- logout ---------- */
   const logout = async () => {
     setLogoutInProgress(true);
+    logoutInProgressRef.current = true;
+    
+    // Clear frontend state immediately for snappy UX
+    localStorage.removeItem("user");
+    setUser(null);
+    
     try {
       // Call backend to clear cookie
       await authApi.logout();
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
-      // Always clear frontend state
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      setUser(null);
-      setToken(null);
       setLogoutInProgress(false);
+      logoutInProgressRef.current = false;
+      window.location.href = "/"; // Force redirect and clear all React states
     }
   };
 
@@ -161,7 +153,6 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        token,
         login,
         logout,
         register,
