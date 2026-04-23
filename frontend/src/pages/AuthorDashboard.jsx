@@ -12,6 +12,7 @@ import {
   SparklesIcon,
   ShoppingCartIcon,
 } from "@heroicons/react/24/outline";
+import UserAvatar from "../components/UserAvatar";
 import { getAuthorDashboard } from "../api/adminApi";
 import { useAuth } from "../context/AuthContext";
 /* ── Tiny bar chart ── */
@@ -181,20 +182,26 @@ const AuthorDashboard = () => {
   return (
     <div className="space-y-8">
       {/* Welcome bar */}
-      <div className="bg-indigo-500 dark:bg-indigo-900  shadow-lg rounded-2xl sm:p-4 p-6 text-white flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-        <div>
-          <p className="text-indigo-100 dark:text-indigo-200 text-sm font-medium">
-            {t("Author Dashboard")}
-          </p>
-          <h1 dir={i18n.dir()} className="text-2xl font-bold mt-0.5">
-            {t("Welcome")}, {author?.name || user?.name}!
-          </h1>
+      <div className="bg-indigo-600 dark:bg-indigo-700 shadow-xl rounded-2xl sm:p-5 p-6 text-white flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between border border-indigo-500/20">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-4">
+            <UserAvatar user={user} size={64} className="ring-4 ring-white/20 shadow-xl" />
+            <div>
+              <p className="text-indigo-100 dark:text-indigo-200 text-sm font-medium">
+                {t("Author Dashboard")}
+              </p>
+              <h1 dir={i18n.dir()} className="text-2xl font-bold mt-0.5">
+                {t("Welcome")}, {author?.name || user?.name}!
+              </h1>
+            </div>
+          </div>
           {author?.bio && (
-            <p className="text-indigo-200 dark:text-indigo-100 text-sm mt-1 line-clamp-1">
+            <p className="text-indigo-100 dark:text-indigo-50 text-sm mt-3 opacity-90 line-clamp-2 max-w-xl">
               {author.bio}
             </p>
           )}
         </div>
+
         <Link
           to="/author-dashboard/add-book"
           className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-indigo-700 dark:text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors shadow-lg flex-shrink-0"
@@ -236,7 +243,7 @@ const AuthorDashboard = () => {
 
       {/* Charts + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-zinc-700">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700">
           <div className="flex items-center gap-2 mb-6">
             <ChartBarIcon className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -249,7 +256,7 @@ const AuthorDashboard = () => {
           <SimpleBarChart data={monthlyData} />
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-zinc-700">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-900">
           <div className="flex items-center gap-2 mb-6">
             <ArrowTrendingUpIcon className="h-5 w-5 text-purple-500 dark:text-purple-400" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
@@ -323,7 +330,7 @@ const AuthorDashboard = () => {
         </div>
       </div>
       {/* Books Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-800 overflow-hidden">
         {/* Header */}
         <div className="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-zinc-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">

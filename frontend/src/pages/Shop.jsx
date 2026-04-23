@@ -51,6 +51,7 @@ const Shop = () => {
   const { setIsLoading } = useGlobalLoading();
   const navigate = useNavigate();
   const [categoryStats, setCategoryStats] = useState([]);
+  const [totalBooks, setTotalBooks] = useState(0);
 
   // fetch category stats once
   useEffect(() => {
@@ -59,6 +60,7 @@ const Shop = () => {
         const res = await getCategoryStats();
         if (res.success) {
           setCategoryStats(res.data);
+          setTotalBooks(res.totalBooks || 0);
         }
       } catch (err) {
         console.error("Failed to fetch category stats:", err);
@@ -130,7 +132,7 @@ const Shop = () => {
         };
 
         if (selectedCategories.length > 0) {
-          params.category = selectedCategories;
+          params.category = selectedCategories.join(',');
         }
 
         const res = debouncedSearch
@@ -193,7 +195,7 @@ const Shop = () => {
         count: cat.count,
       })),
     ];
-  }, [categoryStats]);
+  }, [categoryStats, totalBooks]);
 
   const bookTypes = [
     { value: "all", label: "All Books" },

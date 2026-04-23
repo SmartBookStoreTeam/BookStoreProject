@@ -330,7 +330,7 @@ const Profile = () => {
                           className="touch-area flex-1 bg-linear-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                         >
                           <Eye size={16} />
-                          {t("View")}
+                          {t("Reading")}
                         </Link>
                         <button
                           onClick={async () => {
@@ -370,7 +370,7 @@ const Profile = () => {
                               });
                             }
                           }}
-                          className="touch-area bg-gray-200 hover:bg-gray-300 dark:hover:bg-gray-900 text-white px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                          className="touch-area bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-900 text-gray-900 dark:text-gray-100 px-4 py-2.5 rounded-xl cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                           title={t("Download PDF")}
                         >
                           <Download className="" size={16} />
