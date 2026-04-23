@@ -333,3 +333,5 @@ export const getCategoryStats = async (req, res, next) => {
   }
 };
 
+export const getCategoriesWithStats = getCategoryStats;
+
