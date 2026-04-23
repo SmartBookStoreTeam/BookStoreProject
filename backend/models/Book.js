@@ -193,6 +193,7 @@ const bookSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    embedding: { type: [Number] },
   },
   {
     timestamps: true,
