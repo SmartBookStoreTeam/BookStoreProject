@@ -7,6 +7,7 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import UserAvatar from "../UserAvatar";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -57,9 +58,9 @@ const AuthorHeader = ({ sidebarOpen, setSidebarOpen }) => {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-200 hover:bg-indigo-200 dark:hover:bg-indigo-800 cursor-pointer transition-colors"
+                className="cursor-pointer transition-transform hover:scale-110 active:scale-95"
               >
-                <UserIcon className="h-5 w-5" />
+                <UserAvatar user={user} size={40} className="shadow-md" />
               </button>
 
               <div

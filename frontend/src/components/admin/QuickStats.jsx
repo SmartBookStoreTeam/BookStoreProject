@@ -99,7 +99,7 @@ const QuickStats = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => (
-        <div key={index} className="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-900 rounded-xl shadow-sm p-5 transition-colors">
+        <div key={index} className="bg-white dark:bg-zinc-800 border border-transparent dark:border-zinc-900 rounded-xl shadow-sm p-5 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">{stat.title}</p>

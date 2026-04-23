@@ -17,6 +17,7 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { useNavigation } from "../../context/NavigationContext";
+import UserAvatar from "../UserAvatar";
 
 const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const { user, logout } = useAuth();
@@ -189,12 +190,7 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     : "hover:bg-indigo-800/50 dark:hover:bg-gray-700"
                 }`}
               >
-                {/* Initial Avatar with Gradient */}
-                <div className="h-10 w-10 rounded-full bg-linear-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white shadow-md shrink-0">
-                  <span className="font-bold text-sm">
-                    {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : "AU"}
-                  </span>
-                </div>
+                <UserAvatar user={user} size={40} className="shadow-md shrink-0" />
                 
                 <div className="ml-3 flex-1 text-left overflow-hidden">
                   <p className="text-sm font-bold text-white truncate">

@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect, useRef, forwardRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import {
-  ArrowLeft,
   X,
   Menu,
   ShoppingCart,
@@ -10,336 +10,215 @@ import {
   Store,
   Maximize,
   Minimize,
-  Download as DownloadIcon,
-  Printer as PrintIcon,
   BookOpen,
-  Columns,
-  Square,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
   Globe,
   Loader,
+  Grid3X3,
+  RotateCcw,
+  ArrowLeft,
 } from "lucide-react";
-import {
-  Worker,
-  Viewer,
-  ScrollMode,
-  SpecialZoomLevel,
-  ViewMode,
-} from "@react-pdf-viewer/core";
-import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
+import HTMLFlipBook from "react-pageflip";
+import * as pdfjsLib from "pdfjs-dist";
 import toast from "react-hot-toast";
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import api from "../api/api";
+import { updateReadingProgress } from "../api/ordersApi";
 import Loading from "../components/Loading";
 import RateModal from "../components/RateModal";
 import AuthModal from "../components/AuthModal";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { useAuth } from "../context/AuthContext";
-import "../pdfViewerFullscreen.css";
 import { getImageSrc } from "../utils/imageUtils";
+import "../css/flipbook.css";
 
-// Number of pages a guest / logged-in unpurchased user can view freely
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+
 const PREVIEW_PAGE_LIMIT = 5;
+
+const FlipPage = forwardRef(
+  (
+    { image, pageNumber, isBlurred, isCover, isBack, bookTitle, coverSrc, onFlipTo },
+    ref,
+  ) => {
+    const src = typeof image === "string" ? image : image?.src;
+    const links = image && typeof image === "object" ? image.links || [] : [];
+
+    return (
+      <div
+        ref={ref}
+        className="flipbook-page"
+        data-density={isCover || isBack ? "hard" : "soft"}
+      >
+        <div
+          className={`flipbook-page-inner${isCover ? " is-cover" : ""}${isBack ? " is-back-cover" : ""}`}
+        >
+          {isCover ? (
+            <div className="flipbook-cover">
+              {coverSrc && (
+                <img
+                  src={coverSrc}
+                  alt={bookTitle}
+                  className="flipbook-cover-image"
+                />
+              )}
+              <div className="flipbook-cover-overlay">
+                <h2 className="flipbook-cover-title">{bookTitle}</h2>
+              </div>
+            </div>
+          ) : isBack ? (
+            <div className="flipbook-back-cover">
+              <BookOpen size={40} />
+              <p>— ✦ —</p>
+            </div>
+          ) : (
+            <>
+              {src ? (
+                <>
+                  <img
+                    src={src}
+                    alt={`Page ${pageNumber}`}
+                    className="flipbook-page-image"
+                    draggable={false}
+                  />
+                  {!isBlurred &&
+                    links.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link.url || "#"}
+                        target={link.url ? "_blank" : undefined}
+                        rel={link.url ? "noopener noreferrer" : undefined}
+                        title={link.url || `Go to page ${link.targetPage}`}
+                        className="flipbook-pdf-link"
+                        style={{
+                          position: "absolute",
+                          left: `${link.left}%`,
+                          top: `${link.top}%`,
+                          width: `${link.width}%`,
+                          height: `${link.height}%`,
+                          zIndex: 10,
+                          cursor: "pointer",
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (link.url) {
+                            window.open(link.url, "_blank");
+                          } else if (link.targetPage && onFlipTo) {
+                            onFlipTo(link.targetPage);
+                          }
+                        }}
+                      >
+                        <span className="sr-only">Link</span>
+                      </a>
+                    ))}
+                </>
+              ) : (
+                <div className="flipbook-page-loading">
+                  <Loader className="animate-spin" size={28} />
+                </div>
+              )}
+              {isBlurred && <div className="flipbook-page-blur" />}
+              <div className="flipbook-page-number">{pageNumber}</div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  },
+);
+FlipPage.displayName = "FlipPage";
 
 const PdfViewer = () => {
   const { bookId } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { addToCart, cartItems, isBookPurchased, purchasedBooks, updatePurchasedBookProgress } = useCart();
+
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pageImages, setPageImages] = useState([]);
+  const [pdfProgress, setPdfProgress] = useState(0);
+  const [pdfReady, setPdfReady] = useState(false);
+  // Restore last-read page from DB
+  const savedStartPage = (() => {
+    if (!purchasedBooks || purchasedBooks.length === 0) return 0;
+    const pBook = purchasedBooks.find(b => String(b._id || b.id) === String(bookId));
+    return pBook?.lastReadPage || 0;
+  })();
+
+  const [currentPage, setCurrentPage] = useState(savedStartPage);
+  
+  // Ref to ensure we only jump to savedStartPage once
+  const hasJumpedRef = useRef(false);
+
+  // Sync flipbook with saved page when it's fully ready
+  useEffect(() => {
+    if (pdfReady && savedStartPage > 0 && !hasJumpedRef.current) {
+      // Small delay to let HTMLFlipBook finish its internal initialization
+      const timer = setTimeout(() => {
+        if (flipBookRef.current?.pageFlip()) {
+          try {
+            flipBookRef.current.pageFlip().turnToPage(savedStartPage);
+            setCurrentPage(savedStartPage);
+            hasJumpedRef.current = true;
+          } catch (e) { /* ignore */ }
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [pdfReady, savedStartPage]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [showHeader, setShowHeader] = useState(false);
-  const { addToCart, cartItems, isBookPurchased } = useCart();
+  const [showThumbnails, setShowThumbnails] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
+  const [bookDimensions, setBookDimensions] = useState({ w: 400, h: 560 });
 
-  // State for page tracking
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const [totalPages, setTotalPages] = useState(0);
+  const flipBookRef = useRef(null);
+  const containerRef = useRef(null);
+  const viewportRef = useRef(null);
+  // Stable ref so the PDF effect never re-runs just because isBookPurchased changed reference
+  const purchasedRef = useRef(false);
 
-  const [translationPopup, setTranslationPopup] = useState({
-    visible: false,
-    text: "",
-    x: 0,
-    y: 0,
-    status: "idle",
-    translatedText: "",
-  });
-
-  // Default to dual page in landscape, single page in portrait
-  const [viewMode, setViewMode] = useState(() => {
-    const isPortrait = window.innerHeight >= window.innerWidth;
-    return isPortrait ? ViewMode.SinglePage : ViewMode.DualPage;
-  });
-
-  const lastOrientationRef = useRef(window.innerHeight >= window.innerWidth);
-
+  // Fetch book data
   useEffect(() => {
-    let timeoutId;
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const isCurrentlyPortrait = window.innerHeight >= window.innerWidth;
-        const wasPortrait = lastOrientationRef.current;
-
-        if (wasPortrait !== isCurrentlyPortrait) {
-          const targetMode = isCurrentlyPortrait ? ViewMode.SinglePage : ViewMode.DualPage;
-          if (viewerApiRef.current) {
-            viewerApiRef.current.switchViewMode(targetMode);
-          }
-          setViewMode(targetMode);
-        }
-        lastOrientationRef.current = isCurrentlyPortrait;
-      }, 100);
-    };
-
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("orientationchange", handleResize);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("orientationchange", handleResize);
-    };
-  }, []);
-
-  const handleToggleViewMode = () => {
-    const nextMode = viewMode === ViewMode.SinglePage ? ViewMode.DualPage : ViewMode.SinglePage;
-    if (viewerApiRef.current) {
-      viewerApiRef.current.switchViewMode(nextMode);
-    }
-    setViewMode(nextMode);
-  };
-
-  // Initialize page navigation plugin
-  const pageNavigationPluginInstance = pageNavigationPlugin();
-  const { jumpToPage } = pageNavigationPluginInstance;
-
-  // Initialize the plugin instance
-  const defaultLayoutPluginInstance = defaultLayoutPlugin({
-    // eslint-disable-next-line no-unused-vars
-    renderToolbar: (ToolbarSlot) => {
-      return (
-        <ToolbarSlot>
-          {(slots) => {
-            const {
-              CurrentPageInput,
-              GoToNextPage,
-              GoToPreviousPage,
-              NumberOfPages,
-              Zoom,
-              ZoomIn,
-              ZoomOut,
-            } = slots;
-            return (
-              <div
-                className={`flex items-center touch-area justify-center w-full ${isFullScreen ? "hidden" : ""}`}
-              >
-                <div className="hidden sm:flex ml-5 px-1">
-                  <ZoomOut />
-                </div>
-                <div className="hidden sm:flex px-1">
-                  <Zoom />
-                </div>
-                <div className="hidden sm:flex px-1">
-                  <ZoomIn />
-                </div>
-                <div className="px-1 ml-auto">
-                  <GoToPreviousPage />
-                </div>
-                <div className="px-1 w-16">
-                  <CurrentPageInput />
-                </div>
-                <div className="px-1 text-white">
-                  / <NumberOfPages />
-                </div>
-                <div className="px-1">
-                  <GoToNextPage />
-                </div>
-                <div className="px-1">
-                  <button
-                    onClick={handleToggleViewMode}
-                    className="p-2 rounded-md text-white hover:bg-white/10 cursor-pointer"
-                    aria-label={viewMode === ViewMode.SinglePage ? t("Show Two Pages") : t("Show Single Page")}
-                    title={viewMode === ViewMode.SinglePage ? t("Show Two Pages") : t("Show Single Page")}
-                  >
-                    {viewMode === ViewMode.SinglePage ? <Columns size={20} /> : <Square size={20} />}
-                  </button>
-                </div>
-              </div>
-            );
-          }}
-        </ToolbarSlot>
-      );
-    },
-  });
-
-  // Show appropriate modal when page limit is reached
-  useEffect(() => {
-    const isPurchased = book && isBookPurchased(book._id || book.id);
-    if (currentPage > PREVIEW_PAGE_LIMIT && !isPurchased) {
-      if (jumpToPage) jumpToPage(PREVIEW_PAGE_LIMIT - 1); // 0-indexed, enforce blocking
-
-      if (!user) {
-        setShowAuthModal(true);
-      } else {
-        setShowAddToCartModal(true);
-      }
-    }
-  }, [currentPage, jumpToPage, book, isBookPurchased, user]);
-
-  const viewerRef = useRef(null);
-  const blurLogicRef = useRef();
-  blurLogicRef.current = (pageIndex) => {
-    const isPurchased = book && isBookPurchased(book._id || book.id);
-    return !isPurchased && pageIndex >= PREVIEW_PAGE_LIMIT;
-  };
-
-  const viewerApiRef = useRef(null);
-  const apiPlugin = useRef({
-    install: (pluginFunctions) => {
-      viewerApiRef.current = pluginFunctions;
-    },
-    renderPageLayer: (renderProps) => {
-      const isBlurred = blurLogicRef.current(renderProps.pageIndex);
-      return isBlurred ? (
-        <div className="absolute inset-0 z-20 backdrop-blur-[12px] bg-zinc-900/10" />
-      ) : <></>;
-    }
-  }).current;
-
-  const toggleFullScreen = () => {
-    if (!document.fullscreenElement) {
-      if (viewerRef.current) {
-        viewerRef.current.requestFullscreen();
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
-  };
-
-  useEffect(() => {
-    const handleFullScreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-
-      // Remove all padding/margin when in fullscreen
-      if (document.fullscreenElement) {
-        document.fullscreenElement.style.padding = "0";
-        document.fullscreenElement.style.margin = "0";
-      }
-    };
-    document.addEventListener("fullscreenchange", handleFullScreenChange);
-    return () =>
-      document.removeEventListener("fullscreenchange", handleFullScreenChange);
-  }, []);
-
-  // Force re-calculate zoom when fullscreen or viewMode changes
-  useEffect(() => {
-    let timeoutId;
-    const applyZoom = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        if (viewerApiRef.current) {
-          // Make both single and dual page modes fill the screen width
-          viewerApiRef.current.zoom(SpecialZoomLevel.PageWidth);
-        }
-      }, 150);
-    };
-
-    applyZoom();
-
-    window.addEventListener("resize", applyZoom);
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener("resize", applyZoom);
-    };
-  }, [isFullScreen, viewMode]);
-
-  // Handle Text Selection for Translation
-  useEffect(() => {
-    const handleMouseUp = (e) => {
-      const popupEl = document.getElementById("translation-popup");
-      if (popupEl && popupEl.contains(e.target)) return;
-
-      setTimeout(() => {
-        const selection = window.getSelection();
-        const text = selection.toString().trim();
-
-        if (text && text.length > 0) {
+    if (!bookId) return;
+    const fetchBook = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/books/${bookId}`);
+        const data = res.data?.data || res.data;
+        if (data?.pdf) {
           try {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            
-            // Calculate coordinates relative to the PDF viewer container
-            const viewerRect = viewerRef.current 
-              ? viewerRef.current.getBoundingClientRect() 
-              : { left: 0, top: 0, width: 0, height: 0 };
-            
-            setTranslationPopup({
-              visible: true,
-              text,
-              x: rect.left - viewerRect.left + rect.width / 2,
-              y: rect.top - viewerRect.top - 10,
-              status: "idle",
-              translatedText: "",
-            });
-          } catch (err) {
-            console.error("Error getting selection", err);
+            const pdfRes = await api.get(`/books/${bookId}/preview`);
+            if (pdfRes.data?.success && pdfRes.data?.data?.url)
+              data.pdfUrl = pdfRes.data.data.url;
+          } catch (e) {
+            console.error("PDF URL error:", e);
           }
-        } else {
-           setTranslationPopup(prev => prev.visible ? { ...prev, visible: false } : prev);
         }
-      }, 50);
+        setBook(data);
+      } catch (e) {
+        console.error("Fetch book error:", e);
+        setError(t("Failed to load book data"));
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchBook();
+  }, [bookId, t]);
 
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("touchend", handleMouseUp);
-    
-    return () => {
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("touchend", handleMouseUp);
-    };
-  }, []);
-
-  const handleTranslate = async (e) => {
-    e.stopPropagation();
-    if (!translationPopup.text) return;
-    setTranslationPopup(prev => ({ ...prev, status: "loading" }));
-
-    try {
-      // Detect if text contains Arabic characters
-      const isArabic = /[\u0600-\u06FF]/.test(translationPopup.text);
-      const targetLang = isArabic ? 'en' : 'ar';
-      
-      // Using Google Translate public api (free, reliable, accurate)
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(translationPopup.text)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      const result = data[0].map((item) => item[0]).join("");
-      
-      setTranslationPopup(prev => ({ 
-        ...prev, 
-        status: "success", 
-        translatedText: result 
-      }));
-    } catch (error) {
-      console.error("Translation error:", error);
-      setTranslationPopup(prev => ({ 
-        ...prev, 
-        status: "error", 
-        translatedText: t("Translation failed") 
-      }));
-    }
-  };
-
-  // Update page title
+  // Page title
   useEffect(() => {
     if (book?.title) document.title = `${book.title} : ${t("Bookfly Store")}`;
     return () => {
@@ -347,52 +226,288 @@ const PdfViewer = () => {
     };
   }, [book, t]);
 
+  // Sync purchased status into the ref whenever book or cart changes (no effect re-run)
   useEffect(() => {
-    const fetchBook = async () => {
+    purchasedRef.current = !!(book && isBookPurchased(book._id || book.id));
+  }, [book, isBookPurchased]);
+
+  // Determine if user is authorized to read the full book (purchased, author, or admin)
+  const isAuthorized = useMemo(() => {
+    if (!book) return false;
+    if (isBookPurchased(book._id || book.id)) return true;
+    if (user?.role === "admin") return true;
+    if (user && book.submittedBy) {
+      const authorId = typeof book.submittedBy === 'object' ? book.submittedBy._id || book.submittedBy.id : book.submittedBy;
+      if (authorId === user._id || authorId === user.id) return true;
+    }
+    return false;
+  }, [book, isBookPurchased, user]);
+
+  // Automatically close modals if authorized becomes true
+  useEffect(() => {
+    if (isAuthorized) {
+      setShowAddToCartModal(false);
+      setShowAuthModal(false);
+    }
+  }, [isAuthorized]);
+
+  // Render PDF pages to images
+  useEffect(() => {
+    if (!book?.pdf) return;
+    let cancelled = false;
+    let currentXhr = null;
+
+    const renderPdf = async () => {
       try {
-        setLoading(true);
+        const pdfStreamUrl = `/api/books/${bookId}/pdf-stream`;
+        const purchased = purchasedRef.current;
+        const cacheName = "bookfly-purchased-books";
 
-        const response = await api.get(`/books/${bookId}`);
-        const bookData = response.data?.data || response.data;
+        let pdfData = null;
 
-        // Fetch the signed S3 preview URL (public route — works for guests too)
-        if (bookData?.pdf) {
+        // Try cache for purchased books
+        if (purchased) {
           try {
-            const pdfResponse = await api.get(`/books/${bookId}/preview`);
-            if (pdfResponse.data?.success && pdfResponse.data?.data?.url) {
-              bookData.pdfUrl = pdfResponse.data.data.url;
-            }
-          } catch (pdfErr) {
-            console.error("Error fetching PDF URL:", pdfErr);
+            const cache = await caches.open(cacheName);
+            const cachedRes = await cache.match(pdfStreamUrl);
+            if (cachedRes) pdfData = new Uint8Array(await cachedRes.arrayBuffer());
+          } catch { /* cache unavailable */ }
+        }
+
+        // Fetch from server if not in cache
+        if (!pdfData) {
+          pdfData = await new Promise((resolve, reject) => {
+            currentXhr = new XMLHttpRequest();
+            currentXhr.open("POST", pdfStreamUrl, true);
+            currentXhr.responseType = "arraybuffer";
+            currentXhr.withCredentials = true;
+            // Track real download progress when Content-Length is known
+            currentXhr.onprogress = (e) => {
+              if (e.lengthComputable) {
+                // Map download to 0–50% so rendering gets the other 50%
+                setPdfProgress(Math.round((e.loaded / e.total) * 50));
+              }
+            };
+            currentXhr.onload = () => {
+              if (currentXhr.status >= 200 && currentXhr.status < 300) {
+                setPdfProgress(50); // download done
+                resolve(new Uint8Array(currentXhr.response));
+              } else {
+                reject(new Error(`PDF fetch failed: ${currentXhr.status}`));
+              }
+            };
+            currentXhr.onerror = () => reject(new Error("Network error fetching PDF"));
+            currentXhr.onabort = () => reject(new Error("Request aborted"));
+            currentXhr.send();
+          });
+
+          // Cache it for next time (purchased only)
+          if (purchased) {
+            try {
+              const cache = await caches.open(cacheName);
+              await cache.put(pdfStreamUrl, new Response(pdfData));
+            } catch { /* cache write failed, not critical */ }
           }
         }
 
-        setBook(bookData);
-      } catch (err) {
-        console.error("Error fetching book:", err);
-        setError(t("Failed to load book data"));
-      } finally {
-        setLoading(false);
+        if (cancelled) return;
+        const doc = await pdfjsLib.getDocument({ data: pdfData }).promise;
+        if (cancelled) return;
+
+        const numPages = doc.numPages;
+        setTotalPages(numPages);
+        localStorage.setItem(`book_${bookId}_pages`, numPages.toString());
+
+        const firstPage = await doc.getPage(1);
+        const vp0 = firstPage.getViewport({ scale: 1 });
+        setBookDimensions((prev) => ({ ...prev, aspect: vp0.width / vp0.height }));
+
+        // ── Phase 1: Render pages in parallel batches of 4 ───────────────
+        const scale = 1.5;
+        const BATCH = 4;
+        const imgs = new Array(numPages).fill(null);
+        setPageImages([...imgs]);
+
+        const renderOnePage = async (i) => {
+          if (cancelled) return;
+          const page = await doc.getPage(i + 1);
+          const vp = page.getViewport({ scale });
+          const canvas = document.createElement("canvas");
+          canvas.width = vp.width;
+          canvas.height = vp.height;
+          await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+          if (cancelled) return;
+          const blob = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+          if (cancelled) return;
+          imgs[i] = { src: URL.createObjectURL(blob), links: [] };
+          setPageImages([...imgs]);
+          // Rendering maps to 50–100% (download was 0–50%)
+          setPdfProgress(50 + Math.round(((i + 1) / numPages) * 50));
+          // Show the flipbook as soon as page 1 is ready
+          if (i === 0 && !cancelled) setPdfReady(true);
+        };
+
+        for (let start = 0; start < numPages; start += BATCH) {
+          if (cancelled) return;
+          const end = Math.min(start + BATCH, numPages);
+          await Promise.all(
+            Array.from({ length: end - start }, (_, j) => renderOnePage(start + j))
+          );
+        }
+        if (!cancelled) setPdfReady(true);
+
+        // ── Phase 2: Load link annotations silently in background ─────────
+        for (let i = 0; i < numPages; i++) {
+          if (cancelled) return;
+          try {
+            const page = await doc.getPage(i + 1);
+            const vp = page.getViewport({ scale });
+            const annotations = await page.getAnnotations();
+            const links = [];
+            for (const a of annotations) {
+              if (a.subtype !== "Link") continue;
+              const rect = vp.convertToViewportRectangle(a.rect);
+              const x1 = Math.min(rect[0], rect[2]);
+              const y1 = Math.min(rect[1], rect[3]);
+              const x2 = Math.max(rect[0], rect[2]);
+              const y2 = Math.max(rect[1], rect[3]);
+              let url = a.url || null;
+              let targetPage = null;
+              if (!url && a.dest) {
+                try {
+                  const dest = typeof a.dest === "string"
+                    ? await doc.getDestination(a.dest)
+                    : a.dest;
+                  if (dest?.[0]) targetPage = (await doc.getPageIndex(dest[0])) + 1;
+                } catch { /* silent */ }
+              }
+              if (url || targetPage) {
+                links.push({
+                  url, targetPage,
+                  left: (x1 / vp.width) * 100,
+                  top: (y1 / vp.height) * 100,
+                  width: ((x2 - x1) / vp.width) * 100,
+                  height: ((y2 - y1) / vp.height) * 100,
+                });
+              }
+            }
+            if (links.length > 0 && imgs[i]) {
+              imgs[i] = { ...imgs[i], links };
+              setPageImages((prev) => {
+                const next = [...prev];
+                next[i] = imgs[i];
+                return next;
+              });
+            }
+          } catch { /* best-effort — silently skip */ }
+        }
+      } catch (e) {
+        if (cancelled) return; // user navigated away — not an error
+        console.error("PDF render error:", e);
+        toast.error(t("Failed to load PDF. Please try again."), {
+          duration: 4000,
+          style: { background: "#333", color: "#fff", direction: i18n.dir() },
+        });
       }
     };
 
-    if (bookId) fetchBook();
-  }, [bookId, t]);
+    renderPdf();
+    return () => {
+      cancelled = true;
+      if (currentXhr) currentXhr.abort();
+    };
+   
+  }, [book, bookId, t, i18n]);
 
-  // Check if book is already in cart
+  // Calculate flipbook dimensions
+  const calcDimensions = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const availH = rect.height - 80;
+    const availW = rect.width - 40;
+    const aspect = bookDimensions.aspect || 400 / 560;
+    const isPortrait = window.innerWidth < 768;
+    const spreadW = isPortrait ? 1 : 2;
+    let pageH = availH;
+    let pageW = pageH * aspect;
+    if (pageW * spreadW > availW) {
+      pageW = availW / spreadW;
+      pageH = pageW / aspect;
+    }
+    setBookDimensions((prev) => ({
+      ...prev,
+      w: Math.round(pageW),
+      h: Math.round(pageH),
+    }));
+  }, [bookDimensions.aspect]);
+
+  useEffect(() => {
+    calcDimensions();
+  }, [pdfReady, calcDimensions]);
+  useEffect(() => {
+    window.addEventListener("resize", calcDimensions);
+    return () => window.removeEventListener("resize", calcDimensions);
+  }, [calcDimensions]);
+
+  // Preview page limit enforcement & Progress sync
+  useEffect(() => {
+    if (currentPage > PREVIEW_PAGE_LIMIT && !isAuthorized) {
+      if (flipBookRef.current)
+        flipBookRef.current.pageFlip().turnToPage(PREVIEW_PAGE_LIMIT);
+      if (!user) setShowAuthModal(true);
+      else setShowAddToCartModal(true);
+    }
+    
+    // Save last page to DB for purchased books (debounced)
+    // Only save if currentPage > 0 and it's not the initial load where currentPage is just settling
+    if (isAuthorized && currentPage > 0) {
+      const timer = setTimeout(() => {
+        updateReadingProgress(bookId, currentPage).catch(console.error);
+        updatePurchasedBookProgress(bookId, currentPage);
+      }, 1000); // 1-second debounce
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, book, user, bookId, isAuthorized]);
+
+  // Fullscreen
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) viewportRef.current?.requestFullscreen();
+    else document.exitFullscreen?.();
+  };
+  useEffect(() => {
+    const h = () => setIsFullScreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", h);
+    return () => document.removeEventListener("fullscreenchange", h);
+  }, []);
+
+  // Navigation
+  const flipPrev = () => flipBookRef.current?.pageFlip()?.flipPrev();
+  const flipNext = () => flipBookRef.current?.pageFlip()?.flipNext();
+  const flipTo = (p) => {
+    if (!isAuthorized && p > PREVIEW_PAGE_LIMIT) {
+       flipBookRef.current?.pageFlip()?.turnToPage(PREVIEW_PAGE_LIMIT);
+       setShowThumbnails(false);
+       if (!user) setShowAuthModal(true);
+       else setShowAddToCartModal(true);
+       return;
+    }
+    flipBookRef.current?.pageFlip()?.turnToPage(p);
+    setShowThumbnails(false);
+  };
+
+  // Zoom
+  const zoomIn = () => setZoom((z) => Math.min(z + 0.2, 2.5));
+  const zoomOut = () => setZoom((z) => Math.max(z - 0.2, 0.5));
+  const zoomReset = () => setZoom(1);
+
+  // Cart
   const isBookInCart =
     book &&
-    cartItems &&
-    cartItems.some(
-      (item) =>
-        item.id === book.id ||
-        item._id === book._id ||
-        item.id === book._id ||
-        item._id === book.id,
+    cartItems?.some((i) =>
+      [i.id, i._id].some((x) => [book.id, book._id].includes(x)),
     );
-
-  const handleAddToCart = async (bookToAdd) => {
-    // If already in cart, navigate to checkout
+  const handleAddToCart = async (b) => {
     if (isBookInCart) {
       if (!user) {
         setShowAuthModal(true);
@@ -401,112 +516,84 @@ const PdfViewer = () => {
       navigate("/checkout", { state: { books: cartItems } });
       return;
     }
-
-    // Otherwise, add to cart
-    const result = await addToCart(bookToAdd);
+    const result = await addToCart(b);
     if (result?.success) {
-      toast.success(`${t("Added")} "${bookToAdd.title}" ${t("to Cart")}!`, {
+      toast.success(`${t("Added")} "${b.title}" ${t("to Cart")}!`, {
         duration: 1500,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: i18n.dir(),
-          width: "fit-content",
-          maxWidth: "90vw",
-          minWidth: "200px",
-          padding: "12px 16px",
-          textAlign: "center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        },
+        style: { background: "#333", color: "#fff", direction: i18n.dir() },
       });
-
       setTimeout(() => {
         toast(
-          (tToast) => (
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <span className="text-sm font-medium">{t("Do you want to checkout?")}</span>
+          (tT) => (
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">
+                {t("Do you want to checkout?")}
+              </span>
               <button
                 onClick={() => {
-                  toast.dismiss(tToast.id);
-                  navigate(!user ? "/cart" : "/checkout", { state: { books: [bookToAdd] } });
+                  toast.dismiss(tT.id);
+                  navigate(!user ? "/cart" : "/checkout", {
+                    state: { books: [b] },
+                  });
                 }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition duration-200 cursor-pointer"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 cursor-pointer"
               >
                 {t("Go to Checkout")}
               </button>
             </div>
           ),
-          { 
-            duration: 5000, 
-            style: { 
-              direction: i18n.dir(),
-              background: "#333",
-              color: "#fff",
-            } 
-          }
+          {
+            duration: 5000,
+            style: { direction: i18n.dir(), background: "#333", color: "#fff" },
+          },
         );
       }, 1500);
     }
   };
 
+  // Close & Rate
   const handleCloseClick = () => {
-    // Check if user has already been asked to rate this book (user-specific)
-    const userId = user?._id || user?.id || "guest";
-    const storageKey = `ratedBooks_${userId}`;
-    const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    const hasRated = ratedBooks.includes(bookId);
-
-    if (!hasRated) {
-      setShowRateModal(true);
-    } else {
-      // If already rated/skipped, just navigate back
-      navigate(-1);
-    }
+    const uid = user?._id || user?.id || "guest";
+    const rated = JSON.parse(localStorage.getItem(`ratedBooks_${uid}`) || "[]");
+    if (!rated.includes(bookId)) setShowRateModal(true);
+    else navigate(-1);
   };
-
   const handleRateSubmit = async (rating) => {
     try {
       await api.post(`/books/${bookId}/rate`, {
         rating,
         userId: user?._id || user?.id,
       });
-
-      // Mark this book as rated for this user
-      const userId = user?._id || user?.id || "guest";
-      const storageKey = `ratedBooks_${userId}`;
-      const ratedBooks = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      if (!ratedBooks.includes(bookId)) {
-        ratedBooks.push(bookId);
-        localStorage.setItem(storageKey, JSON.stringify(ratedBooks));
+      const uid = user?._id || user?.id || "guest";
+      const key = `ratedBooks_${uid}`;
+      const rated = JSON.parse(localStorage.getItem(key) || "[]");
+      if (!rated.includes(bookId)) {
+        rated.push(bookId);
+        localStorage.setItem(key, JSON.stringify(rated));
       }
-
       toast.success(t("Thank you for your rating!"), {
         duration: 2000,
-        style: {
-          background: "#333",
-          color: "#fff",
-          direction: i18n.dir(),
-        },
+        style: { background: "#333", color: "#fff", direction: i18n.dir() },
       });
-    } catch (error) {
-      console.error("Error submitting rating:", error);
+    } catch (e) {
+      console.error("Rating error:", e);
     } finally {
       navigate(-1);
     }
   };
 
-  const handleRateClose = () => {
-    setShowRateModal(false);
-    navigate(-1);
-  };
-  if (loading) {
+  const getAutoDir = (text = "") =>
+    /^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0590-\u05FF]/.test(text.trim())
+      ? "rtl"
+      : "ltr";
+
+  // Loading states
+  if (loading)
     return (
       <div className="relative">
         <button
           dir="ltr"
-          className="group touch-area absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-[12px] text-gray-900 dark:text-white text-base transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1 w-auto justify-center"
+          className="group absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="group-hover:-translate-x-1 transition-all" />
@@ -519,14 +606,13 @@ const PdfViewer = () => {
         />
       </div>
     );
-  }
 
-  if (error || !book) {
+  if (error || !book)
     return (
       <div className="relative">
         <button
           dir="ltr"
-          className="group touch-area absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-[12px] text-gray-900 dark:text-white text-base transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1 w-auto justify-center"
+          className="group absolute top-5 left-5 cursor-pointer flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white transition-transform duration-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:-translate-x-1"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="group-hover:-translate-x-1 transition-all" />
@@ -540,170 +626,217 @@ const PdfViewer = () => {
         />
       </div>
     );
-  }
-  const getAutoDir = (text = "") => {
-    if (
-      /^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0590-\u05FF]/.test(
-        text.trim(),
-      )
-    ) {
-      return "rtl";
-    }
-    return "ltr";
-  };
+
+  const coverSrc = book.coverImage
+    ? typeof book.coverImage === "string" && book.coverImage.startsWith("http")
+      ? book.coverImage
+      : getImageSrc(book.coverImage)
+    : null;
+
   return (
-    <div className="h-[100dvh] w-full overflow-hidden flex flex-col bg-zinc-900">
-      {/* Simple Header - Hidden in full screen */}
+    <div className="flipbook-viewport" ref={viewportRef}>
+      {/* Header */}
       {!isFullScreen && (
-        <header
-          dir="rtl"
-          className="relative flex-none w-full z-50 bg-zinc-800 border-b border-gray-700"
-        >
-          <div className="flex items-center py-1 px-2 md:py-2 md:px-3">
-            {/* Close Button - Shows Rate Modal */}
-            <div className="touch-area flex-none flex justify-start">
-              <button
-                onClick={handleCloseClick}
-                aria-label={t("Close")}
-                className="touch-area flex items-center gap-2 px-2 py-2 border border-white/20 rounded-full text-white hover:scale-95 hover:bg-white/20 transition-all duration-300 active:scale-95 cursor-pointer"
-              >
-                <X size={18} className="md:w-5 md:h-5" />
-              </button>
-            </div>
-
-            {/* Book Title*/}
-            <div className="flex-1 flex justify-center min-w-0 px-2">
-              <h2
-                dir={getAutoDir(book.title)}
-                className="touch-area  text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-gray-400 to-gray-600 text-sm sm:text-base md:text-xl font-semibold text-center truncate w-full"
-              >
-                {book.title}
-              </h2>
-            </div>
-            {/* Menu Toggle */}
-            <div className="flex-none flex justify-end items-center gap-2">
-              <button
-                onClick={toggleFullScreen}
-                className="touch-area p-1.5 md:p-2 rounded-full border border-white/20 text-white hover:bg-white/20 transition-all duration-300 active:scale-95 cursor-pointer"
-                aria-label={
-                  isFullScreen ? t("Exit Full Screen") : t("Enter Full Screen")
-                }
-              >
-                {isFullScreen ? (
-                  <Minimize size={18} className="md:w-5 md:h-5" />
-                ) : (
-                  <Maximize size={18} className="md:w-5 md:h-5" />
-                )}
-              </button>
-              <button
-                onClick={() => setShowHeader(!showHeader)}
-                className="touch-area p-1.5 md:p-2 rounded-full  border border-white/20 text-white hover:bg-white/20 transition-all duration-300 active:scale-95 cursor-pointer"
-                aria-label={showHeader ? t("Hide Menu") : t("Show Menu")}
-                aria-expanded={showHeader}
-              >
-                {showHeader ? (
-                  <X
-                    size={18}
-                    className="md:w-5 md:h-5 transition-all duration-300"
-                  />
-                ) : (
-                  <Menu
-                    size={18}
-                    className="md:w-5 md:h-5 transition-all duration-300"
-                  />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Dropdown Navigation*/}
-          <div
-            className={`absolute top-full left-0 right-0 overflow-hidden transition-all duration-300 z-40 ${
-              showHeader
-                ? "max-h-96 sm:max-h-40 opacity-100"
-                : "max-h-0 opacity-0"
-            }`}
+        <div className="flipbook-header" dir="rtl">
+          <button
+            className="flipbook-header-btn"
+            onClick={handleCloseClick}
+            aria-label={t("Close")}
           >
-            <nav dir="ltr" className="bg-zinc-900/95 border-t border-gray-700">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2 sm:gap-6 p-4">
-                <button
-                  onClick={() => {
-                    navigate("/");
-                    setShowHeader(false);
-                  }}
-                  className="touch-area px-4 py-2 text-indigo-200 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-all duration-300 text-center active:scale-95 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <Home size={20} />
-                    {t("Home")}
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/shop");
-                    setShowHeader(false);
-                  }}
-                  className="touch-area px-4 py-2 text-indigo-200 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-all duration-300 text-center active:scale-95 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <Store size={20} />
-                    {t("Shop")}
-                  </div>
-                </button>
-                {/* Hide cart buttons for purchased books */}
-                {!isBookPurchased(book?._id || book?.id) && (
-                  <>
-                    <button
-                      onClick={() => handleAddToCart(book)}
-                      className="touch-area px-4 py-2 text-indigo-200 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-all duration-300 text-center active:scale-95 cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        {isBookInCart ? (
-                          <>
-                            <FaShoppingCart size={20} />
-                            {t("Go to Checkout")}
-                          </>
-                        ) : (
-                          <>
-                            <FaCartPlus size={20} />
-                            {t("Add to Cart")}
-                          </>
-                        )}
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate("/cart");
-                        setShowHeader(false);
-                      }}
-                      className="touch-area px-4 py-2 text-indigo-200 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-all duration-300 text-center active:scale-95 cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <ShoppingCart size={20} />
-                        {t("View Cart")}
-                      </div>
-                    </button>
-                  </>
-                )}
-              </div>
-            </nav>
+            <X size={18} />
+          </button>
+          <h2 className="flipbook-header-title" dir={getAutoDir(book.title)}>
+            {book.title}
+          </h2>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="flipbook-header-btn" onClick={toggleFullScreen}>
+              {isFullScreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            </button>
+            <button
+              className="flipbook-header-btn"
+              onClick={() => setShowHeader(!showHeader)}
+            >
+              {showHeader ? <X size={18} /> : <Menu size={18} />}
+            </button>
           </div>
-        </header>
+          {/* Dropdown */}
+          <div
+            className={`flipbook-dropdown ${showHeader ? "open" : "closed"}`}
+          >
+            <div className="flipbook-dropdown-items" dir="ltr">
+              <button
+                className="flipbook-dropdown-item"
+                onClick={() => {
+                  navigate("/");
+                  setShowHeader(false);
+                }}
+              >
+                <Home size={18} />
+                {t("Home")}
+              </button>
+              <button
+                className="flipbook-dropdown-item"
+                onClick={() => {
+                  navigate("/shop");
+                  setShowHeader(false);
+                }}
+              >
+                <Store size={18} />
+                {t("Shop")}
+              </button>
+              {!isAuthorized && (
+                <>
+                  <button
+                    className="flipbook-dropdown-item"
+                    onClick={() => handleAddToCart(book)}
+                  >
+                    {isBookInCart ? (
+                      <>
+                        <FaShoppingCart size={18} />
+                        {t("Go to Checkout")}
+                      </>
+                    ) : (
+                      <>
+                        <FaCartPlus size={18} />
+                        {t("Add to Cart")}
+                      </>
+                    )}
+                  </button>
+                  <button
+                    className="flipbook-dropdown-item"
+                    onClick={() => {
+                      navigate("/cart");
+                      setShowHeader(false);
+                    }}
+                  >
+                    <ShoppingCart size={18} />
+                    {t("View Cart")}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* PDF Content */}
-      <div
-        className="flex-1 min-h-0 w-full overflow-hidden bg-zinc-900 relative flex flex-col"
-        ref={viewerRef}
-      >
-        {/* Rate Modal - Moved inside for Fullscreen visibility */}
+      {/* Flipbook Area */}
+      <div className="flipbook-area" ref={containerRef}>
+        {/* PDF Loading */}
+        {!pdfReady && book.pdf && (
+          <div className="flipbook-loading-screen">
+            <div className="flipbook-loading-book" />
+            <div className="flipbook-loading-progress">
+              <div className="flipbook-loading-bar">
+                <div
+                  className="flipbook-loading-fill"
+                  style={{ width: `${pdfProgress}%` }}
+                />
+              </div>
+              <div dir={i18n.dir()} className="flipbook-loading-text">
+                {pdfProgress < 50
+                  ? `${t("Downloading book...")} ${pdfProgress * 2}%`
+                  : `${t("Loading book...")} ${(pdfProgress - 50) * 2}%`}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Book */}
+        {pdfReady && pageImages.length > 0 && (
+          <>
+            <div
+              className="flipbook-book-wrapper"
+              style={{ transform: `scale(${zoom})` }}
+            >
+              <HTMLFlipBook
+                ref={flipBookRef}
+                width={bookDimensions.w}
+                height={bookDimensions.h}
+                size="fixed"
+                minWidth={200}
+                maxWidth={800}
+                minHeight={280}
+                maxHeight={1120}
+                showCover={true}
+                flippingTime={800}
+                usePortrait={window.innerWidth < 768}
+                startPage={savedStartPage || 0}
+                drawShadow={true}
+                maxShadowOpacity={0.5}
+                useMouseEvents={true}
+                swipeDistance={30}
+                showPageCorners={true}
+                clickEventForward={false}
+                mobileScrollSupport={false}
+                onFlip={(e) => setCurrentPage(e.data)}
+                className="flipbook-book"
+              >
+                {/* Cover */}
+                <FlipPage
+                  isCover
+                  bookTitle={book.title}
+                  coverSrc={coverSrc}
+                  pageNumber={0}
+                />
+                {/* PDF Pages */}
+                {pageImages.map((img, i) => (
+                  <FlipPage
+                    key={i}
+                    image={img}
+                    pageNumber={i + 1}
+                    isBlurred={!isAuthorized && i >= PREVIEW_PAGE_LIMIT}
+                    onFlipTo={flipTo}
+                  />
+                ))}
+                {/* Back Cover */}
+                <FlipPage isBack pageNumber={totalPages + 1} />
+              </HTMLFlipBook>
+            </div>
+
+            {/* Nav Arrows */}
+            <button
+              className="flipbook-nav-arrow flipbook-nav-prev"
+              onClick={flipPrev}
+              aria-label={t("Previous")}
+            >
+              <ChevronLeft size={22} />
+            </button>
+            <button
+              className="flipbook-nav-arrow flipbook-nav-next"
+              onClick={flipNext}
+              aria-label={t("Next")}
+            >
+              <ChevronRight size={22} />
+            </button>
+
+            {/* Fullscreen Exit */}
+            {isFullScreen && (
+              <button
+                onClick={toggleFullScreen}
+                className="absolute top-4 left-4 z-50 p-2 bg-black/40 text-white rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm cursor-pointer"
+              >
+                <X size={22} />
+              </button>
+            )}
+          </>
+        )}
+
+        {!book.pdf && (
+          <div className="flex flex-col items-center gap-6 text-gray-300 p-16 bg-zinc-800 border border-zinc-700/30 rounded-2xl">
+            <p>{t("No PDF file found for this book")}</p>
+          </div>
+        )}
+
+        {/* Modals */}
         <RateModal
           isOpen={showRateModal}
-          onClose={handleRateClose}
+          onClose={() => {
+            setShowRateModal(false);
+            navigate(-1);
+          }}
           onSubmit={handleRateSubmit}
           bookTitle={book?.title || ""}
         />
-        {/* Auth Modal — shown to guests who reach the page limit */}
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
@@ -712,20 +845,18 @@ const PdfViewer = () => {
             <BookOpen className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400" />
           }
         />
-
-        {/* Add to Cart Modal — shown to logged-in users who haven't purchased */}
         {showAddToCartModal && (
           <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-zinc-700 transform transition-all scale-100 opacity-100">
+            <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-zinc-700">
               <div className="flex flex-col items-center text-center gap-4">
-                <div className="p-3  text-indigo-600 dark:text-indigo-400">
+                <div className="p-3 text-indigo-600 dark:text-indigo-400">
                   <FaCartPlus size={32} />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                     {t("Enjoying")}
                   </h3>
-                  <span className="touch-area text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                  <span className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
                     {book.title}
                     {getAutoDir(book.title) === "rtl" ? "؟" : "?"}
                   </span>
@@ -736,7 +867,7 @@ const PdfViewer = () => {
                 <div className="flex gap-3 w-full mt-2">
                   <button
                     onClick={() => setShowAddToCartModal(false)}
-                    className="touch-area flex-1 px-4 py-2 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
+                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
                   >
                     {t("Later")}
                   </button>
@@ -745,7 +876,7 @@ const PdfViewer = () => {
                       handleAddToCart(book);
                       setShowAddToCartModal(false);
                     }}
-                    className="touch-area flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30 cursor-pointer"
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30 cursor-pointer"
                   >
                     {isBookInCart ? t("Go to Checkout") : t("Add to Cart")}
                   </button>
@@ -755,131 +886,108 @@ const PdfViewer = () => {
           </div>
         )}
 
-        {book.pdf ? (
-          <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-            <div className="absolute inset-0 flex flex-col">
-              {isFullScreen && (
+        {/* Thumbnails Panel */}
+        {showThumbnails && (
+          <>
+            <div
+              className="flipbook-thumbnails-overlay"
+              onClick={() => setShowThumbnails(false)}
+            />
+            <div className="flipbook-thumbnails-panel">
+              <div className="flipbook-thumbnails-header">
+                <h3>{t("Pages")}</h3>
                 <button
-                  onClick={toggleFullScreen}
-                  className="touch-area cursor-pointer absolute top-4 left-4 z-[70] p-2 bg-black/40 text-white rounded-full hover:bg-zinc-400 transition-colors backdrop-blur-sm"
-                  aria-label="Exit Full Screen"
+                  className="flipbook-thumbnails-close"
+                  onClick={() => setShowThumbnails(false)}
                 >
-                  <X size={24} />
+                  <X size={16} />
                 </button>
-              )}
-
-              {/* Floating Page Counter in Fullscreen */}
-              {isFullScreen && totalPages > 0 && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/60 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-medium border border-white/10 select-none pointer-events-none">
-                  {currentPage} / {totalPages}
-                </div>
-              )}
-              {/* Add blur effect */}
-              <div className="flex-1 min-h-0 relative w-full transition-all duration-300">
-                <Viewer
-                  fileUrl={book.pdfUrl || getImageSrc(book.pdf)}
-                  plugins={[
-                    defaultLayoutPluginInstance,
-                    pageNavigationPluginInstance,
-                    apiPlugin,
-                  ]}
-                  defaultScale={SpecialZoomLevel.PageWidth}
-                  viewMode={viewMode}
-                  theme={{
-                    theme: "dark",
-                  }}
-                  onDocumentLoad={(e) => {
-                    const numPages = e.doc.numPages;
-                    setTotalPages(numPages);
-
-                    // Save page count to localStorage for BookDetails
-                    localStorage.setItem(
-                      `book_${bookId}_pages`,
-                      numPages.toString(),
-                    );
-                  }}
-                  onPageChange={(e) => setCurrentPage(e.currentPage + 1)} // currentPage is 0-indexed
-                />
+              </div>
+              <div className="flipbook-thumbnails-grid">
+                {pageImages.map((img, i) => {
+                  const isPurchased = book && isBookPurchased(book._id || book.id);
+                  if (!isPurchased && i >= PREVIEW_PAGE_LIMIT) return null;
+                  
+                  return (
+                    img && (
+                      <div
+                        key={i}
+                        className={`flipbook-thumbnail ${currentPage === i + 1 ? "active" : ""}`}
+                        onClick={() => flipTo(i + 1)}
+                      >
+                        <img src={typeof img === "string" ? img : img.src} alt={`${i + 1}`} />
+                        <div className="flipbook-thumbnail-number">{i + 1}</div>
+                      </div>
+                    )
+                  );
+                })}
               </div>
             </div>
-          </Worker>
-        ) : (
-          <div
-            dir={getAutoDir(t("No PDF file found for this book"))}
-            className="flex flex-col items-center gap-6 text-gray-300 p-16 bg-zinc-800 border border-zinc-700/30 rounded-2xl"
-          >
-            <p>{t("No PDF file found for this book")}</p>
-          </div>
-        )}
-
-        {/* Translation Popup Overlay - restricted inside PDF scope */}
-        {translationPopup.visible && (
-          <div
-            id="translation-popup"
-            className={
-              translationPopup.status === "idle"
-                ? "absolute z-[70] transform -translate-x-1/2 -translate-y-full pb-3 shadow-2xl transition-all duration-300 pointer-events-auto"
-                : "absolute inset-0 z-[80] flex items-center justify-center bg-black/60 pointer-events-auto animate-in fade-in duration-200"
-            }
-            style={
-              translationPopup.status === "idle"
-                ? { left: `${translationPopup.x}px`, top: `${translationPopup.y}px` }
-                : {}
-            }
-            onMouseDown={
-              translationPopup.status === "idle" ? (e) => e.stopPropagation() : undefined
-            }
-            onClick={
-              translationPopup.status !== "idle" ? () => setTranslationPopup(prev => ({ ...prev, visible: false })) : undefined
-            }
-          >
-            {translationPopup.status === "idle" ? (
-              <button
-                onClick={handleTranslate}
-                className="cursor-pointer touch-area bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-full shadow-lg flex items-center justify-center transform hover:scale-105 active:scale-95 transition-all outline-none border-2 border-indigo-300 dark:border-indigo-800"
-                title={t("Translate selected text")}
-              >
-                <Globe size={22} />
-              </button>
-            ) : (
-              <div 
-                className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 p-5 md:p-6 rounded-2xl shadow-2xl w-11/12 max-w-lg relative animate-in zoom-in-95 duration-200"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => setTranslationPopup(prev => ({ ...prev, visible: false }))}
-                  className="cursor-pointer absolute top-4 left-3 p-2 mb-4 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white rounded-md dark:hover:bg-white/10 transition-colors"
-                  title={t("Close translation")}
-                >
-                  <X size={20} />
-                </button>
-                
-                <div dir="rtl" className="flex flex-col gap-4 mt-6">
-                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-base font-semibold mb-2">
-                    <Globe size={20}/>
-                    <span>{t("Translation")}</span>
-                  </div>
-                  
-                  {translationPopup.status === "loading" ? (
-                    <div dir={i18n.dir()} className="text-gray-600 dark:text-gray-300 flex items-center gap-3 py-6 justify-center">
-                      <Loader size={26} className="animate-spin text-indigo-500" />
-                      <span className="text-base font-medium">{t("Translating...")}</span>
-                    </div>
-                  ) : translationPopup.status === "success" ? (
-                    <p className="text-gray-900 dark:text-white text-base md:text-lg leading-relaxed max-h-[60vh] overflow-y-auto fancy-scrollbar select-text pb-2">
-                      {translationPopup.translatedText}
-                    </p>
-                  ) : (
-                    <p className="text-red-500 dark:text-red-400 text-base font-medium py-4 text-center">
-                      {translationPopup.translatedText}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          </>
         )}
       </div>
+
+      {/* Bottom Toolbar */}
+      {pdfReady && (
+        <div className="flipbook-toolbar">
+          <button
+            className="flipbook-toolbar-btn"
+            onClick={flipPrev}
+            title={t("Previous")}
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <div className="flipbook-page-indicator">
+            <span>{Math.max(1, currentPage)}</span> / {totalPages}
+          </div>
+          <button
+            className="flipbook-toolbar-btn"
+            onClick={flipNext}
+            title={t("Next")}
+          >
+            <ChevronRight size={18} />
+          </button>
+          <div className="flipbook-toolbar-divider" />
+          <button
+            className="flipbook-toolbar-btn"
+            onClick={zoomOut}
+            title={t("Zoom Out")}
+          >
+            <ZoomOut size={17} />
+          </button>
+          <button
+            className="flipbook-toolbar-btn"
+            onClick={zoomReset}
+            title={t("Reset Zoom")}
+          >
+            <RotateCcw size={15} />
+          </button>
+          <button
+            className="flipbook-toolbar-btn"
+            onClick={zoomIn}
+            title={t("Zoom In")}
+          >
+            <ZoomIn size={17} />
+          </button>
+          <div className="flipbook-toolbar-divider" />
+          <button
+            className={`flipbook-toolbar-btn ${showThumbnails ? "active" : ""}`}
+            onClick={() => setShowThumbnails(!showThumbnails)}
+            title={t("Pages")}
+          >
+            <Grid3X3 size={17} />
+          </button>
+          <button
+            className="flipbook-toolbar-btn"
+            onClick={toggleFullScreen}
+            title={
+              isFullScreen ? t("Exit Full Screen") : t("Enter Full Screen")
+            }
+          >
+            {isFullScreen ? <Minimize size={17} /> : <Maximize size={17} />}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
