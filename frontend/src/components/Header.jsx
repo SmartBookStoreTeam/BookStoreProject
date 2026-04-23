@@ -283,8 +283,6 @@ const Header = () => {
                 <g transform="translate(94, 38) rotate(-14) translate(-94, -38)">
                   <rect x="88" y="20" width="7" height="18" rx="1" />
                 </g>
-
-
               </g>
             </pattern>
             <rect
