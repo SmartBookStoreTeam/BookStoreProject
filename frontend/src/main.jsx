@@ -13,18 +13,29 @@ const GOOGLE_CLIENT_ID =
 const applyTheme = () => {
   const theme = localStorage.getItem("theme") || "system";
   const root = document.documentElement;
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
+
+  const updateMeta = (color) => {
+    if (metaThemeColor) metaThemeColor.setAttribute("content", color);
+    // Also update media ones to be safe or just hide them
+  };
+
   if (theme === "dark") {
     root.classList.add("dark");
+    updateMeta("#18181b");
   } else if (theme === "light") {
     root.classList.remove("dark");
+    updateMeta("#45428d");
   } else {
     const systemPrefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
     if (systemPrefersDark) {
       root.classList.add("dark");
+      updateMeta("#18181b");
     } else {
       root.classList.remove("dark");
+      updateMeta("#45428d");
     }
   }
 };

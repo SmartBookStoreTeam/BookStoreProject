@@ -49,6 +49,7 @@ import AddAuthorBook from "./pages/author/AddAuthorBook";
 import EditAuthorBook from "./pages/author/EditAuthorBook";
 import AuthorLayout from "./pages/author/AuthorLayout";
 import AuthorSubmissions from "./pages/author/AuthorSubmissions";
+import InstallPWA from "./components/InstallPWA";
 
 function App() {
   useScrollToTop();
@@ -68,6 +69,7 @@ function App() {
           <LoadingProvider>
             <NotificationProvider>
               <Toaster position="top-center" />
+              <InstallPWA />
               <OccasionModal />
               <Routes>
                 {/* Public Routes */}
