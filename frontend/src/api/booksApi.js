@@ -1,105 +1,5 @@
 import api from "./api";
-import { assets } from "../assets/assets";
 
-// Mock data (موحّد مع شكل الباك)
-const mockBooks = [
-  {
-    _id: "1",
-    title: "Cooking Made Easy",
-    author: "Emily Clark",
-    price: 9.99,
-    category: "cooking",
-    description: "Simple and delicious recipes for everyday cooking",
-    image: assets.book1,
-    ratings: 4,
-    numReviews: 0,
-    isActive: true,
-  },
-  {
-    _id: "2",
-    title: "Healthy Living",
-    author: "John Miller",
-    price: 12.99,
-    category: "health",
-    description: "Your guide to nutritious meals and balanced life",
-    image: assets.book2,
-    ratings: 5,
-    numReviews: 0,
-    isActive: true,
-  },
-  {
-    _id: "3",
-    title: "Creative Baking",
-    author: "Sarah Jones",
-    price: 7.49,
-    category: "baking",
-    description: "Fun and easy recipes for baking enthusiasts",
-    image: assets.book3,
-    ratings: 3,
-    numReviews: 0,
-    isActive: true,
-  },
-  {
-    _id: "4",
-    title: "Everyday Desserts",
-    author: "Mark Lee",
-    price: 10.99,
-    categories: ["Desserts", "Cooking"],
-    description: "Quick and tasty desserts for everyone",
-    image: assets.book4,
-    ratings: 4,
-    numReviews: 0,
-    isActive: true,
-  },
-  {
-    _id: "5",
-    title: "Italian Cuisine Masterclass",
-    author: "Marco Romano",
-    price: 15.99,
-    categories: ["Cooking", "Italian"],
-    description: "Authentic Italian recipes from traditional kitchens",
-    image: assets.releaseBook1,
-    ratings: 5,
-    numReviews: 0,
-    isActive: true,
-  },
-  {
-    _id: "6",
-    title: "Vegan Delights",
-    author: "Lisa Green",
-    price: 11.49,
-    categories: ["Health", "Vegan"],
-    description: "Plant-based recipes for healthy living",
-    image: assets.releaseBook2,
-    ratings: 4,
-    numReviews: 0,
-    isActive: true,
-  },
-  {
-    _id: "7",
-    title: "Artisan Bread Making",
-    author: "Robert Baker",
-    price: 8.99,
-    categories: ["Baking", "Cooking"],
-    description: "Master the art of bread making at home",
-    image: assets.releaseBook3,
-    ratings: 4,
-    numReviews: 0,
-    isActive: true,
-  },
-  {
-    _id: "8",
-    title: "Quick Weeknight Meals",
-    author: "Jennifer Cook",
-    price: 6.99,
-    categories: ["Cooking", "Quick Meals"],
-    description: "Fast and delicious meals for busy weeknights",
-    image: assets.book1,
-    ratings: 3,
-    numReviews: 0,
-    isActive: true,
-  },
-];
 
 const normalizeBook = (b) => {
   const rating =
@@ -147,18 +47,16 @@ export const getBooks = async (params = {}) => {
       data: normalized,
     };
   } catch (error) {
-    console.error("API Error, using mock data:", error);
-
+    console.error("API Error in getBooks:", error);
     return {
-      success: true,
-      data: mockBooks.map(normalizeBook),
+      success: false,
+      data: [],
       meta: {
         page: 1,
-        pageSize: mockBooks.length,
-        total: mockBooks.length,
+        pageSize: 0,
+        total: 0,
         pages: 1,
       },
-      fallback: true,
     };
   }
 };
@@ -178,13 +76,14 @@ export const searchBooks = async (params = {}) => {
     console.error("API Error in searchBooks:", error);
 
     // fallback بسيط: رجّع نفس شكل الباك
+    // Return empty results on search error instead of mock data
     return {
-      success: true,
-      data: mockBooks.map(normalizeBook),
+      success: false,
+      data: [],
       meta: {
         page: 1,
-        pageSize: mockBooks.length,
-        total: mockBooks.length,
+        pageSize: 0,
+        total: 0,
         pages: 1,
       },
       fallback: true,
@@ -202,16 +101,8 @@ export const getBookById = async (id) => {
       data: normalizeBook(res.data?.data),
     };
   } catch (error) {
-    console.error("API Error, using mock data:", error);
-
-    const mockBook = mockBooks.find((b) => (b._id || b.id) === id);
-    if (!mockBook) throw new Error("Book not found");
-
-    return {
-      success: true,
-      data: normalizeBook(mockBook),
-      fallback: true,
-    };
+    console.error("API Error in getBookById:", error);
+    throw error;
   }
 };
 
@@ -227,12 +118,9 @@ export const getTopBooks = async (limit = 10) => {
     };
   } catch (error) {
     console.error("API Error in getTopBooks:", error);
-    // Fallback to mock data sorted by rating
-    const sortedMock = [...mockBooks].sort((a, b) => b.ratings - a.ratings).slice(0, limit);
     return {
-      success: true,
-      data: sortedMock.map(normalizeBook),
-      fallback: true,
+      success: false,
+      data: [],
     };
   }
 };
