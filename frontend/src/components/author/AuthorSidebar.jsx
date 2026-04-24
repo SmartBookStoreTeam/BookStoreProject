@@ -108,7 +108,7 @@ const AuthorSidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-indigo-900 dark:bg-zinc-950 border-r border-indigo-700 dark:border-indigo-700/20 text-white transform ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-indigo-900 dark:bg-zinc-900 border-r border-indigo-700 dark:border-indigo-700/20 text-white transform ${
           sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full md:-translate-x-full"

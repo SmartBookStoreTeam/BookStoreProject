@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { createContext, useContext, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import * as authApi from "../api/authApi";
 
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(getStoredUser);
   const [logoutInProgress, setLogoutInProgress] = useState(false);
   const logoutInProgressRef = useRef(false);
+  const navigate = useNavigate();
 
   /* ---------- register ---------- */
   const register = async (name, email, password, extraData = {}) => {
@@ -128,6 +130,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
+
   /* ---------- logout ---------- */
   const logout = async () => {
     setLogoutInProgress(true);
@@ -145,7 +149,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLogoutInProgress(false);
       logoutInProgressRef.current = false;
-      window.location.href = "/"; // Force redirect and clear all React states
+      navigate("/login", { replace: true });
     }
   };
 
