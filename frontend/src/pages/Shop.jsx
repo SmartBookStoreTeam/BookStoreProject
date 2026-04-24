@@ -14,6 +14,7 @@ import { useGlobalLoading } from "../context/LoadingContext";
 import { motion } from "framer-motion";
 import { getMyOrders } from "../api/ordersApi";
 import BookCard from "../components/BookCard";
+import { useTrackSearch } from "../hooks/useTracking";
 
 //fixed sortMap
 const sortMap = {
@@ -51,7 +52,8 @@ const Shop = () => {
   const { setIsLoading } = useGlobalLoading();
   const navigate = useNavigate();
   const [categoryStats, setCategoryStats] = useState([]);
-  const [totalBooks, setTotalBooks] = useState(0);
+
+  useTrackSearch(debouncedSearch);
 
   // fetch category stats once
   useEffect(() => {
@@ -60,7 +62,6 @@ const Shop = () => {
         const res = await getCategoryStats();
         if (res.success) {
           setCategoryStats(res.data);
-          setTotalBooks(res.totalBooks || 0);
         }
       } catch (err) {
         console.error("Failed to fetch category stats:", err);
@@ -97,7 +98,8 @@ const Shop = () => {
           const res = await getMyOrders();
           // getMyOrders returns the array directly (not wrapped in {data:[]})
           const hasOrders = Array.isArray(res) && res.length > 0;
-          const hasBooksInLibrary = Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
+          const hasBooksInLibrary =
+            Array.isArray(purchasedBooks) && purchasedBooks.length > 0;
           setIsFirstOrder(!hasOrders && !hasBooksInLibrary);
         } catch {
           setIsFirstOrder(false);
@@ -109,7 +111,6 @@ const Shop = () => {
     checkFirstOrder();
   }, [user, purchasedBooks]);
 
-
   // reset page when filters change
   useEffect(() => {
     setPage(1);
@@ -117,6 +118,7 @@ const Shop = () => {
 
   // fetch from backend with filters (including price)
   useEffect(() => {
+    let ignore = false;
     const fetchBooks = async () => {
       try {
         setLoading(true);
@@ -132,30 +134,39 @@ const Shop = () => {
         };
 
         if (selectedCategories.length > 0) {
-          params.category = selectedCategories.join(',');
+          params.category = selectedCategories.join(",");
         }
 
         const res = debouncedSearch
           ? await searchBooks({ ...params, q: debouncedSearch })
           : await getBooks(params);
 
-        setApiBooks(Array.isArray(res?.data) ? res.data : []);
-        setMeta(res?.meta || null);
+        if (!ignore) {
+          setApiBooks(Array.isArray(res?.data) ? res.data : []);
+          setMeta(res?.meta || null);
+        }
       } catch (e) {
         console.error(e);
-        setApiBooks([]);
-        setMeta({
-          page: 1,
-          pages: 1,
-          total: 0,
-          pageSize: 0,
-        });
+        if (!ignore) {
+          setApiBooks([]);
+          setMeta({
+            page: 1,
+            pages: 1,
+            total: 0,
+            pageSize: 0,
+          });
+        }
       } finally {
-        setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     };
 
     fetchBooks();
+    return () => {
+      ignore = true;
+    };
   }, [
     page,
     debouncedSearch,
@@ -180,22 +191,22 @@ const Shop = () => {
 
   const shownBooks = storeBooks;
 
-
   // categories list derived from fetched stats
   const categories = useMemo(() => {
+    const filteredStats = categoryStats.filter((cat) => cat.count > 0);
     return [
       {
         value: "all",
-        label: "All Categories", // Keep raw key for translation later
-        count: categoryStats.length,
+        label: "All Categories",
+        count: filteredStats.length,
       },
-      ...categoryStats.map((cat) => ({
+      ...filteredStats.map((cat) => ({
         value: cat._id,
-        label: cat.name, // DB name
+        label: cat.name,
         count: cat.count,
       })),
     ];
-  }, [categoryStats, totalBooks]);
+  }, [categoryStats]);
 
   const bookTypes = [
     { value: "all", label: "All Books" },
@@ -341,18 +352,34 @@ const Shop = () => {
               <div className="flex flex-wrap items-center gap-2">
                 {categories.map((category) => {
                   const isAll = category.value === "all";
-                  const isSelected = isAll 
-                    ? selectedCategories.length === 0 
+                  const isSelected = isAll
+                    ? selectedCategories.length === 0
                     : selectedCategories.includes(category.value);
-                  
+
                   const handleToggle = () => {
                     if (isAll) {
                       setSelectedCategories([]);
                     } else {
                       if (selectedCategories.includes(category.value)) {
-                        setSelectedCategories(selectedCategories.filter(c => c !== category.value));
+                        setSelectedCategories(
+                          selectedCategories.filter(
+                            (c) => c !== category.value,
+                          ),
+                        );
+                        setSelectedCategories(
+                          selectedCategories.filter(
+                            (c) => c !== category.value,
+                          ),
+                        );
                       } else {
-                        setSelectedCategories([...selectedCategories, category.value]);
+                        setSelectedCategories([
+                          ...selectedCategories,
+                          category.value,
+                        ]);
+                        setSelectedCategories([
+                          ...selectedCategories,
+                          category.value,
+                        ]);
                       }
                     }
                   };
@@ -367,12 +394,16 @@ const Shop = () => {
                           : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-zinc-700 hover:border-indigo-400"
                       }`}
                     >
-                      <span>{isAll ? t(category.label) : t(category.label)}</span>
-                      <span className={`flex items-center justify-center min-w-[18px] h-4 px-1 rounded-md text-[10px] font-bold ${
-                        isSelected 
-                          ? "bg-white/20 text-white" 
-                          : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400"
-                      }`}>
+                      <span>
+                        {isAll ? t(category.label) : t(category.label)}
+                      </span>
+                      <span
+                        className={`flex items-center justify-center min-w-4.5 h-4 px-1 rounded-md text-[10px] font-bold ${
+                          isSelected
+                            ? "bg-white/20 text-white"
+                            : "bg-gray-100 dark:bg-zinc-700 text-gray-500 dark:text-gray-400"
+                        }`}
+                      >
                         {category.count}
                       </span>
                     </button>

@@ -1,5 +1,5 @@
 import { navLinks } from "../assets/assets";
-import { ShoppingCart, Menu, X, User } from "lucide-react"; // User icon for register
+import { ShoppingCart, Menu, X, User, Search } from "lucide-react"; // User icon for register
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useCart } from "../hooks/useCart";
@@ -15,6 +15,7 @@ import {
   Upload,
   ChevronDown,
   Bell,
+  LogOut,
 } from "lucide-react";
 import { FaMoon } from "react-icons/fa";
 import { useTheme } from "../hooks/useTheme";
@@ -100,6 +101,8 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [openNotifications, setOpenNotifications] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const firstName = user?.name?.split(" ")[0];
 
@@ -135,6 +138,8 @@ const Header = () => {
   const languageRef = useRef(null);
   const mobileLanguageRef = useRef(null);
   const notificationsRef = useRef(null);
+  const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
   const notificationsDropdownRef = useRef(null);
   const mobileNotificationsDropdownRef = useRef(null);
   const mobileNotificationsRef = useRef(null);
@@ -145,6 +150,30 @@ const Header = () => {
   const closeLanguageDropdown = () => setOpenLanguageDropdown(false);
   const toggleNotifications = () => setOpenNotifications(!openNotifications);
   const closeNotifications = () => setOpenNotifications(false);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      handleSafeNavigation(e, `/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
+      if (isMenuOpen) closeMenu();
+    }
+  };
+  
+  const toggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (!isSearchOpen) {
+      setTimeout(() => document.getElementById("desktop-search-input")?.focus(), 100);
+    }
+  };
+
+  const toggleMobileSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (!isSearchOpen) {
+      setTimeout(() => document.getElementById("mobile-search-input")?.focus(), 100);
+    }
+  };
 
   const toggleTheme = () => {
     if (theme === "light") setTheme("dark");
@@ -196,6 +225,10 @@ const Header = () => {
       if (!clickedInsideNotifications) {
         setOpenNotifications(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target) && 
+          mobileSearchRef.current && !mobileSearchRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -211,7 +244,7 @@ const Header = () => {
       <header
         className={`fixed top-0 left-0 w-full shadow-sm dark:shadow-zinc-900/50 z-50 border-b transition-all duration-300 ${
           isVisible ? "translate-y-0" : "-translate-y-full"
-        } bg-indigo-900/90 dark:bg-zinc-900/20 backdrop-blur-md border-indigo-800/50 dark:border-zinc-800`}
+        } bg-indigo-900/90 dark:bg-zinc-900/90 backdrop-blur-md border-indigo-800/50 dark:border-zinc-800/20`}
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none text-white/[0.07] dark:text-white/[0.05]">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -283,8 +316,6 @@ const Header = () => {
                 <g transform="translate(94, 38) rotate(-14) translate(-94, -38)">
                   <rect x="88" y="20" width="7" height="18" rx="1" />
                 </g>
-
-
               </g>
             </pattern>
             <rect
@@ -444,6 +475,48 @@ const Header = () => {
 
             {/* Desktop Right Side */}
             <div className="hidden md:flex items-center gap-5 shrink-0">
+              {/* Search */}
+              <div className="relative" ref={searchRef}>
+                <button
+                  onClick={toggleSearch}
+                  className={`relative p-2.5 rounded-full transition duration-300 cursor-pointer border border-white/10 dark:border-zinc-700/50 ${
+                    isSearchOpen
+                      ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold"
+                      : "bg-white/5 dark:bg-zinc-800/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80"
+                  }`}
+                  title={t("Search")}
+                >
+                  <Search size={22} />
+                </button>
+
+                {/* Search Dropdown */}
+                {isSearchOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl z-100 p-3 flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                      <input
+                        id="desktop-search-input"
+                        type="text"
+                        dir={i18n.dir()}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t("Search books or authors...")}
+                        className="w-full pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-800 border border-transparent focus:border-indigo-500 dark:focus:border-indigo-400 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none transition"
+                      />
+                      <button 
+                        type="submit" 
+                        className="absolute left-3 text-zinc-400 dark:text-zinc-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors cursor-pointer p-1"
+                        title={t("Search")}
+                      >
+                        <Search size={18} />
+                      </button>
+                    </form>
+                  </div>
+                )}
+              </div>
+
               {/* Notifications */}
               {user && (
                 <div className="relative" ref={notificationsRef}>
@@ -864,6 +937,48 @@ const Header = () => {
 
             {/* Mobile Cart + Menu */}
             <div className="flex items-center gap-4 md:hidden">
+              {/* Mobile Search */}
+              <div className="relative" ref={mobileSearchRef}>
+                <button
+                  onClick={toggleMobileSearch}
+                  className={`touch-area relative p-2.5 rounded-full transition duration-300 cursor-pointer border border-white/10 dark:border-zinc-700/50 active:scale-95 ${
+                    isSearchOpen
+                      ? "bg-white/15 dark:bg-indigo-500/10 text-white dark:text-indigo-400 font-semibold"
+                      : "bg-white/5 dark:bg-zinc-800/50 text-indigo-100 dark:text-zinc-400 hover:bg-white/15 hover:text-white dark:hover:text-indigo-300 dark:hover:bg-zinc-800/80"
+                  }`}
+                  title={t("Search")}
+                >
+                  <Search size={22} />
+                </button>
+
+                {/* Mobile Search Dropdown */}
+                {isSearchOpen && (
+                  <div
+                    className="fixed top-16 left-4 right-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-100 p-3 animate-in slide-in-from-top-2 duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                      <input
+                        id="mobile-search-input"
+                        type="text"
+                        dir="auto"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t("Search books...")}
+                        className="w-full pl-10 pr-4 py-3 bg-zinc-100 dark:bg-zinc-800 border border-transparent focus:border-indigo-500 dark:focus:border-indigo-400 rounded-lg text-base text-zinc-900 dark:text-zinc-100 focus:outline-none transition"
+                      />
+                      <button 
+                        type="submit" 
+                        className="absolute left-3 text-zinc-400 dark:text-zinc-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors cursor-pointer p-1"
+                        title={t("Search")}
+                      >
+                        <Search size={18} />
+                      </button>
+                    </form>
+                  </div>
+                )}
+              </div>
+
               {/* Mobile Notifications */}
               {user && (
                 <div className="relative" ref={mobileNotificationsRef}>
@@ -1187,7 +1302,7 @@ const Header = () => {
                     onClick={(e) =>
                       handleSafeNavigation(e, "/profile", closeMenu)
                     }
-                    className="touch-area items-center gap-3 py-2 px-4 rounded-lg transition-colors hover:text-indigo-600 dark:text-indigo-100  dark:hover:text-indigo-100 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                    className="touch-area flex items-center gap-3 pb-2 px-2 rounded-lg transition-colors hover:text-indigo-600 dark:text-indigo-100  dark:hover:text-indigo-100 hover:bg-zinc-300 dark:hover:bg-zinc-700"
                     onContextMenu={handleContextMenu}
                   >
                     <UserAvatar user={user} size={32} className="shadow-md" />
@@ -1212,6 +1327,7 @@ const Header = () => {
                     }}
                     className="touch-area w-full flex items-center gap-2 py-2 px-4 rounded-lg transition-colors text-red-500 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-left"
                   >
+                    <LogOut size={18} />
                     {t("Logout")}
                   </button>
                 </>

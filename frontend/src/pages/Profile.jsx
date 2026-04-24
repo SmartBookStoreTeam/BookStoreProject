@@ -165,7 +165,7 @@ const Profile = () => {
 
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-5 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 pt-5 md:pt-10 pb-10 transition-colors duration-300">
       <div className="w-full max-w-337.5 mx-auto px-4">
         {/* Back Button */}
         <button

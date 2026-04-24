@@ -23,7 +23,7 @@ export const useTheme = () => {
     } else if (theme === "light") {
       root.classList.remove("dark");
       if (metaThemeColor) {
-        metaThemeColor.setAttribute("content", "#e4e4e7"); // zinc-200
+        metaThemeColor.setAttribute("content", "#45428d"); // blended indigo-900/90 over white
       }
       if(typeof window !=="undefined"){
         localStorage.setItem("theme", "light");
@@ -42,7 +42,7 @@ export const useTheme = () => {
       } else {
         root.classList.remove("dark");
         if (metaThemeColor) {
-          metaThemeColor.setAttribute("content", "#e4e4e7"); // zinc-200
+          metaThemeColor.setAttribute("content", "#45428d"); // blended indigo-900/90 over white
         }
       }
       if(typeof window !=="undefined"){

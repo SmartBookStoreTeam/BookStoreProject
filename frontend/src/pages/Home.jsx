@@ -3,6 +3,7 @@ import FavoriteBooks from "../components/FavoriteBooks";
 import Landing from "../components/Landing";
 import DiscountOffer from "../components/DiscountOffer";
 import Releases from "../components/Releases";
+import PersonalizedBooks from "../components/PersonalizedBooks";
 import { useTranslation } from "react-i18next";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -14,7 +15,6 @@ const Home = () => {
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  // Show arrows based on scroll direction
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -25,16 +25,13 @@ const Home = () => {
         currentScrollY + windowHeight >= documentHeight - 100;
       const isNearTop = currentScrollY < 100;
 
-      // Scrolling down - show scroll to top button
       if (
         currentScrollY > lastScrollY &&
         currentScrollY > landingHeight - 200
       ) {
         setShowScrollTop(true);
         setShowScrollBottom(false);
-      }
-      // Scrolling up - show scroll to bottom button
-      else if (
+      } else if (
         currentScrollY < lastScrollY &&
         currentScrollY > landingHeight - 200
       ) {
@@ -42,47 +39,32 @@ const Home = () => {
         setShowScrollBottom(true);
       }
 
-      // Hide scroll to top when near top
-      if (isNearTop) {
-        setShowScrollTop(false);
-      }
-
-      // Hide scroll to bottom when near bottom
-      if (isNearBottom) {
-        setShowScrollBottom(false);
-      }
+      if (isNearTop) setShowScrollTop(false);
+      if (isNearBottom) setShowScrollBottom(false);
 
       setLastScrollY(currentScrollY);
     };
 
     window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Check initial position
-
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const headerOffset = 80; // Account for fixed header
+      const headerOffset = 80;
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition =
-        elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
   };
 
   return (
     <>
-      {/* Scroll to Top Button - Visible when scrolling down */}
+      {/* Scroll to Top */}
       <div
         className={`fixed bottom-6 z-50 transition-all duration-300 right-6 ${
           showScrollTop
@@ -102,7 +84,7 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Scroll to Bottom Button - Visible when scrolling up */}
+      {/* Scroll to Bottom */}
       <div
         className={`fixed bottom-6 z-50 transition-all duration-300 right-6 ${
           showScrollBottom
@@ -129,8 +111,11 @@ const Home = () => {
         </div>
         <SellerBooks />
         <FavoriteBooks />
+
+        {/* 🎯 Smart personalized section - replaces static Suggestion */}
+        <PersonalizedBooks />
+
         <DiscountOffer />
-        {/* <UserBooks /> */}
         <Releases />
       </div>
     </>
