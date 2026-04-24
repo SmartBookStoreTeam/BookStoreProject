@@ -1,5 +1,11 @@
-/* eslint-disable no-unused-vars */
-import { useState, useEffect, useRef, forwardRef, useCallback, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import {
@@ -33,6 +39,7 @@ import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { useAuth } from "../context/AuthContext";
 import { getImageSrc } from "../utils/imageUtils";
+import NormalPdfViewer from "../components/PdfViewer";
 import "../css/flipbook.css";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -42,7 +49,16 @@ const PREVIEW_PAGE_LIMIT = 5;
 
 const FlipPage = forwardRef(
   (
-    { image, pageNumber, isBlurred, isCover, isBack, bookTitle, coverSrc, onFlipTo },
+    {
+      image,
+      pageNumber,
+      isBlurred,
+      isCover,
+      isBack,
+      bookTitle,
+      coverSrc,
+      onFlipTo,
+    },
     ref,
   ) => {
     const src = typeof image === "string" ? image : image?.src;
@@ -85,6 +101,25 @@ const FlipPage = forwardRef(
                     className="flipbook-page-image"
                     draggable={false}
                   />
+                  {/* Text Layer for Selection/Copying */}
+                  {image?.textContent && !isBlurred && (
+                    <div className="flipbook-text-layer">
+                      {image.textContent.map((text, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            left: `${text.left}%`,
+                            top: `${text.top}%`,
+                            fontSize: `${text.fontSize}px`,
+                            fontFamily: "sans-serif",
+                            width: `${text.width}%`,
+                          }}
+                        >
+                          {text.str}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {!isBlurred &&
                     links.map((link, idx) => (
                       <a
@@ -138,7 +173,13 @@ const PdfViewer = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const { addToCart, cartItems, isBookPurchased, purchasedBooks, updatePurchasedBookProgress } = useCart();
+  const {
+    addToCart,
+    cartItems,
+    isBookPurchased,
+    purchasedBooks,
+    updatePurchasedBookProgress,
+  } = useCart();
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -149,31 +190,17 @@ const PdfViewer = () => {
   // Restore last-read page from DB
   const savedStartPage = (() => {
     if (!purchasedBooks || purchasedBooks.length === 0) return 0;
-    const pBook = purchasedBooks.find(b => String(b._id || b.id) === String(bookId));
+    const pBook = purchasedBooks.find(
+      (b) => String(b._id || b.id) === String(bookId),
+    );
     return pBook?.lastReadPage || 0;
   })();
 
   const [currentPage, setCurrentPage] = useState(savedStartPage);
-  
+
   // Ref to ensure we only jump to savedStartPage once
   const hasJumpedRef = useRef(false);
 
-  // Sync flipbook with saved page when it's fully ready
-  useEffect(() => {
-    if (pdfReady && savedStartPage > 0 && !hasJumpedRef.current) {
-      // Small delay to let HTMLFlipBook finish its internal initialization
-      const timer = setTimeout(() => {
-        if (flipBookRef.current?.pageFlip()) {
-          try {
-            flipBookRef.current.pageFlip().turnToPage(savedStartPage);
-            setCurrentPage(savedStartPage);
-            hasJumpedRef.current = true;
-          } catch (e) { /* ignore */ }
-        }
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [pdfReady, savedStartPage]);
   const [totalPages, setTotalPages] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showHeader, setShowHeader] = useState(false);
@@ -182,7 +209,77 @@ const PdfViewer = () => {
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
+  const [viewMode, setViewMode] = useState("flipbook"); // "flipbook" or "normal"
+
+  // Sync with saved page when it's fully ready
+  useEffect(() => {
+    if (savedStartPage > 0 && !hasJumpedRef.current) {
+      // 1. Always update the currentPage state so both viewers see the right page
+      setCurrentPage(savedStartPage);
+      
+      // 2. If flipbook is currently active, jump it too
+      if (viewMode === "flipbook" && pdfReady) {
+        const timer = setTimeout(() => {
+          try {
+            if (flipBookRef.current?.pageFlip()) {
+              flipBookRef.current.pageFlip().turnToPage(savedStartPage);
+            }
+          } catch (e) {
+            console.error("Flipbook jump error:", e);
+          }
+        }, 300);
+        
+        // Mark as jumped only if flipbook was ready or we've updated state
+        hasJumpedRef.current = true;
+        return () => clearTimeout(timer);
+      } else if (viewMode === "normal") {
+        // In normal view, setting currentPage is enough as NormalPdfViewer uses it in initialPage
+        hasJumpedRef.current = true;
+      }
+    }
+  }, [pdfReady, savedStartPage, viewMode]);
+
+
+  // Determine if user is authorized to read the full book (purchased, author, or admin)
+  const isAuthorized = useMemo(() => {
+    if (!book) return false;
+    if (isBookPurchased(book._id || book.id)) return true;
+    if (user?.role === "admin") return true;
+    if (user && book.submittedBy) {
+      const authorId =
+        typeof book.submittedBy === "object"
+          ? book.submittedBy._id || book.submittedBy.id
+          : book.submittedBy;
+      if (authorId === user._id || authorId === user.id) return true;
+    }
+    return false;
+  }, [book, isBookPurchased, user]);
+
+  // Set default view to normal for unpurchased books
+  useEffect(() => {
+    if (book && !isAuthorized) {
+      setViewMode("normal");
+    }
+  }, [book, isAuthorized]);
+
   const [bookDimensions, setBookDimensions] = useState({ w: 400, h: 560 });
+  const [pdfFile, setPdfFile] = useState(null);
+
+  // Sync flipbook page when returning from normal view
+  useEffect(() => {
+    if (viewMode === "flipbook" && flipBookRef.current && pdfReady) {
+      const timer = setTimeout(() => {
+        try {
+          // currentPage is 1-indexed, turnToPage expects 0-indexed or logical page index
+          // HTMLFlipBook handles pages including covers
+          flipBookRef.current.pageFlip().turnToPage(currentPage);
+        } catch (e) {
+          console.error("Error syncing flipbook page:", e);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, pdfReady, currentPage]);
 
   const flipBookRef = useRef(null);
   const containerRef = useRef(null);
@@ -231,18 +328,6 @@ const PdfViewer = () => {
     purchasedRef.current = !!(book && isBookPurchased(book._id || book.id));
   }, [book, isBookPurchased]);
 
-  // Determine if user is authorized to read the full book (purchased, author, or admin)
-  const isAuthorized = useMemo(() => {
-    if (!book) return false;
-    if (isBookPurchased(book._id || book.id)) return true;
-    if (user?.role === "admin") return true;
-    if (user && book.submittedBy) {
-      const authorId = typeof book.submittedBy === 'object' ? book.submittedBy._id || book.submittedBy.id : book.submittedBy;
-      if (authorId === user._id || authorId === user.id) return true;
-    }
-    return false;
-  }, [book, isBookPurchased, user]);
-
   // Automatically close modals if authorized becomes true
   useEffect(() => {
     if (isAuthorized) {
@@ -270,8 +355,11 @@ const PdfViewer = () => {
           try {
             const cache = await caches.open(cacheName);
             const cachedRes = await cache.match(pdfStreamUrl);
-            if (cachedRes) pdfData = new Uint8Array(await cachedRes.arrayBuffer());
-          } catch { /* cache unavailable */ }
+            if (cachedRes)
+              pdfData = new Uint8Array(await cachedRes.arrayBuffer());
+          } catch {
+            /* cache unavailable */
+          }
         }
 
         // Fetch from server if not in cache
@@ -296,7 +384,8 @@ const PdfViewer = () => {
                 reject(new Error(`PDF fetch failed: ${currentXhr.status}`));
               }
             };
-            currentXhr.onerror = () => reject(new Error("Network error fetching PDF"));
+            currentXhr.onerror = () =>
+              reject(new Error("Network error fetching PDF"));
             currentXhr.onabort = () => reject(new Error("Request aborted"));
             currentXhr.send();
           });
@@ -306,11 +395,19 @@ const PdfViewer = () => {
             try {
               const cache = await caches.open(cacheName);
               await cache.put(pdfStreamUrl, new Response(pdfData));
-            } catch { /* cache write failed, not critical */ }
+            } catch {
+              /* cache write failed, not critical */
+            }
           }
         }
 
         if (cancelled) return;
+
+        // Create a stable local URL from the downloaded data to share with the second viewer
+        const blob = new Blob([pdfData], { type: "application/pdf" });
+        const localUrl = URL.createObjectURL(blob);
+        setPdfFile(localUrl);
+
         const doc = await pdfjsLib.getDocument({ data: pdfData }).promise;
         if (cancelled) return;
 
@@ -320,7 +417,10 @@ const PdfViewer = () => {
 
         const firstPage = await doc.getPage(1);
         const vp0 = firstPage.getViewport({ scale: 1 });
-        setBookDimensions((prev) => ({ ...prev, aspect: vp0.width / vp0.height }));
+        setBookDimensions((prev) => ({
+          ...prev,
+          aspect: vp0.width / vp0.height,
+        }));
 
         // ── Phase 1: Render pages in parallel batches of 4 ───────────────
         const scale = 1.5;
@@ -335,11 +435,37 @@ const PdfViewer = () => {
           const canvas = document.createElement("canvas");
           canvas.width = vp.width;
           canvas.height = vp.height;
-          await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+          await page.render({
+            canvasContext: canvas.getContext("2d"),
+            viewport: vp,
+          }).promise;
           if (cancelled) return;
-          const blob = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+          const blob = await new Promise((r) =>
+            canvas.toBlob(r, "image/jpeg", 0.85),
+          );
           if (cancelled) return;
-          imgs[i] = { src: URL.createObjectURL(blob), links: [] };
+
+          // Extract text for digital books
+          const textContent = await page.getTextContent();
+          const textItems = textContent.items.map((item) => {
+            const [x, y] = vp.convertToViewportPoint(
+              item.transform[4],
+              item.transform[5],
+            );
+            return {
+              str: item.str,
+              left: (x / vp.width) * 100,
+              top: ((y - item.transform[0] * scale) / vp.height) * 100,
+              fontSize: item.transform[0] * scale,
+              width: ((item.width * scale) / vp.width) * 100,
+            };
+          });
+
+          imgs[i] = {
+            src: URL.createObjectURL(blob),
+            links: [],
+            textContent: textItems,
+          };
           setPageImages([...imgs]);
           // Rendering maps to 50–100% (download was 0–50%)
           setPdfProgress(50 + Math.round(((i + 1) / numPages) * 50));
@@ -351,7 +477,9 @@ const PdfViewer = () => {
           if (cancelled) return;
           const end = Math.min(start + BATCH, numPages);
           await Promise.all(
-            Array.from({ length: end - start }, (_, j) => renderOnePage(start + j))
+            Array.from({ length: end - start }, (_, j) =>
+              renderOnePage(start + j),
+            ),
           );
         }
         if (!cancelled) setPdfReady(true);
@@ -375,15 +503,20 @@ const PdfViewer = () => {
               let targetPage = null;
               if (!url && a.dest) {
                 try {
-                  const dest = typeof a.dest === "string"
-                    ? await doc.getDestination(a.dest)
-                    : a.dest;
-                  if (dest?.[0]) targetPage = (await doc.getPageIndex(dest[0])) + 1;
-                } catch { /* silent */ }
+                  const dest =
+                    typeof a.dest === "string"
+                      ? await doc.getDestination(a.dest)
+                      : a.dest;
+                  if (dest?.[0])
+                    targetPage = (await doc.getPageIndex(dest[0])) + 1;
+                } catch {
+                  /* silent */
+                }
               }
               if (url || targetPage) {
                 links.push({
-                  url, targetPage,
+                  url,
+                  targetPage,
                   left: (x1 / vp.width) * 100,
                   top: (y1 / vp.height) * 100,
                   width: ((x2 - x1) / vp.width) * 100,
@@ -399,7 +532,9 @@ const PdfViewer = () => {
                 return next;
               });
             }
-          } catch { /* best-effort — silently skip */ }
+          } catch {
+            /* best-effort — silently skip */
+          }
         }
       } catch (e) {
         if (cancelled) return; // user navigated away — not an error
@@ -416,7 +551,6 @@ const PdfViewer = () => {
       cancelled = true;
       if (currentXhr) currentXhr.abort();
     };
-   
   }, [book, bookId, t, i18n]);
 
   // Calculate flipbook dimensions
@@ -457,7 +591,7 @@ const PdfViewer = () => {
       if (!user) setShowAuthModal(true);
       else setShowAddToCartModal(true);
     }
-    
+
     // Save last page to DB for purchased books (debounced)
     // Only save if currentPage > 0 and it's not the initial load where currentPage is just settling
     if (isAuthorized && currentPage > 0) {
@@ -486,11 +620,11 @@ const PdfViewer = () => {
   const flipNext = () => flipBookRef.current?.pageFlip()?.flipNext();
   const flipTo = (p) => {
     if (!isAuthorized && p > PREVIEW_PAGE_LIMIT) {
-       flipBookRef.current?.pageFlip()?.turnToPage(PREVIEW_PAGE_LIMIT);
-       setShowThumbnails(false);
-       if (!user) setShowAuthModal(true);
-       else setShowAddToCartModal(true);
-       return;
+      flipBookRef.current?.pageFlip()?.turnToPage(PREVIEW_PAGE_LIMIT);
+      setShowThumbnails(false);
+      if (!user) setShowAuthModal(true);
+      else setShowAddToCartModal(true);
+      return;
     }
     flipBookRef.current?.pageFlip()?.turnToPage(p);
     setShowThumbnails(false);
@@ -721,212 +855,251 @@ const PdfViewer = () => {
 
       {/* Flipbook Area */}
       <div className="flipbook-area" ref={containerRef}>
-        {/* PDF Loading */}
-        {!pdfReady && book.pdf && (
-          <div className="flipbook-loading-screen">
-            <div className="flipbook-loading-book" />
-            <div className="flipbook-loading-progress">
-              <div className="flipbook-loading-bar">
-                <div
-                  className="flipbook-loading-fill"
-                  style={{ width: `${pdfProgress}%` }}
-                />
-              </div>
-              <div dir={i18n.dir()} className="flipbook-loading-text">
-                {pdfProgress < 50
-                  ? `${t("Downloading book...")} ${pdfProgress * 2}%`
-                  : `${t("Loading book...")} ${(pdfProgress - 50) * 2}%`}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Book */}
-        {pdfReady && pageImages.length > 0 && (
-          <>
-            <div
-              className="flipbook-book-wrapper"
-              style={{ transform: `scale(${zoom})` }}
-            >
-              <HTMLFlipBook
-                ref={flipBookRef}
-                width={bookDimensions.w}
-                height={bookDimensions.h}
-                size="fixed"
-                minWidth={200}
-                maxWidth={800}
-                minHeight={280}
-                maxHeight={1120}
-                showCover={true}
-                flippingTime={800}
-                usePortrait={window.innerWidth < 768}
-                startPage={savedStartPage || 0}
-                drawShadow={true}
-                maxShadowOpacity={0.5}
-                useMouseEvents={true}
-                swipeDistance={30}
-                showPageCorners={true}
-                clickEventForward={false}
-                mobileScrollSupport={false}
-                onFlip={(e) => setCurrentPage(e.data)}
-                className="flipbook-book"
-              >
-                {/* Cover */}
-                <FlipPage
-                  isCover
-                  bookTitle={book.title}
-                  coverSrc={coverSrc}
-                  pageNumber={0}
-                />
-                {/* PDF Pages */}
-                {pageImages.map((img, i) => (
-                  <FlipPage
-                    key={i}
-                    image={img}
-                    pageNumber={i + 1}
-                    isBlurred={!isAuthorized && i >= PREVIEW_PAGE_LIMIT}
-                    onFlipTo={flipTo}
-                  />
-                ))}
-                {/* Back Cover */}
-                <FlipPage isBack pageNumber={totalPages + 1} />
-              </HTMLFlipBook>
-            </div>
-
-            {/* Nav Arrows */}
-            <button
-              className="flipbook-nav-arrow flipbook-nav-prev"
-              onClick={flipPrev}
-              aria-label={t("Previous")}
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              className="flipbook-nav-arrow flipbook-nav-next"
-              onClick={flipNext}
-              aria-label={t("Next")}
-            >
-              <ChevronRight size={22} />
-            </button>
-
-            {/* Fullscreen Exit */}
-            {isFullScreen && (
-              <button
-                onClick={toggleFullScreen}
-                className="absolute top-4 left-4 z-50 p-2 bg-black/40 text-white rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm cursor-pointer"
-              >
-                <X size={22} />
-              </button>
-            )}
-          </>
-        )}
-
-        {!book.pdf && (
-          <div className="flex flex-col items-center gap-6 text-gray-300 p-16 bg-zinc-800 border border-zinc-700/30 rounded-2xl">
-            <p>{t("No PDF file found for this book")}</p>
-          </div>
-        )}
-
-        {/* Modals */}
-        <RateModal
-          isOpen={showRateModal}
-          onClose={() => {
-            setShowRateModal(false);
-            navigate(-1);
-          }}
-          onSubmit={handleRateSubmit}
-          bookTitle={book?.title || ""}
-        />
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          title="Please login or create an account to continue reading"
-          icon={
-            <BookOpen className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400" />
-          }
-        />
-        {showAddToCartModal && (
-          <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-zinc-700">
-              <div className="flex flex-col items-center text-center gap-4">
-                <div className="p-3 text-indigo-600 dark:text-indigo-400">
-                  <FaCartPlus size={32} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {t("Enjoying")}
-                  </h3>
-                  <span className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                    {book.title}
-                    {getAutoDir(book.title) === "rtl" ? "؟" : "?"}
-                  </span>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  {t("Would you like to add this book to your cart now?")}
-                </p>
-                <div className="flex gap-3 w-full mt-2">
-                  <button
-                    onClick={() => setShowAddToCartModal(false)}
-                    className="flex-1 px-4 py-2 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
-                  >
-                    {t("Later")}
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleAddToCart(book);
-                      setShowAddToCartModal(false);
-                    }}
-                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30 cursor-pointer"
-                  >
-                    {isBookInCart ? t("Go to Checkout") : t("Add to Cart")}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Thumbnails Panel */}
-        {showThumbnails && (
-          <>
-            <div
-              className="flipbook-thumbnails-overlay"
-              onClick={() => setShowThumbnails(false)}
+        {viewMode === "normal" ? (
+          <div className="absolute inset-0 z-[100] bg-zinc-900 overflow-hidden">
+            <NormalPdfViewer
+              book={book}
+              pdfFile={pdfFile}
+              isAuthorized={isAuthorized}
+              hideHeader={true}
+              initialPage={Math.max(0, currentPage - 1)} // PDF viewer is 0-indexed
+              onPageChange={(page) => setCurrentPage(page + 1)}
             />
-            <div className="flipbook-thumbnails-panel">
-              <div className="flipbook-thumbnails-header">
-                <h3>{t("Pages")}</h3>
-                <button
-                  className="flipbook-thumbnails-close"
-                  onClick={() => setShowThumbnails(false)}
+            {/* Overlay Toggle Button to go back to Flipbook */}
+            <button
+              onClick={() => setViewMode("flipbook")}
+              className="absolute bottom-15 md:bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-2xl hover:bg-indigo-700 transition-all active:scale-95 cursor-pointer border-2 border-white/20"
+              title={t("Switch to Book View")}
+            >
+              <BookOpen size={24} />
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* PDF Loading */}
+            {!pdfReady && book.pdf && (
+              <div className="flipbook-loading-screen">
+                <div className="flipbook-loading-book" />
+                <div className="flipbook-loading-progress">
+                  <div className="flipbook-loading-bar">
+                    <div
+                      className="flipbook-loading-fill"
+                      style={{ width: `${pdfProgress}%` }}
+                    />
+                  </div>
+                  <div dir={i18n.dir()} className="flipbook-loading-text">
+                    {pdfProgress < 50
+                      ? `${t("Downloading book...")} ${pdfProgress * 2}%`
+                      : `${t("Loading book...")} ${(pdfProgress - 50) * 2}%`}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Book */}
+            {pdfReady && pageImages.length > 0 && (
+              <div className="flipbook-scroll-container">
+                <div
+                  className="flipbook-book-wrapper"
+                  style={{
+                    transform: `scale(${zoom})`,
+                    width: bookDimensions.w * (window.innerWidth < 768 ? 1 : 2),
+                    height: bookDimensions.h,
+                  }}
                 >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="flipbook-thumbnails-grid">
-                {pageImages.map((img, i) => {
-                  const isPurchased = book && isBookPurchased(book._id || book.id);
-                  if (!isPurchased && i >= PREVIEW_PAGE_LIMIT) return null;
-                  
-                  return (
-                    img && (
-                      <div
+                  <HTMLFlipBook
+                    ref={flipBookRef}
+                    width={bookDimensions.w}
+                    height={bookDimensions.h}
+                    size="fixed"
+                    minWidth={200}
+                    maxWidth={800}
+                    minHeight={280}
+                    maxHeight={1120}
+                    showCover={true}
+                    flippingTime={400}
+                    usePortrait={window.innerWidth < 768}
+                    startPage={currentPage || 0}
+                    drawShadow={true}
+                    maxShadowOpacity={0.5}
+                    useMouseEvents={true}
+                    swipeDistance={30}
+                    showPageCorners={true}
+                    clickEventForward={false}
+                    mobileScrollSupport={false}
+                    onFlip={(e) => setCurrentPage(e.data)}
+                    className="flipbook-book"
+                  >
+                    {/* Cover */}
+                    <FlipPage
+                      isCover
+                      bookTitle={book.title}
+                      coverSrc={coverSrc}
+                      pageNumber={0}
+                    />
+                    {/* PDF Pages */}
+                    {pageImages.map((img, i) => (
+                      <FlipPage
                         key={i}
-                        className={`flipbook-thumbnail ${currentPage === i + 1 ? "active" : ""}`}
-                        onClick={() => flipTo(i + 1)}
-                      >
-                        <img src={typeof img === "string" ? img : img.src} alt={`${i + 1}`} />
-                        <div className="flipbook-thumbnail-number">{i + 1}</div>
-                      </div>
-                    )
-                  );
-                })}
+                        image={img}
+                        pageNumber={i + 1}
+                        isBlurred={
+                          !isBookPurchased(book._id || book.id) &&
+                          i >= PREVIEW_PAGE_LIMIT
+                        }
+                        onFlipTo={flipTo}
+                      />
+                    ))}
+                    {/* Back Cover */}
+                    <FlipPage isBack pageNumber={totalPages + 1} />
+                  </HTMLFlipBook>
+                </div>
+
+                {/* Nav Arrows */}
+                <button
+                  className="flipbook-nav-arrow flipbook-nav-prev"
+                  onClick={flipPrev}
+                  aria-label={t("Previous")}
+                >
+                  <ChevronLeft size={22} />
+                </button>
+                <button
+                  className="flipbook-nav-arrow flipbook-nav-next"
+                  onClick={flipNext}
+                  aria-label={t("Next")}
+                >
+                  <ChevronRight size={22} />
+                </button>
+
+                {/* Fullscreen Exit */}
+                {isFullScreen && (
+                  <button
+                    onClick={toggleFullScreen}
+                    className="absolute top-4 left-4 z-50 p-2 bg-black/40 text-white rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm cursor-pointer"
+                  >
+                    <X size={22} />
+                  </button>
+                )}
               </div>
-            </div>
+            )}
+
+            {!book.pdf && (
+              <div className="flex flex-col items-center gap-6 text-gray-300 p-16 bg-zinc-800 border border-zinc-700/30 rounded-2xl">
+                <p>{t("No PDF file found for this book")}</p>
+              </div>
+            )}
           </>
         )}
       </div>
 
+      {/* Modals */}
+      <RateModal
+        isOpen={showRateModal}
+        onClose={() => {
+          setShowRateModal(false);
+          navigate(-1);
+        }}
+        onSubmit={handleRateSubmit}
+        bookTitle={book?.title || ""}
+      />
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Please login or create an account to continue reading"
+        icon={
+          <BookOpen className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400" />
+        }
+      />
+      {showAddToCartModal && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-xl max-w-sm w-full border border-gray-200 dark:border-zinc-700">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="p-3 text-indigo-600 dark:text-indigo-400">
+                <FaCartPlus size={32} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {t("Enjoying")}
+                </h3>
+                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                  {book.title}
+                  {getAutoDir(book.title) === "rtl" ? "؟" : "?"}
+                </span>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                {t("Would you like to add this book to your cart now?")}
+              </p>
+              <div className="flex gap-3 w-full mt-2">
+                <button
+                  onClick={() => setShowAddToCartModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-zinc-600 transition-colors cursor-pointer"
+                >
+                  {t("Later")}
+                </button>
+                <button
+                  onClick={() => {
+                    handleAddToCart(book);
+                    setShowAddToCartModal(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30 cursor-pointer"
+                >
+                  {isBookInCart ? t("Go to Checkout") : t("Add to Cart")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Thumbnails Panel */}
+      {showThumbnails && (
+        <>
+          <div
+            className="flipbook-thumbnails-overlay"
+            onClick={() => setShowThumbnails(false)}
+          />
+          <div className="flipbook-thumbnails-panel">
+            <div className="flipbook-thumbnails-header">
+              <h3>{t("Pages")}</h3>
+              <button
+                className="flipbook-thumbnails-close"
+                onClick={() => setShowThumbnails(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flipbook-thumbnails-grid">
+              {pageImages.map((img, i) => {
+                const isPageBlurred =
+                  !isBookPurchased(book._id || book.id) &&
+                  i >= PREVIEW_PAGE_LIMIT;
+
+                return (
+                  img && (
+                    <div
+                      key={i}
+                      className={`flipbook-thumbnail ${currentPage === i + 1 ? "active" : ""} ${isPageBlurred ? "blurred" : ""}`}
+                      onClick={() => flipTo(i + 1)}
+                    >
+                      <img
+                        src={typeof img === "string" ? img : img.src}
+                        alt={`${i + 1}`}
+                        className={isPageBlurred ? "blur-[4px]" : ""}
+                      />
+                      <div className="flipbook-thumbnail-number">{i + 1}</div>
+                      {isPageBlurred && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <Lock size={14} className="text-white/70" />
+                        </div>
+                      )}
+                    </div>
+                  )
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
       {/* Bottom Toolbar */}
       {pdfReady && (
         <div className="flipbook-toolbar">
@@ -954,6 +1127,14 @@ const PdfViewer = () => {
             title={t("Zoom Out")}
           >
             <ZoomOut size={17} />
+          </button>
+          <div className="flipbook-toolbar-divider" />
+          <button
+            className={`flipbook-toolbar-btn ${viewMode === "normal" ? "active" : ""}`}
+            onClick={() => setViewMode("normal")}
+            title={t("Switch to Normal View")}
+          >
+            <Menu size={22} />
           </button>
           <button
             className="flipbook-toolbar-btn"

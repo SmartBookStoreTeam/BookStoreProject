@@ -66,7 +66,7 @@ const Login = () => {
     } else if (result.user?.role === "author") {
       redirectPath = "/author-dashboard";
     }
-    window.location.href = redirectPath;
+    navigate(redirectPath, { replace: true });
   };
 
   const handleGoogleSuccess = (user) => {
@@ -76,7 +76,7 @@ const Login = () => {
     } else if (user?.role === "author") {
       redirectPath = "/author-dashboard";
     }
-    window.location.href = redirectPath;
+    navigate(redirectPath, { replace: true });
   };
 
   const handleGoogleError = (error) => {
@@ -167,7 +167,7 @@ const Login = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent rounded-lg outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 p-2 appearance-none"
+                  className="w-full bg-transparent rounded-md outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-2 px-1 appearance-none"
                   placeholder="example@mail.com"
                   required
                 />
@@ -188,7 +188,7 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-1"
+                  className="w-full bg-transparent rounded-md outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-2 px-1"
                   placeholder="••••••••"
                   required
                 />

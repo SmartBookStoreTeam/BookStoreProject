@@ -84,7 +84,7 @@ const AdminBooks = () => {
   return (
     <div className="space-y-6 relative">
       {/* ================= HEADER WITH STATS ================= */}
-      <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 text-white">
+      <div className="bg-indigo-600 rounded-xl shadow-lg p-6 text-white">
         <div className="flex flex-col md:flex-row md:items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Book Management</h1>
