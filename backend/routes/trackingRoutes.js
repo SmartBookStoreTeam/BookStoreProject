@@ -6,11 +6,10 @@ import {
   getSuggestions,
   getTrending,
 } from "../controllers/trackingController.js";
-import { protect } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
-// Public routes (work for both guests and logged-in users)
+// All public - no protect middleware needed (works for guests + logged in)
 router.post("/view", trackView);
 router.post("/search", trackSearch);
 router.post("/purchase", trackPurchase);
