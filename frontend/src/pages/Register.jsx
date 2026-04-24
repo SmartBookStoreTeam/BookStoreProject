@@ -125,7 +125,7 @@ const getPosition = (e) => {
     } else if (user?.role === "author") {
       redirectPath = "/author-dashboard";
     }
-    window.location.href = redirectPath;
+    navigate(redirectPath, { replace: true });
   };
 
   const handleGoogleError = (error) => {

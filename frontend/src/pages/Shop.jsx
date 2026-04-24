@@ -118,6 +118,7 @@ const Shop = () => {
 
   // fetch from backend with filters (including price)
   useEffect(() => {
+    let ignore = false;
     const fetchBooks = async () => {
       try {
         setLoading(true);
@@ -140,23 +141,32 @@ const Shop = () => {
           ? await searchBooks({ ...params, q: debouncedSearch })
           : await getBooks(params);
 
-        setApiBooks(Array.isArray(res?.data) ? res.data : []);
-        setMeta(res?.meta || null);
+        if (!ignore) {
+          setApiBooks(Array.isArray(res?.data) ? res.data : []);
+          setMeta(res?.meta || null);
+        }
       } catch (e) {
         console.error(e);
-        setApiBooks([]);
-        setMeta({
-          page: 1,
-          pages: 1,
-          total: 0,
-          pageSize: 0,
-        });
+        if (!ignore) {
+          setApiBooks([]);
+          setMeta({
+            page: 1,
+            pages: 1,
+            total: 0,
+            pageSize: 0,
+          });
+        }
       } finally {
-        setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     };
 
     fetchBooks();
+    return () => {
+      ignore = true;
+    };
   }, [
     page,
     debouncedSearch,

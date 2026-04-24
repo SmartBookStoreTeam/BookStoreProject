@@ -108,7 +108,8 @@ export const searchBooks = async (req, res, next) => {
     const q = req.query.q?.trim();
     const sort = req.query.sort || "-createdAt"; // title, -price, ...etc
 
-    const filter = { isActive: true };
+    const category = req.query.category;
+    const filter = { isActive: true, status: "available" };
 
     if (category) {
       const cats = typeof category === 'string' ? category.split(',') : (Array.isArray(category) ? category : [category]);
@@ -334,4 +335,3 @@ export const getCategoryStats = async (req, res, next) => {
 };
 
 export const getCategoriesWithStats = getCategoryStats;
-

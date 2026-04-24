@@ -122,6 +122,13 @@ const Landing = () => {
       if (searchTerm.trim()) {
         try {
           const response = await searchBooks({ q: searchTerm, limit: 5 });
+          
+          // Don't show mock data in search results if the API falls back
+          if (response?.fallback) {
+            setBooks([]);
+            return;
+          }
+
           const booksData = Array.isArray(response.data) ? response.data : [];
 
           // Map the books to the format needed for autocomplete

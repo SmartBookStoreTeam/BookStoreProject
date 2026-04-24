@@ -49,7 +49,7 @@ const AdminHeader = ({ sidebarOpen, setSidebarOpen }) => {
         <div className="flex items-center space-x-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="cursor-pointer p-2 m-2 rounded-md text-gray-600 dark:text-gray-400 bg-zinc-800/20 hover:text-white dark:hover:text-gray-300 hover:bg-zinc-800/40 dark:hover:bg-gray-800 focus:outline-none"
+            className="cursor-pointer p-2 m-2 rounded-md text-gray-600 dark:text-gray-400 bg-zinc-500/10 hover:text-gray-400 dark:hover:text-gray-300 hover:bg-zinc-600/10 dark:hover:bg-gray-800 focus:outline-none"
           >
             {sidebarOpen ? (
               <XMarkIcon className="h-5 w-5" />
