@@ -10,21 +10,21 @@ export const useTheme = () => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
+
+    const updateMeta = (color) => {
+      if (metaThemeColor) metaThemeColor.setAttribute("content", color);
+    };
 
     if (theme === "dark") {
       root.classList.add("dark");
-      if (metaThemeColor) {
-        metaThemeColor.setAttribute("content", "#18181b"); // zinc-900
-      }
+      updateMeta("#18181b");
       if(typeof window !=="undefined"){
         localStorage.setItem("theme", "dark");
       }
     } else if (theme === "light") {
       root.classList.remove("dark");
-      if (metaThemeColor) {
-        metaThemeColor.setAttribute("content", "#45428d"); // blended indigo-900/90 over white
-      }
+      updateMeta("#45428d");
       if(typeof window !=="undefined"){
         localStorage.setItem("theme", "light");
       }
@@ -36,14 +36,10 @@ export const useTheme = () => {
 
       if (systemPrefersDark) {
         root.classList.add("dark");
-        if (metaThemeColor) {
-          metaThemeColor.setAttribute("content", "#18181b"); // zinc-900
-        }
+        updateMeta("#18181b");
       } else {
         root.classList.remove("dark");
-        if (metaThemeColor) {
-          metaThemeColor.setAttribute("content", "#45428d"); // blended indigo-900/90 over white
-        }
+        updateMeta("#45428d");
       }
       if(typeof window !=="undefined"){
         localStorage.setItem("theme", "system");
