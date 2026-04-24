@@ -59,8 +59,8 @@ const PersonalizedBooks = () => {
         if (books.length === 0) setLoading(true);
 
         const [suggestionsRes, trendingRes] = await Promise.all([
-          getSuggestions(20),
-          getTrending(20),
+          getSuggestions(10),
+          getTrending(10),
         ]);
 
         if (suggestionsRes.success && suggestionsRes.data?.length > 0) {
