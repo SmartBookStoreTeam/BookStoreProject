@@ -199,9 +199,22 @@ export const googleAuth = async (req, res, next) => {
 
     if (user) {
       // User exists - link Google account if not already linked
+      // Also ensure they are marked as verified since Google verified their email
+      let updated = false;
       if (!user.googleId) {
         user.googleId = googleUser.sub;
-        user.avatar = googleUser.picture || user.avatar;
+        updated = true;
+      }
+      if (!user.isVerified) {
+        user.isVerified = true;
+        updated = true;
+      }
+      if (googleUser.picture && user.avatar !== googleUser.picture) {
+        user.avatar = googleUser.picture;
+        updated = true;
+      }
+      
+      if (updated) {
         await user.save();
       }
     } else {
@@ -211,6 +224,7 @@ export const googleAuth = async (req, res, next) => {
         email: googleUser.email,
         googleId: googleUser.sub,
         avatar: googleUser.picture,
+        isVerified: true, // Google already verified the email
         // No password needed for Google OAuth users
       });
     }
