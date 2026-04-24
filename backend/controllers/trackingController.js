@@ -2,7 +2,6 @@ import UserActivity from "../models/UserActivity.js";
 import Book from "../models/Book.js";
 import mongoose from "mongoose";
 
-// ─── helper: get user or sessionId ───────────────────────────────────────────
 const getIdentifier = (req) => ({
   user: req.user?._id || req.user?.id || null,
   sessionId: req.headers["x-session-id"] || null,
@@ -12,19 +11,15 @@ const getIdentifier = (req) => ({
 export const trackView = async (req, res) => {
   try {
     const { bookId } = req.body;
-    if (!bookId || !mongoose.Types.ObjectId.isValid(bookId)) {
+    if (!bookId || !mongoose.Types.ObjectId.isValid(bookId))
       return res.status(400).json({ success: false, error: "Invalid bookId" });
-    }
 
     const { user, sessionId } = getIdentifier(req);
-    if (!user && !sessionId) {
-      return res.json({ success: true }); // skip anonymous with no session
-    }
+    if (!user && !sessionId) return res.json({ success: true });
 
     const book = await Book.findById(bookId).select("categories");
     if (!book) return res.json({ success: true });
 
-    // avoid duplicate views within 1 hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const alreadyViewed = await UserActivity.findOne({
       ...(user ? { user } : { sessionId }),
@@ -41,15 +36,13 @@ export const trackView = async (req, res) => {
         book: bookId,
         categories: book.categories || [],
       });
-
-      // increment book views counter
       await Book.findByIdAndUpdate(bookId, { $inc: { views: 1 } });
     }
 
     res.json({ success: true });
   } catch (err) {
-    console.error("trackView error:", err);
-    res.json({ success: true }); // never break the frontend
+    console.error("trackView error:", err.message);
+    res.json({ success: true });
   }
 };
 
@@ -57,9 +50,7 @@ export const trackView = async (req, res) => {
 export const trackSearch = async (req, res) => {
   try {
     const { query } = req.body;
-    if (!query || query.trim().length < 2) {
-      return res.json({ success: true });
-    }
+    if (!query || query.trim().length < 2) return res.json({ success: true });
 
     const { user, sessionId } = getIdentifier(req);
     if (!user && !sessionId) return res.json({ success: true });
@@ -73,7 +64,7 @@ export const trackSearch = async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error("trackSearch error:", err);
+    console.error("trackSearch error:", err.message);
     res.json({ success: true });
   }
 };
@@ -81,10 +72,9 @@ export const trackSearch = async (req, res) => {
 // ─── POST /api/tracking/purchase ─────────────────────────────────────────────
 export const trackPurchase = async (req, res) => {
   try {
-    const { bookIds } = req.body; // array of bookIds
-    if (!Array.isArray(bookIds) || bookIds.length === 0) {
+    const { bookIds } = req.body;
+    if (!Array.isArray(bookIds) || bookIds.length === 0)
       return res.json({ success: true });
-    }
 
     const { user, sessionId } = getIdentifier(req);
     if (!user && !sessionId) return res.json({ success: true });
@@ -104,16 +94,37 @@ export const trackPurchase = async (req, res) => {
       categories: book.categories || [],
     }));
 
-    await UserActivity.insertMany(activities);
+    if (activities.length > 0) await UserActivity.insertMany(activities);
     res.json({ success: true });
   } catch (err) {
-    console.error("trackPurchase error:", err);
+    console.error("trackPurchase error:", err.message);
     res.json({ success: true });
   }
 };
 
+// ─── helper: blend multiple embeddings into one average vector ────────────────
+const blendEmbeddings = (embeddings) => {
+  if (embeddings.length === 0) return null;
+  if (embeddings.length === 1) return embeddings[0];
+
+  const dim = embeddings[0].length;
+  const blended = new Array(dim).fill(0);
+
+  // give more weight to recently viewed (index 0 = most recent)
+  const weights = embeddings.map((_, i) => 1 / (i + 1));
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+
+  for (let i = 0; i < embeddings.length; i++) {
+    const w = weights[i] / totalWeight;
+    for (let d = 0; d < dim; d++) {
+      blended[d] += embeddings[i][d] * w;
+    }
+  }
+
+  return blended;
+};
+
 // ─── GET /api/tracking/suggestions ───────────────────────────────────────────
-// Returns personalized book suggestions based on user activity
 export const getSuggestions = async (req, res) => {
   try {
     const { user, sessionId } = getIdentifier(req);
@@ -121,11 +132,8 @@ export const getSuggestions = async (req, res) => {
 
     let suggestedBooks = [];
 
-    // ── Strategy 1: Personalized (if user has activity) ──────────────────────
     if (user || sessionId) {
       const matchFilter = user ? { user } : { sessionId };
-
-      // get user's recent activity (last 30 days)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
       const activities = await UserActivity.find({
@@ -136,7 +144,6 @@ export const getSuggestions = async (req, res) => {
         .limit(50)
         .lean();
 
-      // collect viewed/purchased bookIds and categories
       const viewedBookIds = activities
         .filter((a) => a.type === "view" || a.type === "purchase")
         .map((a) => a.book)
@@ -146,47 +153,66 @@ export const getSuggestions = async (req, res) => {
         .flatMap((a) => a.categories || [])
         .filter(Boolean);
 
-      // use vector search if we have viewed books with embeddings
       if (viewedBookIds.length > 0) {
-        // get the most recently viewed book that has an embedding
-        const recentBook = await Book.findOne({
-          _id: { $in: viewedBookIds },
+        // ── get up to 5 recently viewed books with embeddings ─────────────────
+        const recentBooks = await Book.find({
+          _id: { $in: viewedBookIds.slice(0, 10) }, // check last 10
           embedding: { $exists: true, $ne: [] },
-        }).select("embedding");
+        })
+          .select("embedding _id")
+          .limit(5); // use up to 5 for blending
 
-        if (recentBook?.embedding?.length > 0) {
-          // vector search based on recent interest
-          const pipeline = [
-            {
-              $vectorSearch: {
-                index: "Recommendtion",
-                path: "embedding",
-                queryVector: recentBook.embedding,
-                numCandidates: 100,
-                limit: limit + viewedBookIds.length, // fetch extra to filter out viewed
-              },
-            },
-            {
-              $match: {
-                _id: { $nin: viewedBookIds }, // exclude already viewed
-                isActive: true,
-                status: "available",
-              },
-            },
-            { $limit: limit },
-            { $project: { embedding: 0 } },
-            {
-              $addFields: {
-                score: { $meta: "vectorSearchScore" },
-                suggestionType: "personalized",
-              },
-            },
-          ];
+        if (recentBooks.length > 0) {
+          // sort by recency (viewedBookIds order = most recent first)
+          const sorted = recentBooks.sort((a, b) => {
+            return (
+              viewedBookIds.findIndex(
+                (id) => id.toString() === a._id.toString(),
+              ) -
+              viewedBookIds.findIndex(
+                (id) => id.toString() === b._id.toString(),
+              )
+            );
+          });
 
-          suggestedBooks = await Book.aggregate(pipeline);
+          // blend all embeddings into one weighted average
+          const blendedEmbedding = blendEmbeddings(
+            sorted.map((b) => b.embedding),
+          );
+
+          if (blendedEmbedding) {
+            const pipeline = [
+              {
+                $vectorSearch: {
+                  index: "Recommendtion",
+                  path: "embedding",
+                  queryVector: blendedEmbedding,
+                  numCandidates: 150,
+                  limit: limit + viewedBookIds.length + 10,
+                },
+              },
+              {
+                $match: {
+                  _id: { $nin: viewedBookIds }, // exclude ALL viewed books
+                  isActive: true,
+                  status: "available",
+                },
+              },
+              { $limit: limit },
+              { $project: { embedding: 0 } },
+              {
+                $addFields: {
+                  score: { $meta: "vectorSearchScore" },
+                  suggestionType: "personalized",
+                },
+              },
+            ];
+
+            suggestedBooks = await Book.aggregate(pipeline);
+          }
         }
 
-        // fallback: category-based if vector search returned too few
+        // category-based fallback
         if (suggestedBooks.length < limit && categoryIds.length > 0) {
           const needed = limit - suggestedBooks.length;
           const existingIds = [
@@ -194,8 +220,14 @@ export const getSuggestions = async (req, res) => {
             ...suggestedBooks.map((b) => b._id),
           ];
 
+          // pick from DIFFERENT categories than most viewed
+          const topCategoryIds = [...new Set(categoryIds.map(String))].slice(
+            0,
+            3,
+          );
+
           const categoryBooks = await Book.find({
-            categories: { $in: categoryIds },
+            categories: { $in: topCategoryIds },
             _id: { $nin: existingIds },
             isActive: true,
             status: "available",
@@ -205,17 +237,18 @@ export const getSuggestions = async (req, res) => {
             .limit(needed)
             .lean();
 
-          const withType = categoryBooks.map((b) => ({
-            ...b,
-            suggestionType: "category_based",
-          }));
-
-          suggestedBooks = [...suggestedBooks, ...withType];
+          suggestedBooks = [
+            ...suggestedBooks,
+            ...categoryBooks.map((b) => ({
+              ...b,
+              suggestionType: "category_based",
+            })),
+          ];
         }
       }
     }
 
-    // ── Strategy 2: Popular fallback (if no activity or not enough results) ──
+    // popular fallback
     if (suggestedBooks.length < limit) {
       const needed = limit - suggestedBooks.length;
       const existingIds = suggestedBooks.map((b) => b._id);
@@ -231,23 +264,20 @@ export const getSuggestions = async (req, res) => {
         .limit(needed)
         .lean();
 
-      const withType = popularBooks.map((b) => ({
-        ...b,
-        suggestionType: "popular",
-      }));
-
-      suggestedBooks = [...suggestedBooks, ...withType];
+      suggestedBooks = [
+        ...suggestedBooks,
+        ...popularBooks.map((b) => ({ ...b, suggestionType: "popular" })),
+      ];
     }
 
     res.json({ success: true, data: suggestedBooks });
   } catch (err) {
-    console.error("getSuggestions error:", err);
+    console.error("getSuggestions error:", err.message, err.stack);
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-// ─── GET /api/tracking/trending ──────────────────────────────────────────────
-// Most viewed books in last 7 days
+// ─── GET /api/tracking/trending ───────────────────────────────────────────────
 export const getTrending = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -261,12 +291,7 @@ export const getTrending = async (req, res) => {
           book: { $ne: null },
         },
       },
-      {
-        $group: {
-          _id: "$book",
-          viewCount: { $sum: 1 },
-        },
-      },
+      { $group: { _id: "$book", viewCount: { $sum: 1 } } },
       { $sort: { viewCount: -1 } },
       { $limit: limit },
       {
@@ -297,7 +322,6 @@ export const getTrending = async (req, res) => {
       { $project: { embedding: 0 } },
     ]);
 
-    // fallback to popular if not enough trending data
     if (trending.length < limit) {
       const needed = limit - trending.length;
       const existingIds = trending.map((b) => b._id);
@@ -323,7 +347,7 @@ export const getTrending = async (req, res) => {
 
     res.json({ success: true, data: trending });
   } catch (err) {
-    console.error("getTrending error:", err);
+    console.error("getTrending error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 };
