@@ -97,7 +97,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white  transform ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-indigo-900 dark:bg-zinc-950 text-gray-900 dark:text-white  transform ${
           sidebarOpen
             ? "translate-x-0"
             : "-translate-x-full md:-translate-x-full"
@@ -105,17 +105,17 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between p-[19px] border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-[19px] border-b border-indigo-400/30 dark:border-gray-700">
             <div className="flex items-center space-x-3">
-              <ShoppingBagIcon className="h-8 w-8 text-blue-400" />
+              <ShoppingBagIcon className="h-8 w-8 text-indigo-300" />
               <div>
-                <h1 className="text-xl font-bold dark:text-white">{t("Bookfly Admin")}</h1>
-                <p className="text-xs text-gray-400 dark:text-gray-200">{t("Dashboard")} v1.0</p>
+                <h1 className="text-xl font-bold text-gray-200 dark:text-white">{t("Bookfly Admin")}</h1>
+                <p className="text-xs text-gray-300 dark:text-gray-200">{t("Dashboard")} v1.0</p>
               </div>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="cursor-pointer md:hidden p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="cursor-pointer text-gray-200 bg-white/20 dark:text-gray-200 dark:bg-gray-700/20 md:hidden p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
@@ -129,15 +129,19 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 to={item.path}
                 end={item.path === "/admin" || item.name === "Books"}
                 onClick={(e) => handleNavClick(e, item.path)}
-                className={({ isActive }) =>
-                  `flex text-gray-800 dark:text-gray-200 items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                    item.isPending && !isActive
-                      ? "text-amber-300 dark:text-amber-300 hover:bg-amber-600/20 dark:hover:bg-amber-600/20 rounded-xl"
-                      : isActive 
-                      ? "bg-blue-600 dark:bg-blue-600 text-white dark:text-white"
-                      : "hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-300 dark:text-gray-200 rounded-xl"
-                  }`
-                }
+                className={({ isActive }) => {
+                  const baseClasses = "flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group";
+                  
+                  if (item.isPending) {
+                    return isActive
+                      ? `${baseClasses} bg-amber-500 text-white shadow-lg shadow-amber-500/20`
+                      : `${baseClasses} text-amber-400 hover:bg-amber-500/10`;
+                  }
+                  
+                  return isActive
+                    ? `${baseClasses} bg-indigo-600 text-white shadow-lg shadow-indigo-600/20`
+                    : `${baseClasses} text-gray-300 hover:bg-white/10`;
+                }}
               >
                 <div className="flex items-center space-x-3">
                   <item.icon className="h-5 w-5" />
@@ -153,13 +157,13 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </nav>
 
           {/* Footer Section */}
-          <div className="mt-auto border-t border-gray-200 dark:border-zinc-900 bg-gray-50/50 dark:bg-zinc-950/50">
+          <div className="mt-auto border-t border-indigo-400/30 dark:border-gray-700/30 bg-indigo-900/50 dark:bg-zinc-950/50">
             {/* Return to Store */}
             <div className="px-4 py-2">
               <NavLink
                 to="/"
                 onClick={(e) => handleNavClick(e, "/")}
-                className="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                className="group flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-100 dark:text-gray-300 hover:bg-indigo-500/10 dark:hover:bg-gray-700 transition-all duration-200"
               >
                 <ArrowLeftIcon className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
                 <span className="text-sm font-medium">{t("Return to Store")}</span>
@@ -172,17 +176,17 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className={`w-full flex items-center p-3 rounded-2xl transition-all duration-300 cursor-pointer ${
                   dropdownOpen 
-                    ? "bg-white dark:bg-gray-700 shadow-lg ring-1 ring-gray-200 dark:ring-gray-600" 
-                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "bg-indigo-500/50 dark:bg-gray-700 shadow-lg ring-1 ring-gray-200 dark:ring-gray-600" 
+                    : "hover:bg-indigo-500/10 dark:hover:bg-gray-700"
                 }`}
               >
                 <UserAvatar user={user} size={40} className="shadow-md shrink-0" />
                 
                 <div className="ml-3 flex-1 text-left overflow-hidden">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-bold text-gray-200 dark:text-white truncate">
                     {user?.name || "Admin User"}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate capitalize font-medium">
+                  <p className="text-xs text-gray-400 dark:text-gray-400 truncate capitalize font-medium">
                     {user?.role || "Administrator"}
                   </p>
                 </div>
