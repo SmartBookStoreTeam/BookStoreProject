@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
+// eslint-disable-next-line no-unused-vars
 import { AnimatePresence,motion } from "framer-motion";
 import BookCard from "./BookCard";
 import { getSimilarBooks } from "../api/recommendationsApi";
@@ -83,7 +84,7 @@ const SimilarBooks = ({ bookId }) => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {loading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <motion.div
