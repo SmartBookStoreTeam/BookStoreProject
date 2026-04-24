@@ -66,7 +66,7 @@ const Home = () => {
     <>
       {/* Scroll to Top */}
       <div
-        className={`fixed bottom-6 z-50 transition-all duration-300 right-6 ${
+        className={`fixed bottom-6 z-50 transition-all duration-300 left-6 ${
           showScrollTop
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-10 pointer-events-none"
@@ -86,7 +86,7 @@ const Home = () => {
 
       {/* Scroll to Bottom */}
       <div
-        className={`fixed bottom-6 z-50 transition-all duration-300 right-6 ${
+        className={`fixed bottom-6 z-50 transition-all duration-300 left-6 ${
           showScrollBottom
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-10 pointer-events-none"

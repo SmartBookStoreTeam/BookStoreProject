@@ -12,7 +12,7 @@ import {
 import LandingExplore from "../components/LandingExplore";
 import Popular from "../components/Popular";
 import Releases from "../components/Releases";
-import Suggestion from "../components/Suggestion";
+import PersonalizedBooks from "../components/PersonalizedBooks";
 import TopRated from "../components/TopRated";
 
 const Explore = () => {
@@ -22,9 +22,9 @@ const Explore = () => {
 
   const sections = useMemo(
     () => [
-      { id: "releases", label: "New Releases", icon: Sparkles },
+      { id: "suggestions", label: "For You", icon: Sparkles },
+      { id: "releases", label: "New Releases", icon: Lightbulb },
       { id: "top-rated", label: "Top Rated", icon: Star },
-      { id: "suggestions", label: "Suggestions", icon: Lightbulb },
       { id: "popular", label: "Popular", icon: TrendingUp },
     ],
     []
@@ -144,7 +144,7 @@ const Explore = () => {
       </nav>
 
       {/* Scroll to Top / Bottom Buttons */}
-      <div className={`fixed bottom-6 z-50 flex flex-col gap-2 right-6`}>
+      <div className={`fixed bottom-6 z-50 flex flex-col gap-2 left-6`}>
         {/* Scroll to Top */}
         <button
           onClick={scrollToTop}
@@ -183,9 +183,9 @@ const Explore = () => {
         <Chatbot />
       </div>
       <LandingExplore />
+      <PersonalizedBooks />
       <Releases />
       <TopRated />
-      <Suggestion />
       <Popular />
     </div>
   );

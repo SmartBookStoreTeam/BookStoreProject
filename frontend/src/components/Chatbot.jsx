@@ -118,7 +118,7 @@ const Chatbot = () => {
     <>
       {/* CHAT WINDOW */}
       <div
-        className={`fixed bottom-24 right-6 z-100 transition-all duration-300 ${
+        className={`fixed bottom-20 right-6 z-100 transition-all duration-300 ${
           isOpen
             ? "translate-y-0 opacity-100"
             : "translate-y-8 opacity-0 pointer-events-none"
@@ -223,7 +223,7 @@ const Chatbot = () => {
 
       {/* FLOATING BUTTON */}
       <div
-        className={`fixed bottom-36 right-6 z-100 flex items-center gap-3 transition-all duration-300 ${
+        className={`fixed bottom-6 right-6 z-100 flex items-center gap-3 transition-all duration-300 ${
           isOpen
             ? "scale-0 opacity-0"
             : showLabel
