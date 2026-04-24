@@ -90,6 +90,7 @@
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e8 100%);
+  box-shadow: inset -5px 0 10px rgba(0,0,0,0.05);
 }
 
 .flipbook-page-image {

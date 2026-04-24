@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Sparkles } from "lucide-react";
+// eslint-disable-next-line no-unused-vars
 import { AnimatePresence,motion } from "framer-motion";
 import BookCard from "./BookCard";
 import { getSimilarBooks } from "../api/recommendationsApi";
 import { useCart } from "../hooks/useCart";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const SkeletonCard = () => (
   <div className="bg-white dark:bg-zinc-800 rounded-xl border border-gray-200 dark:border-zinc-700 overflow-hidden animate-pulse">
@@ -62,13 +64,35 @@ const SimilarBooks = ({ bookId }) => {
 
   const handleAddToCart = useCallback(
     (book) => {
-      if (!user) {
-        navigate("/login");
+      if (isBookInCart(book)) {
+        if (!user) {
+          navigate("/login");
+          return;
+        }
+        navigate("/checkout", { state: { books: cart } });
         return;
       }
+
+      // Add to cart allows guests
       addToCart(book);
+      toast.success(`${t("Added")} "${book.title}" ${t("to Cart")}!`, {
+        duration: 1500,
+        style: {
+          background: "#333",
+          color: "#fff",
+          direction: i18n.dir(),
+          width: "fit-content",
+          maxWidth: "90vw",
+          minWidth: "200px",
+          padding: "12px 16px",
+          textAlign: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+      });
     },
-    [user, addToCart, navigate],
+    [user, addToCart, navigate, isBookInCart, t, i18n, cart],
   );
 
   if (!loading && (error || books.length === 0)) return null;
@@ -83,7 +107,7 @@ const SimilarBooks = ({ bookId }) => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {loading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <motion.div
