@@ -21,12 +21,14 @@ const Popular = () => {
     const fetchPopularBooks = async () => {
       try {
         setLoading(true);
-        // Fetch more books to shuffle from a larger pool
-        const response = await getTopBooks(20);
+        // Fetch a bit more to shuffle from a pool
+        const response = await getTopBooks(15);
         const fetchedBooks = response.data || [];
 
-        // Shuffle books
-        const shuffled = [...fetchedBooks].sort(() => 0.5 - Math.random());
+        // Shuffle and slice to 7
+        const shuffled = [...fetchedBooks]
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 7);
 
         setBooks(shuffled);
       } catch (error) {
@@ -51,9 +53,6 @@ const Popular = () => {
     );
   }
 
-  // Don't render section if no books
-  if (books.length === 0) return null;
-
   return (
     <div
       id="popular"
@@ -63,7 +62,15 @@ const Popular = () => {
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {t("Most Popular Books")}
         </h1>
-        <Carousel books={books} />
+        {books.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-zinc-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700">
+            <p className="text-lg font-medium">
+              {t("No books found in")} {t("Most Popular Books")}
+            </p>
+          </div>
+        ) : (
+          <Carousel books={books} />
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import {
@@ -13,8 +13,6 @@ import {
   Download as DownloadIcon,
   Printer as PrintIcon,
   BookOpen,
-  Columns,
-  Square,
   Globe,
   Loader,
 } from "lucide-react";
@@ -46,6 +44,7 @@ const PREVIEW_PAGE_LIMIT = 5;
 const PdfViewer = ({
   book: initialBook,
   pdfFile,
+  externalToolbarApiRef,
   hideHeader = false,
   initialPage = 0,
   onPageChange: parentOnPageChange,
@@ -61,6 +60,7 @@ const PdfViewer = ({
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
+  const isPurchased = !!(book && isBookPurchased(book._id || book.id));
 
   // Use the isAuthorized prop passed from parent (which handles admin/author status)
   // or fall back to local purchase check if not provided
@@ -118,7 +118,7 @@ const PdfViewer = ({
     };
   }, []);
 
-  const handleToggleViewMode = () => {
+  const handleToggleViewMode = useCallback(() => {
     const nextMode =
       viewMode === ViewMode.SinglePage
         ? ViewMode.DualPage
@@ -127,83 +127,108 @@ const PdfViewer = ({
       viewerApiRef.current.switchViewMode(nextMode);
     }
     setViewMode(nextMode);
-  };
+  }, [viewMode]);
 
   // Initialize page navigation plugin
   const pageNavigationPluginInstance = pageNavigationPlugin();
-  const { jumpToPage } = pageNavigationPluginInstance;
+  const { jumpToPage, jumpToNextPage, jumpToPreviousPage } =
+    pageNavigationPluginInstance;
+
+  const prevBtnSlotRef = useRef(null);
+  const nextBtnSlotRef = useRef(null);
+  const zoomInSlotRef = useRef(null);
+  const zoomOutSlotRef = useRef(null);
+  const switchSidebarSlotRef = useRef(null);
+
+  const clickSlotButton = (ref) => {
+    const btn = ref.current?.querySelector("button");
+    if (btn) btn.click();
+  };
 
   // Initialize the plugin instance
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
+    sidebarTabs: (defaultTabs) => {
+      // If not purchased, don't show any sidebar tabs
+      if (!isPurchased) return [];
+
+      // If purchased, filter out attachments (index 2)
+      // and keep Thumbnails (0) and Bookmarks (1)
+      return defaultTabs.filter((_, index) => index !== 2);
+    },
     // eslint-disable-next-line no-unused-vars
-    renderToolbar: (ToolbarSlot) => {
-      return (
+    renderToolbar: (ToolbarSlot) => (
+      <div style={{ display: "none" }}>
         <ToolbarSlot>
           {(slots) => {
             const {
-              CurrentPageInput,
-              GoToNextPage,
-              GoToPreviousPage,
-              NumberOfPages,
-              Zoom,
               ZoomIn,
               ZoomOut,
+              SwitchSidebar,
+              GoToNextPage,
+              GoToPreviousPage,
             } = slots;
             return (
-              <div
-                className={`flex items-center touch-area justify-center w-full ${isFullScreen ? "hidden" : ""}`}
-              >
-                <div className="hidden sm:flex ml-5 px-1">
-                  <ZoomOut />
-                </div>
-                <div className="hidden sm:flex px-1">
-                  <Zoom />
-                </div>
-                <div className="hidden sm:flex px-1">
-                  <ZoomIn />
-                </div>
-                <div className="px-1 ml-auto">
-                  <GoToPreviousPage />
-                </div>
-                <div className="px-1 w-16">
-                  <CurrentPageInput />
-                </div>
-                <div className="px-1 text-white">
-                  / <NumberOfPages />
-                </div>
-                <div className="px-1">
-                  <GoToNextPage />
-                </div>
-                <div className="px-1"></div>
-                <div className="px-1">
-                  <button
-                    onClick={handleToggleViewMode}
-                    className="p-2 rounded-md text-white hover:bg-white/10 cursor-pointer"
-                    aria-label={
-                      viewMode === ViewMode.SinglePage
-                        ? t("Show Two Pages")
-                        : t("Show Single Page")
-                    }
-                    title={
-                      viewMode === ViewMode.SinglePage
-                        ? t("Show Two Pages")
-                        : t("Show Single Page")
-                    }
-                  >
-                    {viewMode === ViewMode.SinglePage ? (
-                      <Columns size={20} />
-                    ) : (
-                      <Square size={20} />
-                    )}
-                  </button>
-                </div>
+              <div className="hidden">
+                {ZoomIn && (
+                  <div ref={zoomInSlotRef}>
+                    <ZoomIn />
+                  </div>
+                )}
+                {ZoomOut && (
+                  <div ref={zoomOutSlotRef}>
+                    <ZoomOut />
+                  </div>
+                )}
+                {SwitchSidebar && (
+                  <div ref={switchSidebarSlotRef}>
+                    <SwitchSidebar />
+                  </div>
+                )}
+                {GoToPreviousPage && (
+                  <div ref={prevBtnSlotRef}>
+                    <GoToPreviousPage />
+                  </div>
+                )}
+                {GoToNextPage && (
+                  <div ref={nextBtnSlotRef}>
+                    <GoToNextPage />
+                  </div>
+                )}
               </div>
             );
           }}
         </ToolbarSlot>
-      );
-    },
+      </div>
+    ),
   });
+
+  useEffect(() => {
+    if (!externalToolbarApiRef) return;
+    externalToolbarApiRef.current = {
+      prev: () => {
+        if (jumpToPreviousPage) jumpToPreviousPage();
+        else clickSlotButton(prevBtnSlotRef);
+      },
+      next: () => {
+        if (jumpToNextPage) jumpToNextPage();
+        else clickSlotButton(nextBtnSlotRef);
+      },
+      zoomIn: () => clickSlotButton(zoomInSlotRef),
+      zoomOut: () => clickSlotButton(zoomOutSlotRef),
+      toggleSidebar: () => clickSlotButton(switchSidebarSlotRef),
+      zoomReset: () => viewerApiRef.current?.zoom(SpecialZoomLevel.PageWidth),
+      toggleSingleTwo: () => handleToggleViewMode(),
+    };
+
+    return () => {
+      externalToolbarApiRef.current = null;
+    };
+  }, [
+    externalToolbarApiRef,
+    jumpToNextPage,
+    jumpToPreviousPage,
+    handleToggleViewMode,
+  ]);
 
   // Show appropriate modal when page limit is reached
   useEffect(() => {
@@ -562,14 +587,22 @@ const PdfViewer = ({
     return "ltr";
   };
   return (
-    <div className="h-[100dvh] w-full overflow-hidden flex flex-col bg-zinc-900">
+    <div className="h-full w-full overflow-hidden flex flex-col bg-zinc-900">
+      <style>{`
+        .rpv-default-layout__toolbar,
+        .rpv-default-layout__header { 
+          display: none !important; 
+          height: 0 !important; 
+        }
+        .rpv-default-layout__main { border-top: none !important; }
+      `}</style>
       {/* Simple Header - Hidden in full screen or if hideHeader is true */}
       {!isFullScreen && !hideHeader && (
         <header
           dir="rtl"
           className="relative flex-none w-full z-50 bg-zinc-800 border-b border-gray-700"
         >
-          <div className="flex items-center py-1 px-2 md:py-2 md:px-3">
+          <div className="flex items-center  px-2 md:py-2 md:px-3">
             {/* Close Button - Shows Rate Modal */}
             <div className="touch-area flex-none flex justify-start">
               <button
@@ -771,7 +804,7 @@ const PdfViewer = ({
               {isFullScreen && (
                 <button
                   onClick={toggleFullScreen}
-                  className="touch-area cursor-pointer absolute top-4 left-4 z-[70] p-2 bg-black/40 text-white rounded-full hover:bg-zinc-400 transition-colors backdrop-blur-sm"
+                  className="touch-area cursor-pointer absolute top-14 left-4 z-[70] p-2 bg-black/40 text-white rounded-full hover:bg-zinc-400 transition-colors backdrop-blur-sm"
                   aria-label="Exit Full Screen"
                 >
                   <X size={24} />
@@ -798,6 +831,8 @@ const PdfViewer = ({
                   theme={{
                     theme: "dark",
                   }}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={true}
                   onDocumentLoad={(e) => {
                     const numPages = e.doc.numPages;
                     setTotalPages(numPages);

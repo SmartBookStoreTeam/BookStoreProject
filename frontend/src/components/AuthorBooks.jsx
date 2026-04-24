@@ -94,8 +94,8 @@ const AuthorBooks = ({ authorName, excludeBookId = null, title = null }) => {
           );
         }
 
-        // Normalize images for all books
-        const normalizedBooks = finalBooks.map(normalizeBookImage);
+        // Normalize images and limit to 7
+        const normalizedBooks = finalBooks.map(normalizeBookImage).slice(0, 7);
 
         setAuthorBooks(normalizedBooks);
       } catch (error) {
