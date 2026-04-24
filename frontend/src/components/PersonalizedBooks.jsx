@@ -34,29 +34,34 @@ const PersonalizedBooks = () => {
   const [title, setTitle] = useState("Our Suggestions");
   const [loading, setLoading] = useState(true);
 
-  // track userId so we only re-fetch when user actually logs in/out
-  const userIdRef = useRef(user?._id || user?.id || null);
+  const prevUserIdRef = useRef(undefined);
+  const isFetchingRef = useRef(false); // prevent concurrent fetches
 
   useEffect(() => {
     const currentUserId = user?._id || user?.id || null;
 
-    // skip re-fetch if same user (prevents re-render loops)
-    if (currentUserId === userIdRef.current && books.length > 0) return;
-    userIdRef.current = currentUserId;
+    // skip if same user AND we already have books
+    if (
+      currentUserId === prevUserIdRef.current &&
+      prevUserIdRef.current !== undefined
+    )
+      return;
 
-    let cancelled = false;
+    // skip if a fetch is already in progress
+    if (isFetchingRef.current) return;
+
+    prevUserIdRef.current = currentUserId;
+    isFetchingRef.current = true;
 
     const fetchBooks = async () => {
       try {
-        setLoading(true);
+        // only show spinner on very first load (no books yet)
+        if (books.length === 0) setLoading(true);
 
-        // fetch suggestions and trending in parallel
         const [suggestionsRes, trendingRes] = await Promise.all([
           getSuggestions(20),
           getTrending(20),
         ]);
-
-        if (cancelled) return;
 
         if (suggestionsRes.success && suggestionsRes.data?.length > 0) {
           const hasPersonalized = suggestionsRes.data.some(
@@ -86,15 +91,12 @@ const PersonalizedBooks = () => {
       } catch (err) {
         console.error("PersonalizedBooks error:", err);
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
+        isFetchingRef.current = false;
       }
     };
 
     fetchBooks();
-
-    return () => {
-      cancelled = true;
-    };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
