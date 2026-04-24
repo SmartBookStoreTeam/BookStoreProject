@@ -77,7 +77,7 @@ const Landing = () => {
 
         const res = await withTimeout(
           getBooks({ page: 1, pageSize: 24, sort: "-createdAt" }),
-          2500,
+          5000,
         );
 
         // `getBooks` may return mock fallback even when backend is down.
