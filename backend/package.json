@@ -20,6 +20,7 @@
     "aws-sdk": "^2.1693.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
+    "canvas": "^3.2.3",
     "cloudinary": "^2.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
