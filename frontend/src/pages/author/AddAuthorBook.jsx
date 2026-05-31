@@ -4,7 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { submitAuthorBook } from "../../api/adminApi";
 import { getCategories } from "../../api/categoriesApi";
 import imageCompression from "browser-image-compression";
-import { BookOpenIcon, ClockIcon, PencilIcon, XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import {
+  BookOpenIcon,
+  ClockIcon,
+  PencilIcon,
+  XMarkIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 import { useAuth } from "../../context/AuthContext";
 import { DollarSign, AlertTriangle, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -13,9 +19,20 @@ import { useNavigation } from "../../context/NavigationContext";
 /* ─────────────────────────────────────────────
    SignatureModal — canvas-based digital signing
 ───────────────────────────────────────────── */
-const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) => {
+const SignatureModal = ({
+  bookTitle,
+  authorName,
+  price,
+  onConfirm,
+  onCancel,
+}) => {
   const canvasRef = useRef(null);
+  const pdfAreaRef = useRef(null);
+  const sigRef = useRef(null);
+  const dragOrigin = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [sigPos, setSigPos] = useState(null);
+  const [dragging, setDragging] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [signature, setSignature] = useState(null);
   const { t, i18n } = useTranslation();
@@ -83,12 +100,13 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
     setIsPreviewLoading(true);
     try {
       const { previewAuthorBookContract } = await import("../../api/adminApi");
+      // Generate contract WITHOUT embedded signature — only the overlay is shown
       const res = await previewAuthorBookContract({
         title: bookTitle,
         price: price || 0,
-        signatureBase64: signature
       });
       setPdfPreviewUrl(res.pdfUrl);
+      setSigPos(null);
       setStep(2);
     } catch (err) {
       alert(t("Failed to generate contract preview."));
@@ -97,16 +115,77 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
     }
   };
 
+  // Place signature at the "Author Signature:" label position in the PDF
+  // PDF: Author Signature label is ~59% from top, ~8% from left (x=50 of 595pt)
+  useEffect(() => {
+    if (step !== 2) return;
+    const frame = pdfAreaRef.current;
+    if (!frame) return;
+    const { width: w, height: h } = frame.getBoundingClientRect();
+    setSigPos({ x: Math.round(w * 0.08), y: Math.round(h * 0.6) });
+  }, [step]);
+
+  // Drag: global pointermove / pointerup
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e) => {
+      e.preventDefault();
+      const sig = sigRef.current;
+      const con = pdfAreaRef.current;
+      if (!sig || !con || !dragOrigin.current) return;
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const conR = con.getBoundingClientRect();
+      const sigR = sig.getBoundingClientRect();
+      let nx = dragOrigin.current.sx + (cx - dragOrigin.current.cx);
+      let ny = dragOrigin.current.sy + (cy - dragOrigin.current.cy);
+      nx = Math.max(0, Math.min(nx, conR.width - sigR.width));
+      ny = Math.max(0, Math.min(ny, conR.height - sigR.height));
+      setSigPos({ x: nx, y: ny });
+    };
+    const onUp = () => setDragging(false);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    };
+  }, [dragging]);
+
+  const handleSigPointerDown = (e) => {
+    e.preventDefault();
+    if (!sigRef.current || !pdfAreaRef.current || !sigPos) return;
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    dragOrigin.current = { cx, cy, sx: sigPos.x, sy: sigPos.y };
+    setDragging(true);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div dir={i18n.dir()} className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full ${step === 2 ? 'max-w-2xl' : 'max-w-lg'} overflow-hidden transition-all`}>
+      <div
+        dir={i18n.dir()}
+        className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full ${
+          step === 2 ? "max-w-3xl" : "max-w-lg"
+        } overflow-y-auto transition-all`}
+        style={step === 2 ? { maxHeight: "95vh" } : {}}
+      >
         {/* Header */}
         <div className="bg-indigo-600 dark:bg-indigo-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-white dark:text-gray-200">
             <PencilIcon className="h-5 w-5" />
-            <h2 className="font-bold text-lg">{step === 1 ? t("Digital Signature") : t("Contract Preview")}</h2>
+            <h2 className="font-bold text-lg">
+              {step === 1 ? t("Digital Signature") : t("Contract Preview")}
+            </h2>
           </div>
-          <button onClick={onCancel} className="text-white/70 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 cursor-pointer">
+          <button
+            onClick={onCancel}
+            className="text-white/70 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 cursor-pointer"
+          >
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -116,18 +195,28 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
             <>
               {/* Contract summary */}
               <div className="bg-indigo-50 dark:bg-indigo-900 border border-indigo-100 dark:border-indigo-800 rounded-xl p-4 text-sm text-indigo-800 dark:text-indigo-200 space-y-1">
-                <p className="font-semibold text-indigo-900 dark:text-indigo-100">{t("Publishing Contract")}</p>
-                <p>{t("Book")}: <span className="font-medium">{bookTitle}</span></p>
-                <p>{t("Author Name")}: <span className="font-medium">{authorName}</span></p>
+                <p className="font-semibold text-indigo-900 dark:text-indigo-100">
+                  {t("Publishing Contract")}
+                </p>
+                <p>
+                  {t("Book")}: <span className="font-medium">{bookTitle}</span>
+                </p>
+                <p>
+                  {t("Author Name")}:{" "}
+                  <span className="font-medium">{authorName}</span>
+                </p>
                 <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-2 leading-relaxed">
-                  {t("By signing, you confirm that you own the copyright of this book and agree to Bookfly's publishing terms including a 20% platform commission.")}
+                  {t(
+                    "By signing, you confirm that you own the copyright of this book and agree to Bookfly's publishing terms including a 20% platform commission.",
+                  )}
                 </p>
               </div>
 
               {/* Canvas */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  {t("Draw your signature below")} <span className="text-red-500">*</span>
+                  {t("Draw your signature below")}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors">
                   <canvas
@@ -150,7 +239,9 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
                   )}
                 </div>
                 <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-gray-400">{t("Use your mouse or finger to draw your signature")}</p>
+                  <p className="text-xs text-gray-400">
+                    {t("Use your mouse or finger to draw your signature")}
+                  </p>
                   <button
                     type="button"
                     onClick={clearSignature}
@@ -177,20 +268,136 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
                   className="cursor-pointer flex-1 py-2.5 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg hover:bg-indigo-700 dark:hover:bg-indigo-800 font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isPreviewLoading ? (
-                     <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                  ) : <CheckCircleIcon className="h-4 w-4" />}
-                  {isPreviewLoading ? t("Generating...") : t("Preview Contract")}
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  ) : (
+                    <CheckCircleIcon className="h-4 w-4" />
+                  )}
+                  {isPreviewLoading
+                    ? t("Generating...")
+                    : t("Preview Contract")}
                 </button>
               </div>
             </>
           ) : (
             <>
-              {/* PDF Preview Step */}
-              <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden h-96 bg-gray-50 dark:bg-gray-800">
-                <iframe src={pdfPreviewUrl} className="w-full h-full" title="Contract Preview" />
+              {/* Hint bar */}
+              <div className="bg-indigo-50 dark:bg-indigo-900/40 border border-indigo-100 dark:border-indigo-800 rounded-lg px-4 py-2 flex items-center gap-2">
+                <PencilIcon className="h-4 w-4 text-indigo-500 flex-shrink-0" />
+                <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                  {t("Drag your signature to any position on the contract")}
+                </p>
               </div>
+
+              {/* PDF + draggable signature overlay — A4 aspect ratio shows full page */}
+              <div
+                ref={pdfAreaRef}
+                className="relative border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800 w-full"
+                style={{ aspectRatio: "595 / 842" }}
+              >
+                <iframe
+                  src={pdfPreviewUrl}
+                  className="w-full h-full border-0"
+                  title="Contract Preview"
+                />
+
+                {sigPos && (
+                  <div
+                    ref={sigRef}
+                    onPointerDown={handleSigPointerDown}
+                    onTouchStart={handleSigPointerDown}
+                    style={{
+                      position: "absolute",
+                      left: sigPos.x,
+                      top: sigPos.y,
+                      cursor: dragging ? "grabbing" : "grab",
+                      userSelect: "none",
+                      touchAction: "none",
+                      zIndex: 20,
+                    }}
+                  >
+                    {/* Dashed square */}
+                    <div
+                      style={{
+                        border: dragging
+                          ? "2px solid #6366f1"
+                          : "2px dashed #6366f1",
+                        borderRadius: "8px",
+                        padding: "6px",
+                        background: "rgba(255,255,255,0.93)",
+                        backdropFilter: "blur(3px)",
+                        boxShadow: dragging
+                          ? "0 0 0 3px rgba(99,102,241,0.25),0 4px 14px rgba(0,0,0,0.18)"
+                          : "0 2px 8px rgba(0,0,0,0.13)",
+                        transition: "border 0.15s,box-shadow 0.15s",
+                      }}
+                    >
+                      <img
+                        src={signature}
+                        alt="Signature"
+                        draggable={false}
+                        style={{
+                          display: "block",
+                          maxHeight: "60px",
+                          maxWidth: "160px",
+                          pointerEvents: "none",
+                        }}
+                      />
+                    </div>
+                    {/* Badge */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "-9px",
+                        right: "-9px",
+                        background: "#6366f1",
+                        borderRadius: "50%",
+                        width: "20px",
+                        height: "20px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.28)",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="white"
+                      >
+                        <path d="M12 2L9 5h2v4H7V7l-3 3 3 3v-2h4v4H9l3 3 3-3h-2v-4h4v2l3-3-3-3v2h-4V5h2z" />
+                      </svg>
+                    </div>
+                    {/* Label */}
+                    {!dragging && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "-20px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          whiteSpace: "nowrap",
+                          fontSize: "10px",
+                          color: "#6366f1",
+                          fontWeight: 600,
+                          background: "rgba(255,255,255,0.88)",
+                          borderRadius: "4px",
+                          padding: "1px 5px",
+                          pointerEvents: "none",
+                        }}
+                      >
+                        ✦ {t("drag to reposition")}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                {t("Please review your generated contract before final submission.")}
+                {t(
+                  "Please review your generated contract before final submission.",
+                )}
               </p>
 
               <div className="flex gap-3 pt-2">
@@ -203,7 +410,16 @@ const SignatureModal = ({ bookTitle, authorName, price, onConfirm, onCancel }) =
                 </button>
                 <button
                   type="button"
-                  onClick={() => onConfirm(signature)}
+                  onClick={() => {
+                    const con = pdfAreaRef.current;
+                    const r = con
+                      ? con.getBoundingClientRect()
+                      : { width: 1, height: 1 };
+                    onConfirm(signature, {
+                      xPercent: Math.round((sigPos.x / r.width) * 100),
+                      yPercent: Math.round((sigPos.y / r.height) * 100),
+                    });
+                  }}
                   className="cursor-pointer flex-1 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors text-sm flex items-center justify-center gap-2"
                 >
                   <CheckCircleIcon className="h-4 w-4" />
@@ -318,7 +534,7 @@ const AddAuthorBook = () => {
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   };
 
@@ -337,9 +553,15 @@ const AddAuthorBook = () => {
     let compressedImage = null;
     if (data.get("image")?.size > 0) {
       const imageFile = data.get("image");
-      const options = { maxSizeMB: 1, maxWidthOrHeight: 1600, useWebWorker: true };
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1600,
+        useWebWorker: true,
+      };
       const compressed = await imageCompression(imageFile, options);
-      compressedImage = new File([compressed], imageFile.name, { type: imageFile.type });
+      compressedImage = new File([compressed], imageFile.name, {
+        type: imageFile.type,
+      });
     }
 
     // Store form state so we can use it after signature
@@ -347,8 +569,8 @@ const AddAuthorBook = () => {
     setShowSignModal(true);
   };
 
-  // Step 2: user draws signature → submit everything
-  const handleSignatureConfirm = async (signatureBase64) => {
+  // Step 2: user draws + positions signature → submit everything
+  const handleSignatureConfirm = async (signatureBase64, sigPosition) => {
     setShowSignModal(false);
     setIsUploading(true);
 
@@ -356,15 +578,22 @@ const AddAuthorBook = () => {
       const { data, compressedImage } = formData;
       const bookData = new FormData();
 
-      ["title", "author", "description", "year", "isbn", "edition"].forEach((f) =>
-        bookData.append(f, data.get(f))
+      ["title", "author", "description", "year", "isbn", "edition"].forEach(
+        (f) => bookData.append(f, data.get(f)),
       );
 
       selectedCategories.forEach((id) => bookData.append("categories", id));
       bookData.append("price", parseFloat(data.get("price") || 0));
       bookData.append("signature", signatureBase64);
 
-      if (compressedImage) bookData.append("image", compressedImage, compressedImage.name);
+      // Pass signature position so backend places it at the right spot in the PDF
+      if (sigPosition) {
+        bookData.append("signatureX", sigPosition.xPercent);
+        bookData.append("signatureY", sigPosition.yPercent);
+      }
+
+      if (compressedImage)
+        bookData.append("image", compressedImage, compressedImage.name);
       if (data.get("pdf")?.size > 0) bookData.append("pdf", data.get("pdf"));
 
       await submitAuthorBook(bookData);
@@ -372,7 +601,11 @@ const AddAuthorBook = () => {
       navigate("/author-dashboard");
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || err.message || t("Failed to submit book"));
+      alert(
+        err.response?.data?.message ||
+          err.message ||
+          t("Failed to submit book"),
+      );
     } finally {
       setIsUploading(false);
     }
@@ -382,12 +615,17 @@ const AddAuthorBook = () => {
   const [previewTitle, setPreviewTitle] = useState("");
 
   return (
-    <div dir={i18n.dir()} className="min-h-screen bg-zinc-50  dark:bg-zinc-900 p-6">
+    <div
+      dir={i18n.dir()}
+      className="min-h-screen bg-zinc-50  dark:bg-zinc-900 p-6"
+    >
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("Publish New Book")}</h1>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+              {t("Publish New Book")}
+            </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 mt-0.5">
               <ClockIcon className="h-4 w-4 text-amber-500" />
               {t("Your book will be reviewed by admin before going live")}
@@ -399,13 +637,19 @@ const AddAuthorBook = () => {
         <div className="bg-amber-50 dark:bg-amber-900 border border-amber-200 dark:border-amber-600 rounded-xl px-5 py-3 flex items-start gap-3">
           <ClockIcon className="h-5 w-5 text-amber-500 dark:text-amber-500 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-amber-700 dark:text-amber-400">
-            {t("After submission, your book will appear as Pending in your dashboard until an admin approves it. Only approved books are visible to readers.")}
+            {t(
+              "After submission, your book will appear as Pending in your dashboard until an admin approves it. Only approved books are visible to readers.",
+            )}
           </p>
         </div>
 
         {/* Form */}
         <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600 p-6">
-          <form onSubmit={handleFormSubmit} onChange={() => setIsDirty(true)} className="space-y-6">
+          <form
+            onSubmit={handleFormSubmit}
+            onChange={() => setIsDirty(true)}
+            className="space-y-6"
+          >
             <div>
               <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center border-b border-gray-200 dark:border-gray-600 pb-2">
                 <BookOpenIcon className="h-5 w-5 mr-2 text-indigo-600" />
@@ -440,20 +684,21 @@ const AddAuthorBook = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    {t("Price")} ({t("EGP")}) <span className="text-red-500">*</span>
+                    {t("Price")} ({t("EGP")}){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    required
-                    min="0"
-                    className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 pl-10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="0.00"
-                  />
-                    </div>
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      name="price"
+                      type="number"
+                      step="0.01"
+                      required
+                      min="0"
+                      className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 pl-10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -471,7 +716,9 @@ const AddAuthorBook = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">ISBN</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    ISBN
+                  </label>
                   <input
                     name="isbn"
                     className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -480,7 +727,9 @@ const AddAuthorBook = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{t("Edition")}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                    {t("Edition")}
+                  </label>
                   <input
                     name="edition"
                     className="w-full border border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -494,7 +743,9 @@ const AddAuthorBook = () => {
                   </label>
                   <div className="rounded-lg bg-white dark:bg-zinc-800">
                     {categories.length === 0 ? (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{t("Loading categories...")}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t("Loading categories...")}
+                      </p>
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {categories.map((c) => {
@@ -518,7 +769,10 @@ const AddAuthorBook = () => {
                     )}
                   </div>
                   {selectedCategories.length > 0 && (
-                    <p dir="auto" className="text-xs text-indigo-600 dark:text-indigo-200 mt-2">
+                    <p
+                      dir="auto"
+                      className="text-xs text-indigo-600 dark:text-indigo-200 mt-2"
+                    >
                       {selectedCategories.length} {t("category selected")}
                     </p>
                   )}
@@ -541,7 +795,9 @@ const AddAuthorBook = () => {
 
             {/* Files */}
             <div className="border-t border-gray-200 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  pt-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">{t("Files & Media")}</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                {t("Files & Media")}
+              </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
                   <label className="block cursor-pointer">
@@ -555,7 +811,9 @@ const AddAuthorBook = () => {
                       required
                       className="w-full text-sm text-gray-500 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900 file:text-indigo-700 dark:file:text-indigo-200 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800"
                     />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t("Recommended: 600×900px, max 5MB")}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      {t("Recommended: 600×900px, max 5MB")}
+                    </p>
                   </label>
                 </div>
 
@@ -571,7 +829,9 @@ const AddAuthorBook = () => {
                       required
                       className="w-full text-sm text-gray-500 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-900 file:text-indigo-700 dark:file:text-indigo-200 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800"
                     />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t("Upload the complete book in PDF format")}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      {t("Upload the complete book in PDF format")}
+                    </p>
                   </label>
                 </div>
               </div>
@@ -581,7 +841,9 @@ const AddAuthorBook = () => {
             <div className="bg-indigo-50 dark:bg-indigo-900 border border-indigo-200 dark:border-indigo-600 rounded-xl px-5 py-3 flex items-start gap-3">
               <PencilIcon className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-indigo-700 dark:text-indigo-200">
-                {t("You will be asked to sign a digital publishing contract before submitting.")}
+                {t(
+                  "You will be asked to sign a digital publishing contract before submitting.",
+                )}
               </p>
             </div>
 
@@ -603,10 +865,23 @@ const AddAuthorBook = () => {
                 {isUploading ? (
                   <>
                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
                     </svg>
-                    {t("Uploading")}{"..."}
+                    {t("Uploading")}
+                    {"..."}
                   </>
                 ) : (
                   <>
