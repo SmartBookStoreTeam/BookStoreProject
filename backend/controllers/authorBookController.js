@@ -17,7 +17,7 @@ const slugify = (text) =>
  * Build a publishing contract PDF and embed the author's signature image.
  * Returns a Buffer of the signed PDF.
  */
-async function buildContractPdf({ title, author, price, signatureBase64, authorEmail, date }) {
+async function buildContractPdf({ title, author, price, signatureBase64, authorEmail, date, signatureXPercent, signatureYPercent }) {
   // Translate Arabic inputs to English for PDF compatibility
   const hasArabic = /[\u0600-\u06FF]/;
   
@@ -96,7 +96,7 @@ async function buildContractPdf({ title, author, price, signatureBase64, authorE
   }
 
   y -= 20;
-  draw("Author Signature:", 50, y, 12, timesRomanBold); y -= 10;
+  draw("Author Signing:", 50, y, 12, timesRomanBold); y -= 10;
 
   // ── Embed signature image ──
   if (signatureBase64) {
@@ -105,7 +105,26 @@ async function buildContractPdf({ title, author, price, signatureBase64, authorE
       const sigBuffer  = Buffer.from(base64Data, "base64");
       const sigImage   = await pdfDoc.embedPng(sigBuffer);
       const sigDims    = sigImage.scale(0.4);
-      page.drawImage(sigImage, { x: 50, y: y - sigDims.height, width: sigDims.width, height: sigDims.height });
+
+      // If author dragged the signature to a custom position, use it
+      // signatureXPercent/YPercent are 0-100 relative to the preview container
+      // PDF coordinate system: y=0 is bottom of page, y=height is top
+      let sigX, sigY;
+      if (signatureXPercent != null && signatureYPercent != null) {
+        // Convert % of preview area → PDF page coordinates
+        sigX = (signatureXPercent / 100) * width;
+        // Y is inverted in PDF: 0% from top → height, 100% from top → 0
+        sigY = height - (signatureYPercent / 100) * height - sigDims.height;
+        // Clamp within page bounds
+        sigX = Math.max(0, Math.min(sigX, width  - sigDims.width));
+        sigY = Math.max(0, Math.min(sigY, height - sigDims.height));
+      } else {
+        // Default: directly below "Author Signature:" label
+        sigX = 50;
+        sigY = y - sigDims.height;
+      }
+
+      page.drawImage(sigImage, { x: sigX, y: sigY, width: sigDims.width, height: sigDims.height });
       y -= sigDims.height + 10;
     } catch (_) {
       draw("[Signature not available]", 50, y - 20, 10, timesRomanFont, rgb(0.6, 0.6, 0.6));
@@ -125,8 +144,8 @@ async function buildContractPdf({ title, author, price, signatureBase64, authorE
 // @access Author
 export const submitBook = async (req, res, next) => {
   try {
-    const { title, author, description, price, year, isbn, edition, status, signature } =
-      req.body;
+    const { title, author, description, price, year, isbn, edition, status, signature,
+            signatureX, signatureY } = req.body;
 
     const categories = req.body.categories
       ? Array.isArray(req.body.categories)
@@ -215,6 +234,8 @@ export const submitBook = async (req, res, next) => {
       signatureBase64: signature,
       authorEmail: req.user.email,
       date: new Date().toLocaleDateString("en-GB"),
+      signatureXPercent: signatureX != null ? Number(signatureX) : null,
+      signatureYPercent: signatureY != null ? Number(signatureY) : null,
     });
     const contractUpload = await uploadToS3(
       contractBuffer,
