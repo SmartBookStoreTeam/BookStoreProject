@@ -33,20 +33,17 @@ import chatbotRoutes from "./routes/chatbotRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
 import trackingRoutes from "./routes/trackingRoutes.js";
 
-
 dotenv.config();
 connectDB();
 
 const app = express();
 
+// ⚠️ MUST be before express.json() — Stripe needs the raw body to verify webhook signature
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
+
+// General body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "https://dn7prippnkodg.cloudfront.net",
-];
 
 app.use(cookieParser());
 app.use(
@@ -54,18 +51,13 @@ app.use(
     origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization","x-session-id"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-session-id"],
   }),
 );
 
-// Test routes
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
-
-app.get("/health", (req, res) => {
-  res.status(200).send("ok");
-});
+// Health check
+app.get("/", (req, res) => res.send("API is running..."));
+app.get("/health", (req, res) => res.status(200).send("ok"));
 
 // Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -83,10 +75,10 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/admin/categories", adminCategoryRoutes);
 app.use("/api", previewRoutes);
 app.use("/api/payments", paymentRoutes);
-app.use("/api/coupons", couponRoutes); // user: apply coupon
-app.use("/api/admin/coupons", couponRoutes); // admin: manage coupons
-app.use("/api/book-requests", bookRequestRoutes); // users
-app.use("/api/admin/book-requests", adminBookRequestRoutes); // admin
+app.use("/api/coupons", couponRoutes);
+app.use("/api/admin/coupons", couponRoutes);
+app.use("/api/book-requests", bookRequestRoutes);
+app.use("/api/admin/book-requests", adminBookRequestRoutes);
 app.use("/api/author-applications", authorApplicationRoutes);
 app.use("/api/admin/author-applications", adminAuthorApplicationRoutes);
 app.use("/api/author/dashboard", authorDashboardRoutes);

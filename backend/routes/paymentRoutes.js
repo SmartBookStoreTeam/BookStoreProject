@@ -1,21 +1,26 @@
 import express from "express";
 import {
   createCheckoutSession,
-  paymobWebhook,
+  stripeWebhook,
+  verifySession,
   cancelOrder,
 } from "../controllers/paymentController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { verifyPaymobHmac } from "../middleware/paymobHmac.js";
 
 const router = express.Router();
 
-// Create checkout session — authenticated users only
+// ⚠️ Stripe webhook MUST receive the raw body — mount BEFORE express.json()
+// In server.js, add this BEFORE app.use(express.json()):
+//   app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
+router.post("/webhook", stripeWebhook);
+
+// Create Stripe Checkout Session — authenticated users only
 router.post("/checkout", protect, createCheckoutSession);
 
-// ✅ GET — transaction response callback (sends query params only)
-router.get("/webhook", verifyPaymobHmac, paymobWebhook);
+// Verify session after Stripe redirect (called from success page)
+router.get("/verify", protect, verifySession);
 
-// Cancel order
+// Cancel a pending order
 router.post("/cancel/:orderId", protect, cancelOrder);
 
 export default router;
