@@ -6,6 +6,18 @@ WORKDIR /app
 # Copy package.json & package-lock.json first
 COPY package*.json ./
 
+# Install build dependencies for canvas
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    pango-dev \
+    jpeg-dev \
+    giflib-dev \
+    librsvg-dev \
+    pixman-dev
+
 # Install dependencies
 RUN npm install --production
 

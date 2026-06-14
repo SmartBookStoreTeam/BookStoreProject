@@ -21,7 +21,7 @@ const TopRated = () => {
     const fetchTopBooks = async () => {
       try {
         setLoading(true);
-        const response = await getTopBooks(15); // Adjust limit as needed
+        const response = await getTopBooks(7); // Limit to 7 books
         setBooks(response.data || []);
       } catch (error) {
         console.error("Error fetching top rated books:", error);
@@ -48,9 +48,6 @@ const TopRated = () => {
     );
   }
 
-  // Don't render section if no books
-  if (books.length === 0) return null;
-
   return (
     <div
       id="top-rated"
@@ -60,7 +57,15 @@ const TopRated = () => {
         <h1 className="text-2xl font-bold text-center p-5 text-gray-900 dark:text-gray-100 transition-colors duration-300">
           {t("Top Rated Books")}
         </h1>
-        <Carousel books={books} />
+        {books.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-zinc-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700">
+            <p className="text-lg font-medium">
+              {t("No books found in")} {t("Top Rated Books")}
+            </p>
+          </div>
+        ) : (
+          <Carousel books={books} />
+        )}
       </div>
     </div>
   );
