@@ -36,7 +36,6 @@ const orderSchema = new mongoose.Schema(
     subtotal: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
 
-    // ✅ Coupon discount details
     coupon: {
       code: { type: String, default: null },
       discountPercent: { type: Number, default: 0 },
@@ -56,10 +55,12 @@ const orderSchema = new mongoose.Schema(
 
     adminNote: { type: String, trim: true, maxlength: 500 },
 
-    paymentProvider: { type: String, default: "paymob", index: true },
-    paymob: {
-      orderId: { type: String, index: true },
-      transactionId: { type: String, index: true },
+    paymentProvider: { type: String, default: "stripe", index: true },
+
+    // ── Stripe ────────────────────────────────────────────────────────────
+    stripe: {
+      sessionId: { type: String, default: null }, // ADD: Checkout Session ID
+      paymentIntentId: { type: String, default: null }, // already existed, added default
     },
   },
   { timestamps: true },
@@ -68,6 +69,7 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ "stripe.sessionId": 1 }); // ADD: fast webhook lookup
 
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

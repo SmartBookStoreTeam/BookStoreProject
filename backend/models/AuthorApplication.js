@@ -56,9 +56,24 @@ const authorApplicationSchema = new mongoose.Schema(
     },
 
     // ── Digital Signature (Cloudinary) ─────────────────────────────────────────
-    signature: {
-      url: { type: String, required: [true, "Digital signature is required"] },
-      publicId: { type: String, required: true },
+    signatures: {
+      type: [
+        {
+          url: {
+            type: String,
+            required: [true, "Digital signature URL is required"],
+          },
+          publicId: { type: String, required: true },
+        },
+      ],
+      validate: {
+        validator: function (v) {
+          // Optional but recommended: Enforce exactly 3 signatures
+          return v && v.length === 3;
+        },
+        message:
+          "You must provide exactly 3 digital signatures for AI verification.",
+      },
     },
 
     // ── Review Status ──────────────────────────────────────────────────────────

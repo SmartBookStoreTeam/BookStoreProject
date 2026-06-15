@@ -1,9 +1,10 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import translate from "google-translate-api-x";
 import Book from "../models/Book.js";
+import User from "../models/User.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
-
+import { verifyAgainstMultiple } from "../services/signatureService.js"; 
 const slugify = (text) =>
   text
     .toString()
@@ -20,7 +21,7 @@ const slugify = (text) =>
 async function buildContractPdf({ title, author, price, signatureBase64, authorEmail, date, signatureXPercent, signatureYPercent }) {
   // Translate Arabic inputs to English for PDF compatibility
   const hasArabic = /[\u0600-\u06FF]/;
-  
+
   try {
     if (hasArabic.test(title)) {
       const res = await translate(title, { to: "en" });
@@ -43,15 +44,22 @@ async function buildContractPdf({ title, author, price, signatureBase64, authorE
   const page = pdfDoc.addPage([595, 842]); // A4
   const { width, height } = page.getSize();
 
-  const timesRomanFont  = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  const timesRomanBold  = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+  const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const timesRomanBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
 
-  const draw = (text, x, y, size = 12, font = timesRomanFont, color = rgb(0.1, 0.1, 0.1)) => {
+  const draw = (
+    text,
+    x,
+    y,
+    size = 12,
+    font = timesRomanFont,
+    color = rgb(0.1, 0.1, 0.1),
+  ) => {
     try {
       page.drawText(text, { x, y, size, font, color });
     } catch (e) {
       // Fallback for non-Latin characters (like Arabic) which StandardFonts cannot encode
-      const safeText = text.replace(/[^\x00-\x7F]/g, "?"); 
+      const safeText = text.replace(/[^\x00-\x7F]/g, "?");
       try {
         page.drawText(safeText, { x, y, size, font, color });
       } catch (err2) {
@@ -61,26 +69,52 @@ async function buildContractPdf({ title, author, price, signatureBase64, authorE
   };
 
   // ── Header ──
-  draw("Bookfly Store", width / 2 - 90, height - 60, 18, timesRomanBold, rgb(0.24, 0.32, 0.73));
-  draw("Book Publishing Contract", width / 2 - 80, height - 90, 14, timesRomanFont, rgb(0.4, 0.4, 0.4));
+  draw(
+    "Bookfly Store",
+    width / 2 - 90,
+    height - 60,
+    18,
+    timesRomanBold,
+    rgb(0.24, 0.32, 0.73),
+  );
+  draw(
+    "Book Publishing Contract",
+    width / 2 - 80,
+    height - 90,
+    14,
+    timesRomanFont,
+    rgb(0.4, 0.4, 0.4),
+  );
 
   // Divider
-  page.drawLine({ start: { x: 50, y: height - 100 }, end: { x: width - 50, y: height - 100 }, thickness: 1, color: rgb(0.24, 0.32, 0.73) });
+  page.drawLine({
+    start: { x: 50, y: height - 100 },
+    end: { x: width - 50, y: height - 100 },
+    thickness: 1,
+    color: rgb(0.24, 0.32, 0.73),
+  });
 
   // ── Body ──
   let y = height - 130;
   const lineH = 22;
 
-  draw(`Date: ${date}`, 50, y); y -= lineH;
-  draw(`Author: ${author}`, 50, y); y -= lineH;
-  draw(`Email: ${authorEmail}`, 50, y); y -= lineH * 1.5;
+  draw(`Date: ${date}`, 50, y);
+  y -= lineH;
+  draw(`Author: ${author}`, 50, y);
+  y -= lineH;
+  draw(`Email: ${authorEmail}`, 50, y);
+  y -= lineH * 1.5;
 
-  draw("Book Details:", 50, y, 13, timesRomanBold); y -= lineH;
-  draw(`Title: ${title}`, 70, y); y -= lineH;
-  draw(`Listed Price: ${price} EGP`, 70, y); y -= lineH * 2;
+  draw("Book Details:", 50, y, 13, timesRomanBold);
+  y -= lineH;
+  draw(`Title: ${title}`, 70, y);
+  y -= lineH;
+  draw(`Listed Price: ${price} EGP`, 70, y);
+  y -= lineH * 2;
 
   // ── Contract terms ──
-  draw("Terms & Conditions:", 50, y, 13, timesRomanBold); y -= lineH;
+  draw("Terms & Conditions:", 50, y, 13, timesRomanBold);
+  y -= lineH;
   const terms = [
     "1. The author confirms that they are the sole copyright holder of the submitted book.",
     "2. The author grants Bookfly a non-exclusive licence to distribute and sell the book",
@@ -92,7 +126,8 @@ async function buildContractPdf({ title, author, price, signatureBase64, authorE
     "7. By signing this contract the author declares all information provided is accurate.",
   ];
   for (const line of terms) {
-    draw(line, 50, y, 10.5); y -= 18;
+    draw(line, 50, y, 10.5);
+    y -= 18;
   }
 
   y -= 20;
@@ -127,14 +162,35 @@ async function buildContractPdf({ title, author, price, signatureBase64, authorE
       page.drawImage(sigImage, { x: sigX, y: sigY, width: sigDims.width, height: sigDims.height });
       y -= sigDims.height + 10;
     } catch (_) {
-      draw("[Signature not available]", 50, y - 20, 10, timesRomanFont, rgb(0.6, 0.6, 0.6));
+      draw(
+        "[Signature not available]",
+        50,
+        y - 20,
+        10,
+        timesRomanFont,
+        rgb(0.6, 0.6, 0.6),
+      );
       y -= 40;
     }
   }
 
   // Footer
-  page.drawLine({ start: { x: 50, y: 60 }, end: { x: width - 50, y: 60 }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
-  draw("Bookfly © " + new Date().getFullYear() + " — Auto-generated publishing contract", 50, 45, 9, timesRomanFont, rgb(0.6, 0.6, 0.6));
+  page.drawLine({
+    start: { x: 50, y: 60 },
+    end: { x: width - 50, y: 60 },
+    thickness: 0.5,
+    color: rgb(0.7, 0.7, 0.7),
+  });
+  draw(
+    "Bookfly © " +
+      new Date().getFullYear() +
+      " — Auto-generated publishing contract",
+    50,
+    45,
+    9,
+    timesRomanFont,
+    rgb(0.6, 0.6, 0.6),
+  );
 
   return Buffer.from(await pdfDoc.save());
 }
@@ -169,29 +225,71 @@ export const submitBook = async (req, res, next) => {
     }
 
     if (!signature) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Digital signature is required to publish a book" });
+      return res.status(400).json({
+        success: false,
+        message: "Digital signature is required to publish a book",
+      });
     }
 
-    // 1) Count PDF pages
+    // ==========================================
+    // 🛡️ AI SIGNATURE VERIFICATION GATEWAY 🛡️
+    // ==========================================
+
+    // 1. Fetch Author's stored signatures from DB
+    const authorUser = await User.findById(req.user._id);
+    if (
+      !authorUser ||
+      !authorUser.signatures ||
+      authorUser.signatures.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Security Error: No baseline signatures found for this author.",
+      });
+    }
+
+    // 2. Convert incoming base64 signature into a Buffer for the AI
+    const sigBase64 = signature.replace(/^data:image\/\w+;base64,/, "");
+    const sigBuffer = Buffer.from(sigBase64, "base64");
+
+    // 3. Extract the Cloudinary URLs of the 3 stored signatures
+    const storedSignatureUrls = authorUser.signatures.map((sig) => sig.url);
+
+    // 4. Run the AI Verification
+    const aiResult = await verifyAgainstMultiple(
+      storedSignatureUrls,
+      sigBuffer,
+    );
+
+    if (!aiResult.verified) {
+      return res.status(401).json({
+        success: false,
+        message: "AI Security Alert: " + aiResult.message,
+        matchesFound: `${aiResult.matchesFound} out of ${aiResult.totalChecks}`,
+      });
+    }
+
+    // ==========================================
+    // ✅ PASSED AI CHECK - PROCEED WITH UPLOADS
+    // ==========================================
+
+    // Count PDF pages
     const pdfDoc = await PDFDocument.load(pdfFile.buffer);
     const pageCount = pdfDoc.getPageCount();
 
-    // 2) Upload image to Cloudinary
+    // Upload image to Cloudinary
     const imageUpload = await uploadToCloudinary(imageFile.buffer, {
       folder: "book-store/images",
     });
 
-    // 3) Upload signature image to Cloudinary
-    const sigBase64    = signature.replace(/^data:image\/\w+;base64,/, "");
-    const sigBuffer    = Buffer.from(sigBase64, "base64");
+    // Upload verified signature image to Cloudinary
     const signatureUpload = await uploadToCloudinary(sigBuffer, {
       folder: "book-store/signatures",
       resource_type: "image",
     });
 
-    // 4) Create book with pending status
+    // Create book with pending status
     const book = await Book.create({
       title,
       author,
@@ -206,7 +304,6 @@ export const submitBook = async (req, res, next) => {
       pdf: "temp",
       s3Folder: null,
       aiMetaKey: null,
-      // Approval workflow
       approvalStatus: "pending",
       isActive: false,
       submittedBy: req.user._id,
@@ -214,19 +311,19 @@ export const submitBook = async (req, res, next) => {
       contractSignedAt: new Date(),
     });
 
-    // 5) Build S3 folder name
-    const shortId  = book._id.toString().slice(-6);
+    // Build S3 folder name
+    const shortId = book._id.toString().slice(-6);
     const folderId = `${slugify(`${title}-${author}-${year || ""}`)}-${shortId}`;
 
-    // 6) Upload book PDF to S3
+    // Upload book PDF to S3
     const pdfUpload = await uploadToS3(
       pdfFile.buffer,
       "book.pdf",
       pdfFile.mimetype,
-      { folder: "books", subfolder: folderId }
+      { folder: "books", subfolder: folderId },
     );
 
-    // 7) Build and upload contract PDF to S3
+    // Build and upload contract PDF to S3
     const contractBuffer = await buildContractPdf({
       title,
       author,
@@ -237,28 +334,30 @@ export const submitBook = async (req, res, next) => {
       signatureXPercent: signatureX != null ? Number(signatureX) : null,
       signatureYPercent: signatureY != null ? Number(signatureY) : null,
     });
+
     const contractUpload = await uploadToS3(
       contractBuffer,
       "contract.pdf",
       "application/pdf",
-      { folder: "books", subfolder: folderId }
+      { folder: "books", subfolder: folderId },
     );
 
-    // 8) Update book with real data
+    // Update book with real data
     book.pdf = pdfUpload.key;
     book.fileMeta = {
       size: pdfFile.size,
       mime: pdfFile.mimetype,
       pages: pageCount,
     };
-    book.s3Folder   = folderId;
+    book.s3Folder = folderId;
     book.contractPdf = contractUpload.key;
 
     await book.save();
 
     res.status(201).json({
       success: true,
-      message: "Book submitted for approval",
+      message: "Identity Verified & Book submitted for approval",
+      aiData: aiResult,
       data: book,
     });
   } catch (err) {
@@ -300,7 +399,8 @@ export const editMyBook = async (req, res, next) => {
         .json({ success: false, message: "Book not found" });
     }
 
-    const isApproved = book.approvalStatus === "approved" || book.isActive === true;
+    const isApproved =
+      book.approvalStatus === "approved" || book.isActive === true;
 
     const { title, author, description, price, year, isbn, edition, status } =
       req.body;
@@ -324,10 +424,9 @@ export const editMyBook = async (req, res, next) => {
 
     // Re-upload image if provided
     if (req.files?.image?.[0]) {
-      const imageUpload = await uploadToCloudinary(
-        req.files.image[0].buffer,
-        { folder: "book-store/images" }
-      );
+      const imageUpload = await uploadToCloudinary(req.files.image[0].buffer, {
+        folder: "book-store/images",
+      });
       updates.image = imageUpload.secure_url;
     }
 
@@ -340,7 +439,7 @@ export const editMyBook = async (req, res, next) => {
         req.files.pdf[0].buffer,
         "book.pdf",
         req.files.pdf[0].mimetype,
-        { folder: "books", subfolder: book.s3Folder || book._id.toString() }
+        { folder: "books", subfolder: book.s3Folder || book._id.toString() },
       );
       updates.pdf = pdfUpload.key;
       updates.fileMeta = {
@@ -366,7 +465,11 @@ export const editMyBook = async (req, res, next) => {
 
     await book.save();
 
-    res.json({ success: true, message: "Book updated, pending approval", data: book });
+    res.json({
+      success: true,
+      message: "Book updated, pending approval",
+      data: book,
+    });
   } catch (err) {
     next(err);
   }
@@ -383,7 +486,9 @@ export const deleteMyBook = async (req, res, next) => {
     });
 
     if (!book) {
-      return res.status(404).json({ success: false, message: "Book not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found" });
     }
 
     if (book.approvalStatus === "approved") {
@@ -411,8 +516,14 @@ export const getMyBookContract = async (req, res, next) => {
       submittedBy: req.user._id,
     }).select("+contractPdf signatureUrl contractSignedAt");
 
-    if (!book) return res.status(404).json({ success: false, message: "Book not found" });
-    if (!book.contractPdf) return res.status(404).json({ success: false, message: "No contract found for this book" });
+    if (!book)
+      return res
+        .status(404)
+        .json({ success: false, message: "Book not found" });
+    if (!book.contractPdf)
+      return res
+        .status(404)
+        .json({ success: false, message: "No contract found for this book" });
 
     const { getSignedReadUrl } = await import("../utils/getSignedUrl.js");
     const url = await getSignedReadUrl(book.contractPdf, 60 * 15);
@@ -436,7 +547,7 @@ export const getMyBookContract = async (req, res, next) => {
 export const previewContractPDF = async (req, res, next) => {
   try {
     const { title, price, signatureBase64 } = req.body;
-    
+
     // Create the PDF buffer
     const contractBuffer = await buildContractPdf({
       title: title || "Untitled Book",
@@ -446,15 +557,13 @@ export const previewContractPDF = async (req, res, next) => {
       authorEmail: req.user.email,
       date: new Date().toLocaleDateString("en-GB"),
     });
-    
+
     // Return base64 string
-    const base64Pdf = contractBuffer.toString('base64');
+    const base64Pdf = contractBuffer.toString("base64");
     const dataUri = `data:application/pdf;base64,${base64Pdf}`;
-    
+
     res.json({ success: true, pdfUrl: dataUri });
   } catch (err) {
     next(err);
   }
 };
-
-
