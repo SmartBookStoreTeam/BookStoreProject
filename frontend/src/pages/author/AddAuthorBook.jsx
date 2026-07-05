@@ -15,6 +15,7 @@ import { useAuth } from "../../context/AuthContext";
 import { DollarSign, AlertTriangle, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "../../context/NavigationContext";
+import TutorialTour, { TutorialButton } from "../../components/TutorialTour";
 
 /* ─────────────────────────────────────────────
    SignatureModal — canvas-based digital signing
@@ -179,7 +180,7 @@ const SignatureModal = ({
           <div className="flex items-center gap-2 text-white dark:text-gray-200">
             <PencilIcon className="h-5 w-5" />
             <h2 className="font-bold text-lg">
-              {step === 1 ? t("Digital Signature") : t("Contract Preview")}
+              {step === 1 ? t("Digital Signing") : t("Contract Preview")}
             </h2>
           </div>
           <button
@@ -437,6 +438,66 @@ const SignatureModal = ({
 /* ─────────────────────────────────────────────
    AddAuthorBook — main component
 ───────────────────────────────────────────── */
+
+const AUTHOR_TOUR_KEY = "author_add_book_tour_done";
+
+const AUTHOR_BOOK_STEPS = [
+  {
+    target: "#author-tour-header",
+    title: "Publish Your Book",
+    content: "Welcome! This form lets you submit a book for publication. After filling in the details, an admin will review it before it goes live to readers.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-pending-notice",
+    title: "Review Process",
+    content: "Important: your book won't be immediately visible. It enters a 'Pending' state until our admin team reviews and approves the content.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-title",
+    title: "Book Title",
+    content: "Enter the full title of your book as you want it to appear in the store.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-price",
+    title: "Set Your Price",
+    content: "Set the price in EGP. Note: Bookfly takes a 20% platform commission — you receive 80% of each sale.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-category",
+    title: "Choose Categories",
+    content: "Select all relevant categories. This helps readers find your book through search and filters.",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-description",
+    title: "Book Description",
+    content: "Write an engaging description. This is one of the biggest factors in convincing readers to buy your book!",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-cover",
+    title: "Cover Image",
+    content: "Upload a high-quality cover image (recommended 600x900 px). A great cover dramatically increases click-through rates.",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-pdf",
+    title: "Upload PDF",
+    content: "Upload the full manuscript as a PDF. Readers access it through Bookfly's built-in viewer after purchase.",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-submit",
+    title: "Submit & Sign",
+    content: "Click 'Submit for Review' to open the digital signature step. You'll draw your signature and review a publishing contract before final submission.",
+    placement: "top",
+  },
+];
+
 const AddAuthorBook = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -448,6 +509,7 @@ const AddAuthorBook = () => {
   const { t, i18n } = useTranslation();
   const [isDirty, setIsDirty] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
 
   const {
@@ -517,6 +579,15 @@ const AddAuthorBook = () => {
     setPendingNavigation(null);
     if (showWarningModal) cancelLeave();
   };
+
+  // Auto-start tour for first-time visitors
+  useEffect(() => {
+    const seen = localStorage.getItem(AUTHOR_TOUR_KEY);
+    if (!seen) {
+      const timer = setTimeout(() => setShowTour(true), 700);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
