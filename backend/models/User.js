@@ -59,7 +59,10 @@ const userSchema = new mongoose.Schema(
     portfolioLink: { type: String },
     bio: { type: String },
     phoneNumber: { type: String },
-    digitalSignature: { type: String, select: false },
+    digitalSignatures: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true },
 );
