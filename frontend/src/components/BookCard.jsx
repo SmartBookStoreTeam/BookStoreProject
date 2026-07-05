@@ -16,7 +16,8 @@ const BookCard = memo(({
   handleAddToCart, 
   isFirstOrder, 
   t, 
-  i18n 
+  i18n,
+  compact = false
 }) => {
   const [dominantColor, setDominantColor] = useState(null);
   const bookId = book._id || book.id;
@@ -161,14 +162,18 @@ const BookCard = memo(({
 
         <p
           dir="auto"
-          className="touch-area text-xs text-center truncate max-w-112.5 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3"
+          className={`touch-area text-xs text-center max-w-112.5 text-gray-700 dark:text-gray-400 line-clamp-2 transition-colors duration-300 mb-3 ${
+            compact ? "hidden sm:line-clamp-2 sm:block" : "min-h-10"
+          }`}
         >
           {book.desc || book.description || "No description available"}
         </p>
 
         <div
           className={`mt-auto w-full flex gap-2 ${
-            viewMode === "grid" ? "flex-row" : "flex-col"
+            viewMode === "grid" 
+              ? (compact ? "flex-col" : "flex-col sm:flex-row") 
+              : "flex-col"
           }`}
         >
           <Link
