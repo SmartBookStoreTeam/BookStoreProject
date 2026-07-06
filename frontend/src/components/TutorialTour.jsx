@@ -184,10 +184,10 @@ const TutorialTour = ({ steps = [], onClose, storageKey }) => {
             {isLast && current > 0 && (
               <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
             )}
-            {step.title}
+            {t(step.title)}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            {step.content}
+            {t(step.content)}
           </p>
         </div>
 

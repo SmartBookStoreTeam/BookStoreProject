@@ -692,20 +692,23 @@ const AddAuthorBook = () => {
     >
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-              {t("Publish New Book")}
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 mt-0.5">
-              <ClockIcon className="h-4 w-4 text-amber-500" />
-              {t("Your book will be reviewed by admin before going live")}
-            </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" id="author-tour-header">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                {t("Publish New Book")}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 mt-0.5">
+                <ClockIcon className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>{t("Your book will be reviewed by admin before going live")}</span>
+              </p>
+            </div>
           </div>
+          <TutorialButton onClick={() => setShowTour(true)} />
         </div>
 
         {/* Pending notice */}
-        <div className="bg-amber-50 dark:bg-amber-900 border border-amber-200 dark:border-amber-600 rounded-xl px-5 py-3 flex items-start gap-3">
+        <div id="author-tour-pending-notice" className="bg-amber-50 dark:bg-amber-900 border border-amber-200 dark:border-amber-600 rounded-xl px-5 py-3 flex items-start gap-3">
           <ClockIcon className="h-5 w-5 text-amber-500 dark:text-amber-500 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-amber-700 dark:text-amber-400">
             {t(
@@ -727,7 +730,7 @@ const AddAuthorBook = () => {
                 {t("Book Information")}
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
+                <div id="author-tour-title">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Title")} <span className="text-red-500">*</span>
                   </label>
@@ -753,7 +756,7 @@ const AddAuthorBook = () => {
                   />
                 </div>
 
-                <div>
+                <div id="author-tour-price">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Price")} ({t("EGP")}){" "}
                     <span className="text-red-500">*</span>
@@ -808,7 +811,7 @@ const AddAuthorBook = () => {
                   />
                 </div>
 
-                <div className="lg:col-span-2">
+                <div id="author-tour-category" className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     {t("Categories")} <span className="text-red-500">*</span>
                   </label>
@@ -849,7 +852,7 @@ const AddAuthorBook = () => {
                   )}
                 </div>
 
-                <div className="lg:col-span-2">
+                <div id="author-tour-description" className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Description")} <span className="text-red-500">*</span>
                   </label>
@@ -870,7 +873,7 @@ const AddAuthorBook = () => {
                 {t("Files & Media")}
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
+                <div id="author-tour-cover" className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
                   <label className="block cursor-pointer">
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {t("Cover Image")} <span className="text-red-500">*</span>
@@ -888,7 +891,7 @@ const AddAuthorBook = () => {
                   </label>
                 </div>
 
-                <div className="cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors bg-gray-50 dark:bg-zinc-700">
+                <div id="author-tour-pdf" className="cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors bg-gray-50 dark:bg-zinc-700">
                   <label className="block cursor-pointer">
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {t("PDF File")} <span className="text-red-500">*</span>
@@ -929,6 +932,7 @@ const AddAuthorBook = () => {
                 {t("Cancel")}
               </button>
               <button
+                id="author-tour-submit"
                 type="submit"
                 disabled={isUploading}
                 className="cursor-pointer px-6 py-2.5 bg-indigo-600 text-white dark:text-gray-200 rounded-lg hover:bg-indigo-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-md"
@@ -965,6 +969,14 @@ const AddAuthorBook = () => {
           </form>
         </div>
       </div>
+
+      {showTour && (
+        <TutorialTour
+          steps={AUTHOR_BOOK_STEPS}
+          onClose={() => setShowTour(false)}
+          storageKey={AUTHOR_TOUR_KEY}
+        />
+      )}
 
       {/* Signature Modal */}
       {showSignModal && (

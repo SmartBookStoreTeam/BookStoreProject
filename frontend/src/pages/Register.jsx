@@ -13,6 +13,103 @@ import { useTranslation } from "react-i18next";
 import regImg1 from "../assets/reg_img.png";
 import regImg2 from "../assets/reg_img2.png";
 
+const SignaturePad = ({ label, signatureRef, hasDrawn, setHasDrawn, t }) => {
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  const getPosition = (e) => {
+    const canvas = signatureRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top) * (canvas.height / rect.height),
+    };
+  };
+
+  const startDrawing = (e) => {
+    if (e.cancelable) e.preventDefault();
+    setHasDrawn(true);
+    const ctx = signatureRef.current.getContext("2d");
+    const pos = getPosition(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (e.cancelable) e.preventDefault();
+    if (!isDrawing) return;
+    const ctx = signatureRef.current.getContext("2d");
+    const pos = getPosition(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = (e) => {
+    if (e && e.cancelable) e.preventDefault();
+    if (!isDrawing) return;
+    setIsDrawing(false);
+  };
+
+  const clearSignature = () => {
+    const canvas = signatureRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      setHasDrawn(false);
+    }
+  };
+
+  useEffect(() => {
+    if (signatureRef.current) {
+      const canvas = signatureRef.current;
+      const ctx = canvas.getContext("2d");
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#000";
+    }
+  }, [signatureRef]);
+
+  return (
+    <div className="mb-4">
+      <fieldset className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
+        <legend className="px-1 text-xs text-gray-600 dark:text-white/70">{label}</legend>
+        <div className="touch-area relative rounded-lg">
+          <canvas
+            ref={signatureRef}
+            width={500}
+            height={150}
+            className="w-full h-[150px] cursor-crosshair touch-none bg-white rounded-lg"
+            onPointerDown={startDrawing}
+            onPointerMove={draw}
+            onPointerUp={stopDrawing}
+            onPointerLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+          />
+          {!hasDrawn && (
+            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-600 pointer-events-none">
+              {t("Draw your signature")}
+            </div>
+          )}
+        </div>
+      </fieldset>
+      <div className="flex justify-end mt-2">
+        <button
+          type="button"
+          onClick={clearSignature}
+          className="text-sm text-gray-600 dark:text-white/70 hover:text-red-500 transition-colors cursor-pointer"
+        >
+          {t("Clear")}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const Register = () => {
   const [step, setStep] = useState(1);
   const [roleType, setRoleType] = useState("user");
@@ -22,17 +119,19 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [hasDrawn, setHasDrawn] = useState(false);
 
   // Step 2 states
-  const [nationalId, setNationalId] = useState("");
   const [portfolioLink, setPortfolioLink] = useState("");
   const [bio, setBio] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-
   // Step 3 states
-  const [digitalSignature, setDigitalSignature] = useState(null);
+  const canvasRef1 = useRef(null);
+  const canvasRef2 = useRef(null);
+  const canvasRef3 = useRef(null);
+  const [hasDrawn1, setHasDrawn1] = useState(false);
+  const [hasDrawn2, setHasDrawn2] = useState(false);
+  const [hasDrawn3, setHasDrawn3] = useState(false);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -71,37 +170,57 @@ const Register = () => {
         submitRegistration();
       }
     } else if (step === 2) {
-      if (!nationalId || !portfolioLink || !bio || !phoneNumber) {
+      if (!portfolioLink || !bio || !phoneNumber) {
         setError(t("All author fields are required"));
         return;
       }
       setError("");
       setStep(3);
+    } else if (step === 3) {
+      if (!hasDrawn1) {
+        setError(t("Please draw your signature"));
+        return;
+      }
+      setError("");
+      setStep(4);
+    } else if (step === 4) {
+      if (!hasDrawn2) {
+        setError(t("Please draw your signature"));
+        return;
+      }
+      setError("");
+      setStep(5);
     }
   };
-const getPosition = (e) => {
-  const canvas = canvasRef.current;
-  const rect = canvas.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  return {
-    x: (clientX - rect.left) * (canvas.width / rect.width),
-    y: (clientY - rect.top) * (canvas.height / rect.height),
-  };
-};
   const submitRegistration = async () => {
     setError("");
     setLoading(true);
+
+    let finalSignature = null;
+    if (roleType === "author") {
+       const combinedCanvas = document.createElement("canvas");
+       combinedCanvas.width = 500;
+       combinedCanvas.height = 450;
+       const ctx = combinedCanvas.getContext("2d");
+       
+       ctx.fillStyle = "#ffffff";
+       ctx.fillRect(0, 0, 500, 450);
+
+       if (canvasRef1.current) ctx.drawImage(canvasRef1.current, 0, 0);
+       if (canvasRef2.current) ctx.drawImage(canvasRef2.current, 0, 150);
+       if (canvasRef3.current) ctx.drawImage(canvasRef3.current, 0, 300);
+
+       finalSignature = combinedCanvas.toDataURL("image/png");
+    }
 
     const extraData =
       roleType === "author"
         ? {
             roleType,
-            nationalId,
             portfolioLink,
             bio,
             phoneNumber,
-            digitalSignature,
+            digitalSignature: finalSignature,
           }
         : { roleType };
 
@@ -132,63 +251,7 @@ const getPosition = (e) => {
     setError(error || "Google registration failed");
   };
 
-  // Canvas Logic
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  // نص placeholder
-  
-const startDrawing = (e) => {
-  if (e.cancelable) e.preventDefault();
-  setHasDrawn(true);
-  const ctx = canvasRef.current.getContext("2d");
-  const pos = getPosition(e);
-
-  ctx.beginPath();
-  ctx.moveTo(pos.x, pos.y);
-  setIsDrawing(true);
-};
-
-const draw = (e) => {
-  if (e.cancelable) e.preventDefault();
-  if (!isDrawing) return;
-
-  const ctx = canvasRef.current.getContext("2d");
-  const pos = getPosition(e);
-
-  ctx.lineTo(pos.x, pos.y);
-  ctx.stroke();
-};
-
-const stopDrawing = (e) => {
-  if (e && e.cancelable) e.preventDefault();
-  if (!isDrawing) return;
-  setIsDrawing(false);
-  if (canvasRef.current) {
-    setDigitalSignature(canvasRef.current.toDataURL("image/png"));
-  }
-};
-
-  const clearSignature = () => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.beginPath();
-      setDigitalSignature(null);
-      setHasDrawn(false);
-    }
-  };
-
-  // Initialize canvas style
-  useEffect(() => {
-    if (step === 3 && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      ctx.lineWidth = 2;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = "#000";
-    }
-  }, [step]);
+  // Canvas logic moved to SignaturePad component
 
   return (
     <div className="auth-page">
@@ -256,7 +319,7 @@ const stopDrawing = (e) => {
           </>
         )}
 
-        <form onSubmit={step === 3 ? (e) => { e.preventDefault(); submitRegistration(); } : handleNextStep} className="space-y-4">
+        <form onSubmit={step === 5 ? (e) => { e.preventDefault(); submitRegistration(); } : handleNextStep} className="space-y-4">
           
           {step === 1 && (
             <>
@@ -414,22 +477,6 @@ const stopDrawing = (e) => {
 
           {step === 2 && (
             <>
-              <div dir={i18n.dir()}>
-                <fieldset className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
-                  <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
-      {t("National ID")}
-    </legend>
-                  <input
-                  dir="ltr"
-                    type="text"
-                    value={nationalId}
-                    placeholder="123456789234567"
-                    onChange={(e) => setNationalId(e.target.value)}
-                    className="w-full bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-1"
-                    required={step === 2}
-                  />
-                </fieldset>
-              </div>
 
               <div dir={i18n.dir()}>
                 <fieldset className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
@@ -471,9 +518,13 @@ const stopDrawing = (e) => {
     </legend>
                   <input
                     type="tel"
+                    dir="ltr"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="01000000000"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9+\s-]/g, "");
+                      setPhoneNumber(val);
+                    }}
+                    placeholder="+20 100 000 000"
                     className="w-full bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 py-1"
                     required={step === 2}
                   />
@@ -483,45 +534,19 @@ const stopDrawing = (e) => {
           )}
 
           {step === 3 && (
-            <>
-              <div dir={i18n.dir()}>
-                <fieldset className="border border-gray-300 dark:border-white/20 rounded-lg px-3 pb-2 pt-3">
-                  <legend className="px-1 text-xs text-gray-600 dark:text-white/70">
-      {t("Digital Signature")}
-    </legend>
-    <div className="touch-area relative rounded-lg">
-                  <canvas
-                    ref={canvasRef}
-                    width={500}
-                    height={150}
-                    className="w-full h-[150px] cursor-crosshair touch-none bg-white rounded-lg"
-                    onPointerDown={startDrawing}
-                    onPointerMove={draw}
-                    onPointerUp={stopDrawing}
-                    onPointerLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
-                  />
-                   {!hasDrawn && (
-    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-600 pointer-events-none">
-      {t("Draw your signature")}
-    </div>
-  )}
-                  </div>
-                </fieldset>
-                
-                <div className="flex justify-end mt-2">
-                  <button
-                    type="button"
-                    onClick={clearSignature}
-                    className="text-sm text-gray-600 dark:text-white/70 hover:text-red-500 transition-colors cursor-pointer"
-                  >
-                    {t("Clear")}
-                  </button>
-                </div>
-              </div>
-            </>
+            <div dir={i18n.dir()}>
+              <SignaturePad label={t("Digital Signing 1")} signatureRef={canvasRef1} hasDrawn={hasDrawn1} setHasDrawn={setHasDrawn1} t={t} />
+            </div>
+          )}
+          {step === 4 && (
+            <div dir={i18n.dir()}>
+              <SignaturePad label={t("Digital Signing 2")} signatureRef={canvasRef2} hasDrawn={hasDrawn2} setHasDrawn={setHasDrawn2} t={t} />
+            </div>
+          )}
+          {step === 5 && (
+            <div dir={i18n.dir()}>
+              <SignaturePad label={t("Digital Signing 3")} signatureRef={canvasRef3} hasDrawn={hasDrawn3} setHasDrawn={setHasDrawn3} t={t} />
+            </div>
           )}
 
           <div className="flex gap-3 pt-2">
@@ -537,14 +562,14 @@ const stopDrawing = (e) => {
             <button
               dir={i18n.dir()}
               type="submit"
-              disabled={loading || (step === 3 && !digitalSignature)}
+              disabled={loading || (step === 3 && !hasDrawn1) || (step === 4 && !hasDrawn2) || (step === 5 && !hasDrawn3)}
               className="touch-area flex-1 bg-indigo-500 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-indigo-500/30"
             >
               {loading
                 ? t("Creating account...")
                 : step === 1 && roleType === "author"
                 ? t("Next")
-                : step === 2
+                : step >= 2 && step <= 4
                 ? t("Next")
                 : t("Register Account")}
             </button>
