@@ -15,6 +15,7 @@ import { useAuth } from "../../context/AuthContext";
 import { DollarSign, AlertTriangle, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "../../context/NavigationContext";
+import TutorialTour, { TutorialButton } from "../../components/TutorialTour";
 
 /* ─────────────────────────────────────────────
    SignatureModal — canvas-based digital signing
@@ -179,7 +180,7 @@ const SignatureModal = ({
           <div className="flex items-center gap-2 text-white dark:text-gray-200">
             <PencilIcon className="h-5 w-5" />
             <h2 className="font-bold text-lg">
-              {step === 1 ? t("Digital Signature") : t("Contract Preview")}
+              {step === 1 ? t("Digital Signing") : t("Contract Preview")}
             </h2>
           </div>
           <button
@@ -437,6 +438,66 @@ const SignatureModal = ({
 /* ─────────────────────────────────────────────
    AddAuthorBook — main component
 ───────────────────────────────────────────── */
+
+const AUTHOR_TOUR_KEY = "author_add_book_tour_done";
+
+const AUTHOR_BOOK_STEPS = [
+  {
+    target: "#author-tour-header",
+    title: "Publish Your Book",
+    content: "Welcome! This form lets you submit a book for publication. After filling in the details, an admin will review it before it goes live to readers.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-pending-notice",
+    title: "Review Process",
+    content: "Important: your book won't be immediately visible. It enters a 'Pending' state until our admin team reviews and approves the content.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-title",
+    title: "Book Title",
+    content: "Enter the full title of your book as you want it to appear in the store.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-price",
+    title: "Set Your Price",
+    content: "Set the price in EGP. Note: Bookfly takes a 20% platform commission — you receive 80% of each sale.",
+    placement: "bottom",
+  },
+  {
+    target: "#author-tour-category",
+    title: "Choose Categories",
+    content: "Select all relevant categories. This helps readers find your book through search and filters.",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-description",
+    title: "Book Description",
+    content: "Write an engaging description. This is one of the biggest factors in convincing readers to buy your book!",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-cover",
+    title: "Cover Image",
+    content: "Upload a high-quality cover image (recommended 600x900 px). A great cover dramatically increases click-through rates.",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-pdf",
+    title: "Upload PDF",
+    content: "Upload the full manuscript as a PDF. Readers access it through Bookfly's built-in viewer after purchase.",
+    placement: "top",
+  },
+  {
+    target: "#author-tour-submit",
+    title: "Submit & Sign",
+    content: "Click 'Submit for Review' to open the digital signature step. You'll draw your signature and review a publishing contract before final submission.",
+    placement: "top",
+  },
+];
+
 const AddAuthorBook = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -448,6 +509,7 @@ const AddAuthorBook = () => {
   const { t, i18n } = useTranslation();
   const [isDirty, setIsDirty] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
 
   const {
@@ -517,6 +579,15 @@ const AddAuthorBook = () => {
     setPendingNavigation(null);
     if (showWarningModal) cancelLeave();
   };
+
+  // Auto-start tour for first-time visitors
+  useEffect(() => {
+    const seen = localStorage.getItem(AUTHOR_TOUR_KEY);
+    if (!seen) {
+      const timer = setTimeout(() => setShowTour(true), 700);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -621,20 +692,23 @@ const AddAuthorBook = () => {
     >
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-              {t("Publish New Book")}
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 mt-0.5">
-              <ClockIcon className="h-4 w-4 text-amber-500" />
-              {t("Your book will be reviewed by admin before going live")}
-            </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" id="author-tour-header">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                {t("Publish New Book")}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1 mt-0.5">
+                <ClockIcon className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>{t("Your book will be reviewed by admin before going live")}</span>
+              </p>
+            </div>
           </div>
+          <TutorialButton onClick={() => setShowTour(true)} />
         </div>
 
         {/* Pending notice */}
-        <div className="bg-amber-50 dark:bg-amber-900 border border-amber-200 dark:border-amber-600 rounded-xl px-5 py-3 flex items-start gap-3">
+        <div id="author-tour-pending-notice" className="bg-amber-50 dark:bg-amber-900 border border-amber-200 dark:border-amber-600 rounded-xl px-5 py-3 flex items-start gap-3">
           <ClockIcon className="h-5 w-5 text-amber-500 dark:text-amber-500 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-amber-700 dark:text-amber-400">
             {t(
@@ -656,7 +730,7 @@ const AddAuthorBook = () => {
                 {t("Book Information")}
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
+                <div id="author-tour-title">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Title")} <span className="text-red-500">*</span>
                   </label>
@@ -682,7 +756,7 @@ const AddAuthorBook = () => {
                   />
                 </div>
 
-                <div>
+                <div id="author-tour-price">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Price")} ({t("EGP")}){" "}
                     <span className="text-red-500">*</span>
@@ -737,7 +811,7 @@ const AddAuthorBook = () => {
                   />
                 </div>
 
-                <div className="lg:col-span-2">
+                <div id="author-tour-category" className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     {t("Categories")} <span className="text-red-500">*</span>
                   </label>
@@ -778,7 +852,7 @@ const AddAuthorBook = () => {
                   )}
                 </div>
 
-                <div className="lg:col-span-2">
+                <div id="author-tour-description" className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                     {t("Description")} <span className="text-red-500">*</span>
                   </label>
@@ -799,7 +873,7 @@ const AddAuthorBook = () => {
                 {t("Files & Media")}
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
+                <div id="author-tour-cover" className="border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 transition-colors bg-gray-50">
                   <label className="block cursor-pointer">
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {t("Cover Image")} <span className="text-red-500">*</span>
@@ -817,7 +891,7 @@ const AddAuthorBook = () => {
                   </label>
                 </div>
 
-                <div className="cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors bg-gray-50 dark:bg-zinc-700">
+                <div id="author-tour-pdf" className="cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200  rounded-xl p-6 text-center hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors bg-gray-50 dark:bg-zinc-700">
                   <label className="block cursor-pointer">
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {t("PDF File")} <span className="text-red-500">*</span>
@@ -858,6 +932,7 @@ const AddAuthorBook = () => {
                 {t("Cancel")}
               </button>
               <button
+                id="author-tour-submit"
                 type="submit"
                 disabled={isUploading}
                 className="cursor-pointer px-6 py-2.5 bg-indigo-600 text-white dark:text-gray-200 rounded-lg hover:bg-indigo-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-md"
@@ -894,6 +969,14 @@ const AddAuthorBook = () => {
           </form>
         </div>
       </div>
+
+      {showTour && (
+        <TutorialTour
+          steps={AUTHOR_BOOK_STEPS}
+          onClose={() => setShowTour(false)}
+          storageKey={AUTHOR_TOUR_KEY}
+        />
+      )}
 
       {/* Signature Modal */}
       {showSignModal && (

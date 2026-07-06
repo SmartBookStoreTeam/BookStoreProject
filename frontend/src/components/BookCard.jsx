@@ -16,7 +16,8 @@ const BookCard = memo(({
   handleAddToCart, 
   isFirstOrder, 
   t, 
-  i18n 
+  i18n,
+  compact = false
 }) => {
   const [dominantColor, setDominantColor] = useState(null);
   const bookId = book._id || book.id;
@@ -40,7 +41,7 @@ const BookCard = memo(({
       className={
         viewMode === "grid"
           ? "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden flex flex-col h-full"
-          : "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden flex w-full"
+          : "bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden flex flex-col sm:flex-row w-full min-h-[160px]"
       }
       whileHover={dominantColor ? {
         scale: 1.02,
@@ -58,14 +59,14 @@ const BookCard = memo(({
         className={
           viewMode === "grid"
             ? "relative w-full block cursor-pointer group"
-            : "relative w-40 shrink-0 block cursor-pointer p-4 group"
+            : "relative w-full sm:w-48 shrink-0 block cursor-pointer p-4 group"
         }
       >
         <div
           className={
             viewMode === "grid"
               ? "touch-area relative w-full aspect-5/4 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800"
-              : "touch-area relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-700"
+              : "touch-area relative w-full aspect-[4/3] sm:aspect-[3/4] sm:h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-700"
           }
         >
           <motion.img
@@ -161,14 +162,18 @@ const BookCard = memo(({
 
         <p
           dir="auto"
-          className="touch-area text-xs text-center truncate max-w-112.5 text-gray-700 dark:text-gray-400 line-clamp-2 min-h-10 transition-colors duration-300 mb-3"
+          className={`touch-area text-xs text-center max-w-112.5 text-gray-700 dark:text-gray-400 transition-colors duration-300 mb-3 ${
+            compact ? "line-clamp-1 sm:line-clamp-2" : "line-clamp-2"
+          }`}
         >
           {book.desc || book.description || "No description available"}
         </p>
 
         <div
           className={`mt-auto w-full flex gap-2 ${
-            viewMode === "grid" ? "flex-row" : "flex-col"
+            viewMode === "grid" 
+              ? (compact ? "flex-col" : "flex-col sm:flex-row") 
+              : "flex-col"
           }`}
         >
           <Link

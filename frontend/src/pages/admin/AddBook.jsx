@@ -7,6 +7,72 @@ import { BookOpenIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { DollarSign, AlertTriangle, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigation } from "../../context/NavigationContext";
+import TutorialTour, { TutorialButton } from "../../components/TutorialTour";
+
+const TOUR_KEY = "admin_add_book_tour_done";
+
+const getAddBookSteps = (t) => [
+  {
+    target: "#tour-add-book-header",
+    title: t("Add a New Book"),
+    content: t("This form lets you publish a new book to the store. Fill in all required fields (marked with a red *) to get started."),
+    placement: "bottom",
+  },
+  {
+    target: "#tour-title-field",
+    title: t("Book Title"),
+    content: t("Enter the full title of the book. This is the main name shown to customers in the store."),
+    placement: "bottom",
+  },
+  {
+    target: "#tour-author-field",
+    title: t("Author Name"),
+    content: t("Enter the author's full name exactly as it should appear on the book listing."),
+    placement: "bottom",
+  },
+  {
+    target: "#tour-price-field",
+    title: t("Price (EGP)"),
+    content: t("Set the book price in Egyptian Pounds. Use a fair market price — this is what customers will pay."),
+    placement: "bottom",
+  },
+  {
+    target: "#tour-category-field",
+    title: t("Categories"),
+    content: t("Select one or more categories that best describe the book. This helps customers discover it through filters."),
+    placement: "top",
+  },
+  {
+    target: "#tour-status-field",
+    title: t("Availability Status"),
+    content: t("Choose 'Available' to publish the book immediately, or 'Unavailable' to hide it from customers until you're ready."),
+    placement: "bottom",
+  },
+  {
+    target: "#tour-description-field",
+    title: t("Book Description"),
+    content: t("Write a compelling description of the book. A good description significantly improves sales."),
+    placement: "top",
+  },
+  {
+    target: "#tour-cover-upload",
+    title: t("Cover Image"),
+    content: t("Upload the book's cover image. Recommended size is 600×900 px. The image is compressed automatically, so quality is preserved."),
+    placement: "top",
+  },
+  {
+    target: "#tour-pdf-upload",
+    title: t("PDF File"),
+    content: t("Upload the full book as a PDF. Customers will be able to read it after purchase using the built-in reader."),
+    placement: "top",
+  },
+  {
+    target: "#tour-submit-btn",
+    title: t("Submit the Book"),
+    content: t("Once all fields are filled, click 'Add Book' to publish. You'll be redirected to the books list on success. 🎉"),
+    placement: "top",
+  },
+];
 
 const AddBook = () => {
   const navigate = useNavigate();
@@ -16,6 +82,7 @@ const AddBook = () => {
   const { t, i18n } = useTranslation();
   const [isDirty, setIsDirty] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
 
   const {
@@ -85,6 +152,15 @@ const AddBook = () => {
     setPendingNavigation(null);
     if (showWarningModal) cancelLeave();
   };
+
+  // Auto-start tour for first-time visitors
+  useEffect(() => {
+    const seen = localStorage.getItem(TOUR_KEY);
+    if (!seen) {
+      const timer = setTimeout(() => setShowTour(true), 600);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -165,14 +241,24 @@ const AddBook = () => {
 
   return (
     <div className="space-y-6">
+      {/* Tutorial Tour */}
+      {showTour && (
+        <TutorialTour
+          steps={getAddBookSteps(t)}
+          storageKey={TOUR_KEY}
+          onClose={() => setShowTour(false)}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-center">
-          <div>
-            <h1 className="text-2xl text-center font-bold text-gray-800 dark:text-gray-200">Add New Book</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Fill in the details to add a new book
-            </p>
+      <div id="tour-add-book-header" className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("Add New Book")}</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {t("Fill in the details to add a new book")}
+          </p>
         </div>
+        <TutorialButton onClick={() => setShowTour(true)} label="How to add a book?" />
       </div>
 
       {/* Form Card */}
@@ -182,36 +268,36 @@ const AddBook = () => {
           <div>
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 flex items-center border-b border-gray-200 dark:border-gray-700 pb-2">
               <BookOpenIcon className="h-5 w-5 mr-2 text-blue-600" />
-              Book Information
+              {t("Book Information")}
             </h3>
             <div className="flex flex-col space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
-              <div>
+              <div id="tour-title-field">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                  Title <span className="text-red-500">*</span>
+                  {t("Title")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="title"
                   required
                   className="w-full text-gray-800 dark:text-gray-200 border border-gray-300 dark:bg-zinc-900 dark:border-zinc-700 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Enter book title"
+                  placeholder={t("Enter book title")}
                 />
               </div>
 
-              <div>
+              <div id="tour-author-field">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-1">
-                  Author <span className="text-red-500">*</span>
+                  {t("Author Name")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="author"
                   required
                   className="w-full text-gray-800 dark:text-gray-200 border border-gray-300 dark:bg-zinc-900 dark:border-zinc-700 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Enter author name"
+                  placeholder={t("Enter author name")}
                 />
               </div>
 
-              <div>
+              <div id="tour-price-field">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-1">
-                  Price (EGP) <span className="text-red-500">*</span>
+                  {t("Price")} ({t("EGP")}) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -228,7 +314,7 @@ const AddBook = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-1">
-                  Publication Year
+                  {t("Publication Year")}
                 </label>
                 <input
                   name="year"
@@ -242,33 +328,33 @@ const AddBook = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-1">
-                  ISBN
+                  {t("ISBN")}
                 </label>
                 <input
                   name="isbn"
                   className="w-full text-gray-800 dark:text-gray-200 border border-gray-300 dark:bg-zinc-900 dark:border-zinc-700 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="ISBN"
+                  placeholder={t("ISBN")}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-1">
-                  Edition
+                  {t("Edition")}
                 </label>
                 <input
                   name="edition"
                   className="w-full text-gray-800 dark:text-gray-200 border border-gray-300 dark:bg-zinc-900 dark:border-zinc-700 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Edition"
+                  placeholder={t("Edition")}
                 />
               </div>
 
-              <div className="col-span-2">
+              <div id="tour-category-field" className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-2">
-                  Category <span className="text-red-500">*</span>
+                  {t("Categories")} <span className="text-red-500">*</span>
                 </label>
                 <div className="bg-white dark:bg-zinc-800">
                   {categories.length === 0 ? (
-                    <p className="text-sm text-gray-500 dark:text-gray-200">Loading categories...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-200">{t("Loading categories...")}</p>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {categories.map((c) => {
@@ -284,7 +370,7 @@ const AddBook = () => {
                                 : "bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:border-indigo-400 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20"
                             }`}
                           >
-                            {c.name}
+                            {t(c.name)}
                           </button>
                         );
                       })}
@@ -293,34 +379,34 @@ const AddBook = () => {
                 </div>
                 {selectedCategories.length > 0 && (
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                    {selectedCategories.length} category selected
+                    {selectedCategories.length} {t("category selected")}
                   </p>
                 )}
               </div>
 
-              <div>
+              <div id="tour-status-field">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-1">
-                  Status
+                  {t("Status")}
                 </label>
                 <select
                   name="status"
                   defaultValue="available"
                   className="w-full text-gray-800 dark:text-gray-200 border border-gray-300 dark:bg-zinc-900 dark:border-zinc-700 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
-                  <option value="available">Available</option>
-                  <option value="unavailable">Unavailable</option>
+                  <option value="available">{t("Available")}</option>
+                  <option value="unavailable">{t("Unavailable")}</option>
                 </select>
               </div>
 
-              <div className="col-span-2">
+              <div id="tour-description-field" className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200  mb-1">
-                  Description
+                  {t("Description")}
                 </label>
                 <textarea
                   name="description"
                   rows="4"
                   className="w-full text-gray-800 dark:text-gray-200 border border-gray-300 dark:bg-zinc-900 dark:border-zinc-700 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
-                  placeholder="Enter book description..."
+                  placeholder={t("Enter book description...")}
                 />
               </div>
             </div>
@@ -329,13 +415,13 @@ const AddBook = () => {
           {/* Files Section */}
           <div className="border-t border-gray-200 dark:border-zinc-700 pt-6">
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
-              Files & Media
+              {t("Files & Media")}
             </h3>
             <div className="flex flex-col space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
-              <div className="touch-area cursor-pointer border-2 border-dashed bg-gray-100 dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 rounded-xl p-6 text-center hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+              <div id="tour-cover-upload" className="touch-area cursor-pointer border-2 border-dashed bg-gray-100 dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 rounded-xl p-6 text-center hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
                 <label className="block cursor-pointer">
                   <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    Cover Image <span className="text-red-500">*</span>
+                    {t("Cover Image")} <span className="text-red-500">*</span>
                   </div>
                   <input
                     type="file"
@@ -345,15 +431,15 @@ const AddBook = () => {
                     className="w-full text-sm text-gray-500 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-50 file:text-blue-700 dark:file:text-blue-700 hover:file:bg-blue-100 dark:hover:file:bg-blue-100"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-200 mt-2">
-                    Recommended: 600x900px, max 5MB
+                    {t("Recommended: 600×900px, max 5MB")}
                   </p>
                 </label>
               </div>
 
-              <div className="touch-area cursor-pointer border-2 border-dashed bg-gray-100 dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 rounded-xl p-6 text-center hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+              <div id="tour-pdf-upload" className="touch-area cursor-pointer border-2 border-dashed bg-gray-100 dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 rounded-xl p-6 text-center hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
                 <label className="block cursor-pointer">
                   <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    PDF File <span className="text-red-500">*</span>
+                    {t("PDF File")} <span className="text-red-500">*</span>
                   </div>
                   <input
                     type="file"
@@ -363,7 +449,7 @@ const AddBook = () => {
                     className="w-full text-sm text-gray-500 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-50 file:text-blue-700 dark:file:text-blue-700 hover:file:bg-blue-100 dark:hover:file:bg-blue-100"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-200 mt-2">
-                    Upload the complete book in PDF format
+                    {t("Upload the complete book in PDF format")}
                   </p>
                 </label>
               </div>
@@ -378,10 +464,11 @@ const AddBook = () => {
               onClick={() => navigate("/admin/books")}
               className="px-6 py-2.5 cursor-pointer border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition-colors disabled:opacity-50"
             >
-              Cancel
+              {t("Cancel")}
             </button>
 
             <button
+              id="tour-submit-btn"
               type="submit"
               disabled={isUploading}
               className="px-6 py-2.5 bg-blue-600  cursor-pointer text-white dark:text-gray-200 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-md hover:shadow-lg"
@@ -404,10 +491,10 @@ const AddBook = () => {
                       d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                     />
                   </svg>
-                  Uploading...
+                  {t("Uploading")}...
                 </>
               ) : (
-                "Add Book"
+                t("Add Book")
               )}
             </button>
           </div>

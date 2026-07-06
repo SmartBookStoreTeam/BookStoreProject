@@ -123,7 +123,7 @@ const Checkout = () => {
         quantity: 1, // Always 1 for digital books
       }));
 
-      // Call Paymob checkout API
+      // Call Stripe checkout API
       // Pass isFirstOrder so backend can apply the 50% first-order discount
       const response = await createCheckoutSession(
         items,
@@ -131,12 +131,12 @@ const Checkout = () => {
         !couponData && isFirstOrder,
       );
 
-      if (response.success && response.data?.iframeUrl) {
+      if (response.success && response.data?.checkoutUrl) {
         // ✅ SAVE CART BEFORE REDIRECT (VERY IMPORTANT)
         localStorage.setItem("lastCart", JSON.stringify(currentBooks));
 
-        // Redirect to Paymob iframe payment page
-        window.location.href = response.data.iframeUrl;
+        // Redirect to Stripe Checkout page
+        window.location.href = response.data.checkoutUrl;
       } else {
         throw new Error("Failed to create checkout session");
       }
