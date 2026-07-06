@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { CheckCircle, XCircle, Mail, BookOpen, Loader } from "lucide-react";
 import { trackPurchase } from "../api/trackingApi";
+import { verifySession } from "../api/paymentApi";
 
 const CheckoutSuccess = () => {
   const { t, i18n } = useTranslation();
@@ -12,44 +13,58 @@ const CheckoutSuccess = () => {
   const { clearCart, fetchPurchasedBooks } = useCart();
 
   const [loading, setLoading] = useState(true);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [orderId, setOrderId] = useState(null);
 
-  // Paymob sends ?success=true&order=...&id=... as query params
-  const isSuccess = searchParams.get("success") === "true";
-  const paymobOrderId = searchParams.get("order");
-  const transactionId = searchParams.get("id");
+  // Stripe sends ?session_id=cs_xxx as query param on success redirect
+  const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
-    // If no Paymob params at all, redirect away
-    if (!paymobOrderId && !transactionId) {
+    // If no session_id, redirect away
+    if (!sessionId) {
       navigate("/shop");
       return;
     }
-    setLoading(false);
 
-    if (isSuccess) {
-      // Sequential: clear cart first (removes from API + state), then refresh library.
-      // Awaiting inside useEffect requires an async IIFE.
-      (async () => {
-        try {
-          await clearCart();
-        } catch {
-          // non-critical — cart will also be cleared server-side by webhook
-        }
-        fetchPurchasedBooks();
+    const handleSuccess = async () => {
+      try {
+        // Verify payment with backend (calls Stripe API server-side)
+        const data = await verifySession(sessionId);
 
-        // ✅ 🔥 ADD TRACKING HERE
-        try {
-          const books = JSON.parse(localStorage.getItem("lastCart") || "[]");
+        if (data?.success) {
+          setIsSuccess(true);
+          setOrderId(data?.order?._id || null);
 
-          if (books.length > 0) {
-            await trackPurchase(books.map((b) => b._id));
-            localStorage.removeItem("lastCart"); // تنظيف بعد التراكينج
+          // Sequential: clear cart first, then refresh library
+          try {
+            await clearCart();
+          } catch {
+            // non-critical — cart will also be cleared server-side by webhook
           }
-        } catch (err) {
-          console.error("Tracking purchase failed:", err);
+          fetchPurchasedBooks();
+
+          // ✅ 🔥 TRACKING
+          try {
+            const books = JSON.parse(localStorage.getItem("lastCart") || "[]");
+            if (books.length > 0) {
+              await trackPurchase(books.map((b) => b._id));
+              localStorage.removeItem("lastCart");
+            }
+          } catch (err) {
+            console.error("Tracking purchase failed:", err);
+          }
+        } else {
+          setIsSuccess(false);
         }
-      })();
-    }
+      } catch (err) {
+        console.error("Session verification failed:", err);
+        setIsSuccess(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    handleSuccess();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -145,9 +160,9 @@ const CheckoutSuccess = () => {
                 <div>
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     {t("Order confirmed")}
-                    {transactionId && (
+                    {orderId && (
                       <span className="ml-2 font-mono text-xs text-gray-500 dark:text-gray-500">
-                        #{transactionId}
+                        #{orderId}
                       </span>
                     )}
                   </p>

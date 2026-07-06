@@ -16,8 +16,8 @@ const SkeletonCard = () => (
     <div className="p-4 space-y-3">
       <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-3/4 mx-auto" />
       <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-1/2 mx-auto" />
-      <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full" />
-      <div className="flex gap-2 mt-4">
+      <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded w-full hidden sm:block" />
+      <div className="flex flex-col sm:flex-row gap-2 mt-4">
         <div className="h-9 bg-gray-200 dark:bg-zinc-700 rounded-lg flex-1" />
         <div className="h-9 bg-gray-200 dark:bg-zinc-700 rounded-lg flex-1" />
       </div>
@@ -106,7 +106,7 @@ const SimilarBooks = ({ bookId }) => {
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 min-[340px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <AnimatePresence>
           {loading
             ? Array.from({ length: 5 }).map((_, i) => (
@@ -136,6 +136,7 @@ const SimilarBooks = ({ bookId }) => {
                     isFirstOrder={isFirstOrder}
                     t={t}
                     i18n={i18n}
+                    compact={true}
                   />
                 </motion.div>
               ))}
