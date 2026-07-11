@@ -11,6 +11,7 @@ import { FaCartPlus, FaShoppingCart } from "react-icons/fa";
 import {
   X,
   Menu,
+  Lock,
   ShoppingCart,
   Home,
   Store,
@@ -41,13 +42,13 @@ import { useTranslation } from "react-i18next";
 import { useCart } from "../hooks/useCart";
 import { useAuth } from "../context/AuthContext";
 import { getImageSrc } from "../utils/imageUtils";
-import NormalPdfViewer from "../components/PdfViewer";
+
 import "../css/flipbook.css";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 
-const PREVIEW_PAGE_LIMIT = 5;
+const PREVIEW_PAGE_LIMIT = 20;
 
 const FlipPage = forwardRef(
   (
@@ -193,39 +194,27 @@ const PdfViewer = () => {
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showRateModal, setShowRateModal] = useState(false);
-  const [viewMode, setViewMode] = useState("flipbook"); // "flipbook" or "normal"
-  const normalToolbarApiRef = useRef(null);
   const [bookUsePortrait, setBookUsePortrait] = useState(
     window.innerWidth < 768,
   );
 
   // Sync with saved page when it's fully ready
   useEffect(() => {
-    if (savedStartPage > 0 && !hasJumpedRef.current) {
-      // 1. Always update the currentPage state so both viewers see the right page
+    if (savedStartPage > 0 && !hasJumpedRef.current && pdfReady) {
       setCurrentPage(savedStartPage);
-
-      // 2. If flipbook is currently active, jump it too
-      if (viewMode === "flipbook" && pdfReady) {
-        const timer = setTimeout(() => {
-          try {
-            if (flipBookRef.current?.pageFlip()) {
-              flipBookRef.current.pageFlip().turnToPage(savedStartPage);
-            }
-          } catch (e) {
-            console.error("Flipbook jump error:", e);
+      const timer = setTimeout(() => {
+        try {
+          if (flipBookRef.current?.pageFlip()) {
+            flipBookRef.current.pageFlip().turnToPage(savedStartPage);
           }
-        }, 300);
-
-        // Mark as jumped only if flipbook was ready or we've updated state
-        hasJumpedRef.current = true;
-        return () => clearTimeout(timer);
-      } else if (viewMode === "normal") {
-        // In normal view, setting currentPage is enough as NormalPdfViewer uses it in initialPage
-        hasJumpedRef.current = true;
-      }
+        } catch (e) {
+          console.error("Flipbook jump error:", e);
+        }
+      }, 300);
+      hasJumpedRef.current = true;
+      return () => clearTimeout(timer);
     }
-  }, [pdfReady, savedStartPage, viewMode]);
+  }, [pdfReady, savedStartPage]);
 
   // Determine if user is authorized to read the full book (purchased, author, or admin)
   const isAuthorized = useMemo(() => {
@@ -242,33 +231,8 @@ const PdfViewer = () => {
     return false;
   }, [book, isBookPurchased, user]);
 
-  // Set default view to normal for unpurchased books
-  useEffect(() => {
-    if (book && !isAuthorized && viewMode !== "normal") {
-      setViewMode("normal");
-    }
-  }, [book, isAuthorized, viewMode]);
-
   const [bookDimensions, setBookDimensions] = useState({ w: 400, h: 560 });
   const [pdfFile, setPdfFile] = useState(null);
-
-  // Sync flipbook page when returning from normal view
-  useEffect(() => {
-    if (viewMode === "flipbook" && flipBookRef.current && pdfReady) {
-      const timer = setTimeout(() => {
-        try {
-          const pageFlipApi = flipBookRef.current?.pageFlip?.();
-          if (!pageFlipApi?.turnToPage) return;
-          // currentPage is 1-indexed, turnToPage expects 0-indexed or logical page index
-          // HTMLFlipBook handles pages including covers
-          pageFlipApi.turnToPage(currentPage);
-        } catch (e) {
-          console.error("Error syncing flipbook page:", e);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [viewMode, pdfReady, currentPage]);
 
   const flipBookRef = useRef(null);
   const containerRef = useRef(null);
@@ -841,28 +805,7 @@ const PdfViewer = () => {
 
       {/* Flipbook Area */}
       <div className="flipbook-area" ref={containerRef}>
-        {viewMode === "normal" ? (
-          <div className="relative h-[calc(100%+45px)] w-full bg-zinc-900 overflow-hidden -mt-[45px]">
-            <NormalPdfViewer
-              book={book}
-              pdfFile={pdfFile}
-              isAuthorized={isAuthorized}
-              externalToolbarApiRef={normalToolbarApiRef}
-              hideHeader={true}
-              initialPage={Math.max(0, currentPage - 1)} // PDF viewer is 0-indexed
-              onPageChange={(page) => setCurrentPage(page + 1)}
-            />
-            {/* Overlay Toggle Button to go back to Flipbook */}
-            <button
-              onClick={() => setViewMode("flipbook")}
-              className="absolute bottom-15 md:bottom-6 left-6 z-[100] p-4 bg-indigo-600 text-white rounded-full shadow-2xl hover:bg-indigo-700 transition-all active:scale-95 cursor-pointer border-2 border-white/20"
-              title={t("Switch to Book View")}
-            >
-              <BookOpen size={24} />
-            </button>
-          </div>
-        ) : (
-          <>
+        <>
             {/* PDF Loading */}
             {!pdfReady && book.pdf && (
               <div className="flipbook-loading-screen">
@@ -983,7 +926,6 @@ const PdfViewer = () => {
               </div>
             )}
           </>
-        )}
       </div>
 
       {/* Modals */}
@@ -1099,11 +1041,7 @@ const PdfViewer = () => {
         <div className="flipbook-toolbar">
           <button
             className="flipbook-toolbar-btn"
-            onClick={() =>
-              viewMode === "normal"
-                ? normalToolbarApiRef.current?.prev?.()
-                : flipPrev()
-            }
+            onClick={flipPrev}
             title={t("Previous")}
           >
             <ChevronLeft size={18} />
@@ -1113,11 +1051,7 @@ const PdfViewer = () => {
           </div>
           <button
             className="flipbook-toolbar-btn"
-            onClick={() =>
-              viewMode === "normal"
-                ? normalToolbarApiRef.current?.next?.()
-                : flipNext()
-            }
+            onClick={flipNext}
             title={t("Next")}
           >
             <ChevronRight size={18} />
@@ -1125,60 +1059,28 @@ const PdfViewer = () => {
           <div className="flipbook-toolbar-divider" />
           <button
             className="flipbook-toolbar-btn"
-            onClick={() =>
-              viewMode === "normal"
-                ? normalToolbarApiRef.current?.zoomOut?.()
-                : zoomOut()
-            }
+            onClick={zoomOut}
             title={t("Zoom Out")}
           >
             <ZoomOut size={17} />
           </button>
-          <div className="flipbook-toolbar-divider" />
-          <button
-            className={`flipbook-toolbar-btn ${viewMode === "normal" ? "active" : ""}`}
-            onClick={() => setViewMode("normal")}
-            title={t("Switch to Normal View")}
-          >
-            <Menu size={22} />
-          </button>
           <button
             className="flipbook-toolbar-btn"
-            onClick={() => {
-              if (viewMode === "normal") {
-                normalToolbarApiRef.current?.toggleSingleTwo?.();
-                return;
-              }
-              setBookUsePortrait((prev) => !prev);
-            }}
+            onClick={() => setBookUsePortrait((prev) => !prev)}
             title={t("Show Two Pages / Show Single Page")}
           >
-            {viewMode === "normal" ? (
-              <Columns size={17} />
-            ) : bookUsePortrait ? (
-              <Columns size={17} />
-            ) : (
-              <Square size={17} />
-            )}
+            {bookUsePortrait ? <Columns size={17} /> : <Square size={17} />}
           </button>
           <button
             className="flipbook-toolbar-btn"
-            onClick={() =>
-              viewMode === "normal"
-                ? normalToolbarApiRef.current?.zoomReset?.()
-                : zoomReset()
-            }
+            onClick={zoomReset}
             title={t("Reset Zoom")}
           >
             <RotateCcw size={15} />
           </button>
           <button
             className="flipbook-toolbar-btn"
-            onClick={() =>
-              viewMode === "normal"
-                ? normalToolbarApiRef.current?.zoomIn?.()
-                : zoomIn()
-            }
+            onClick={zoomIn}
             title={t("Zoom In")}
           >
             <ZoomIn size={17} />
@@ -1186,11 +1088,7 @@ const PdfViewer = () => {
           <div className="flipbook-toolbar-divider" />
           <button
             className={`flipbook-toolbar-btn ${showThumbnails ? "active" : ""}`}
-            onClick={() =>
-              viewMode === "normal"
-                ? normalToolbarApiRef.current?.toggleSidebar?.()
-                : setShowThumbnails(!showThumbnails)
-            }
+            onClick={() => setShowThumbnails(!showThumbnails)}
             title={t("Pages")}
           >
             <Grid3X3 size={17} />
