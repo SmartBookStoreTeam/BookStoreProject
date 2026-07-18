@@ -39,7 +39,7 @@ import "../pdfViewerFullscreen.css";
 import { getImageSrc } from "../utils/imageUtils";
 
 // Number of pages a guest / logged-in unpurchased user can view freely
-const PREVIEW_PAGE_LIMIT = 20;
+const PREVIEW_PAGE_LIMIT = 5;
 
 const PdfViewer = ({
   book: initialBook,
